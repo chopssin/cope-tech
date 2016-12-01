@@ -6,6 +6,6 @@ before_install:
   -in credentials.tar.gz.enc -out credentials.tar.gz -d
 deploy:
   provider: gae
-  keyfile: 'client-secret.json.enc'
+  keyfile: 'client-secret.json'
   project: 'cope-326d5'
   skip_cleanup: true

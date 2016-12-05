@@ -62,35 +62,32 @@
   // -----------------------------
   // setTest
   // -----------------------------
-  var setTest = function(_name, _toggle) {
-    var name = _name, myTest = {}, debug;
-    if (typeof name != 'string') {
-      var _t = util.timeOf(new Date().getTime());
-       name = _t.fullDate + ' ' + _t.fullTime; 
+  var setTest = function() {
+    var args = arguments,
+        msg = '', func;
+    switch (args.length) {
+      case 1: // anonymously
+        func = typeof args[0] == 'function' ? args[0] : null;
+        break;
+      case 2: 
+        msg = typeof args[0] == 'string' ? args[0] : '';
+        func = typeof args[1] == 'function' ? args[1]: null;
     }
-    debug = setDebug('TEST | ' + name, true);
-  
-    myTest.run = function() {
-      if (!_toggle) return;
-
-      var args = arguments;
-      switch(args.length) {
-        case 1:
-          // Anonymous test
-          if (typeof args[0] == 'function') {
-            debug('testing...');
-            args[0](debug);
-          }
-          break;
-        case 2:
-          if (typeof args[0] == 'string' && typeof args[1] == 'function') {
-            debug(args[0]);
-            args[1].call(null, debug);
-          }
-          break;
-      } 
-    };
-    return myTest;
+    if (!func) return console.error('Failed to setTest');
+    return function() {
+      var my = {};
+      my.msg = msg;
+      my.debug = setDebug('TEST | ' + msg , true);
+      my.run = function(_cb) { 
+        my.done = function() {
+          if (typeof _cb == 'function') { return _cb.call(my); }
+        }; // end of my.done
+          
+        // Run the test function
+        func.apply(my, arguments);
+      };
+      return my;
+    }();
   }; // end of setTest
 
   // -----------------------------
@@ -1140,21 +1137,36 @@
   
   // -----------------------------
   // graphDB
-  // @auth: <boolean>
   // @Editor
   // @graphId
   // -----------------------------
-  var graphDB = function(params) {
+  //var graphDB = function(params) {
+  var graphDB = function(_config) {
     
-    var debug = setDebug('graphDB', true);
-    var myDB = {}, app, config, thenable,
+    // TBD: change "params" to "_config"
+    // var myCopeApp = this,
+    // myEditor = this.useEditor(),
+    // graphId = myCopeApp.appId,
+    // config = _config
+    // ...
+    //
+    // usage of useGraphDB: <- graphDB.call(theCopeApp, configData);
+    //
+
+    var debug = setDebug('graphDB', false);
+    var myDB = {}, app, thenable,
         rootRef, storeRef, nodesRef, edgesRef,
         col, node, edge, files,
-        graphId = params.graphId, // eg. diplogifts-1
+        config = _config,
+        myCopeApp = this,
+        myEditor = this.useEditor(),
+        graphId = myCopeApp.appId,
+        //graphId = params.graphId, // eg. diplogifts-1
         graphRoot = '/cope_user_apps/' + graphId + '/public',
         storeRoot = '/user_apps/' + graphId,
-        myEditor = params.Editor,
-        auth, authRequired = params.auth || false,
+        //myEditor = params.Editor,
+        auth,
+        //authRequired = params.auth || false,
         signIn = function(_done) {
           // Auth to write
           //var email = account; //TBD: validate account //"chopssin@gmail.com";
@@ -1182,8 +1194,12 @@
         }; // end of signIn
 
     // Config and construct firebase
-    config = params.config;
-    app = firebase.initializeApp(config);
+    //config = params.config;
+    try {
+      app = firebase.initializeApp(config);
+    } catch (err) {
+      return console.error(err);
+    }
 
     myDB.user = function() {
       var _thenable = {}, done;
@@ -1194,7 +1210,7 @@
           debug('User gone.');
           auth();
         } else {
-          debug('User still alive.');
+          debug('User signed in.');
           if (typeof done == 'function') done(user);
         }
       });
@@ -1220,7 +1236,50 @@
 
 
     // -----------------------------
-    debug(graphId);
+    debug('graphId', graphId);
+    if (!graphId) {
+      debug('No GraphId, return AppBuilder');
+      return {
+        create: function(_appId) {
+          debug('Try to create app "' + _appId + '"');
+          var _thenable = {}, done;
+          _thenable.then = function(_cb) { done = _cb; };
+
+          // Init a new app on firebase
+          app.database().ref('cope_user_apps').child(_appId).child('public').once('value')
+          .catch(function(err) {
+            console.error(err);
+          })
+          .then(function(snap) {
+            if (snap.val()) {
+              return console.error('App "' + _appId + '" already exists');
+            }
+            myDB.user().then(function(_user) {
+              if (!_user.uid) return console.error('Failed to create app "' + _appId + '"');
+              debug('Cope user', _user.uid);
+
+              var owner = {}; 
+              owner[_user.uid] = true;
+              app.database().ref('cope_user_apps')
+              .child(_appId)
+              .child('credentials')
+              .set({
+                owner: owner,
+                partners: owner
+              }).then(function() {
+                if (typeof done == 'function') { 
+                  debug('App "' + _appId + '" has been built.');
+                  done(); 
+                }
+              });
+            }); // end of myDB.user
+          }); // end of app.ref('cope_user_apps')
+          return _thenable;
+        } // end of create:
+      }; // end of return
+    } // end of if
+    // -----------------------------
+
     rootRef = function() {
       return app.database().ref(graphRoot);
     };
@@ -1726,36 +1785,55 @@
   // -----------------------------
   // copeApp
   // -----------------------------
-  var copeApp = function() {
-    var debug = setDebug('copeApp', true);
+  var copeApp = function(_appId) {
+    var debug = setDebug('copeApp', false);
     var my = {},
         app, 
         myViews, // where we store constructed Views
         myEditor, // where we store constructed Editor
         myGraphDB, // where we store constructed GraphDB
-        //myGraphId, // id to construct GraphDB
-        //config, // = params.config,
-        //appName, // = params.appName,
-        //path, // = params.path,
         pageProtos = {};
 
-    //my.ref = function() {
-      //return app.database().ref(appRoot);
-      //return myGraphDB.rootRef();
-    //};
-    //my.storeRef = function() {
-      //return app.storage().ref(storageRoot);
-      //return myGraphDB.storeRef();
-    //};
+    my.useViews = function() {
+      if (!myViews) { myViews = views(); }
+      return myViews;
+    };
+    my.useEditor = function() {
+      if (!myViews) { myViews = views(); }
+      if (!myEditor) { myEditor = editor.call(my); }
+      return myEditor; 
+    };
+
+    if (!_appId) {
+      debug('Found no _appId in copeApp(_appId): return app builder');
+      my.create = function(_appId) {
+        return function() {
+          var _thenable = {}, done;
+          _thenable.then = function(_cb) {
+            done = _cb;
+          }
+          $.ajax({ type:'GET', url:'/cope-config' }).done(function(_config) {
+            graphDB.call(my, _config).create(_appId).then(function() {
+              if (typeof done == 'function') {
+                debug('Done.');
+                done(copeApp(_appId));
+              }
+            }); // end of graphDB.call
+          });
+          return _thenable;
+        }();
+      };
+      return my;
+    }
+    my.appId = _appId;
+
     my.setPage = function(_pageName, func) {
-      // TBD: get type from server
       if (typeof _pageName == 'string'
           && typeof func == 'function') {
         pageProtos[_pageName] = func;
       }
     };
     my.usePage = function(_pageName) {
-      debug('usePage - this.editable', this.editable);
       var func = pageProtos[_pageName];
       if (!func) return console.error('Failed to load page');
       if (this.editable) {
@@ -1771,26 +1849,18 @@
       }
     }; // end of my.usePage
     
-    my.useViews = function() {
-      if (!myViews) { myViews = views(); }
-      return myViews;
-    };
-    my.useEditor = function() {
-      if (!myViews) { myViews = views(); }
-      if (!myEditor) { myEditor = editor.call(my); }
-      return myEditor; 
-    };
     my.useUtil = function() {
       return util; // Utilities
     };
-    my.useGraphDB = function(data) {
+    my.useGraphDB = function(_config) {
       //if (!myGraphDB) myGraphDB = graphDB({ config: config, graphId: gid, Editor: myEditor });
       if (myGraphDB) {
         return myGraphDB;
-      } if (!myGraphDB && data) {
-        debug('useGraphDB - init with data', data);
-        data.Editor = myEditor;
-        myGraphDB = graphDB(data);
+      } if (!myGraphDB && _config) {
+        debug('useGraphDB - init with _config', _config);
+        //data.Editor = myEditor;
+        //myGraphDB = graphDB(data);
+        myGraphDB = graphDB.call(my, _config);
         return myGraphDB;
       }  
       console.error('Fail to useGraphDB');
@@ -1806,23 +1876,24 @@
       $.ajax({
         type: 'GET',
         url: '/cope-config'
-      }).done(function(data) {
+      }).done(function(_config) {
       
-        my.appName = data.appName;
-
         // Init myGraphDB
-        my.useGraphDB(data); 
+        my.useGraphDB(_config); debug('config', _config);
+
+        // TBD: get appName
+        // ......
 
         // Render the page
         my.usePage(params.page); 
       });
-
-    };
+    }; // end of my.build
     return my;
   }; // end of function copeApp
 
   window.copeApp = copeApp;
   window.dataSnap = dataSnap;
+  window.util = util;
   //window.Views = views;
 
 })(jQuery);

@@ -1,9 +1,10 @@
-var debug = require('debug');
+var debug = require('debug')('routes');
 var express = require('express');
 var router = express.Router();
 
 router.get('*', function(req, res, next) {
   debug(req.originalUrl);
+  next();
 });
 
 // GET home page

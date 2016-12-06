@@ -1,11 +1,17 @@
+var debug = require('debug');
 var express = require('express');
 var router = express.Router();
 
-/* GET home page. */
+router.get('*', function(req, res, next) {
+  debug(req.originalUrl);
+});
+
+// GET home page
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Cope' });
 });
 
+// GET firebase config
 router.get('/cope-config', function(req, res, next) {
   var config = {
     apiKey: "AIzaSyCgOKeDjUkWX5gBni6e2dhBYBH7u8Uks3E",

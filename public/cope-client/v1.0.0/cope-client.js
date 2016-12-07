@@ -1849,9 +1849,9 @@
       }
     }; // end of my.usePage
     
-    my.useUtil = function() {
-      return util; // Utilities
-    };
+    //my.useUtil = function() {
+    //  return util; // Utilities
+    //};
     my.useGraphDB = function(_config) {
       //if (!myGraphDB) myGraphDB = graphDB({ config: config, graphId: gid, Editor: myEditor });
       if (myGraphDB) {
@@ -1891,8 +1891,9 @@
     return my;
   }; // end of function copeApp
 
-  window.copeApp = copeApp;
   window.dataSnap = dataSnap;
+  window.views = views;
   window.util = util;
+  window.copeApp = copeApp;
 
 })(jQuery);

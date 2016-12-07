@@ -1894,6 +1894,5 @@
   window.copeApp = copeApp;
   window.dataSnap = dataSnap;
   window.util = util;
-  //window.Views = views;
 
 })(jQuery);

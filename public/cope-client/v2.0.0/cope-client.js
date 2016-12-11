@@ -62,32 +62,54 @@
   // -----------------------------
   // setTest
   // -----------------------------
-  var setTest = function() {
-    var args = arguments,
-        msg = '', func;
-    switch (args.length) {
-      case 1: // anonymously
-        func = typeof args[0] == 'function' ? args[0] : null;
-        break;
-      case 2: 
-        msg = typeof args[0] == 'string' ? args[0] : '';
-        func = typeof args[1] == 'function' ? args[1]: null;
-    }
-    if (!func) return console.error('Failed to setTest');
-    return function() {
-      var my = {};
-      my.msg = msg;
-      my.debug = setDebug('TEST | ' + msg , true);
-      my.run = function(_cb) { 
-        my.done = function() {
-          if (typeof _cb == 'function') { return _cb.call(my); }
-        }; // end of my.done
-          
-        // Run the test function
-        func.apply(my, arguments);
+  var setTest = function(_tag) {
+    var tag = _tag || new Date().getTime().toString(36),
+        tests = [], 
+        debug = setDebug('TEST "' + tag + '"', true);
+
+    return function(_func) {
+      var func = _func,
+          idx = tests.length,
+          toPrint = false,
+          hasPassed = false,
+          my = {};
+
+      if (typeof func != 'function') return null;
+      tests[idx] = false;
+
+      my.debug = debug;
+      my.pass = function(_msg) {
+        debug('=== PASSED (' + idx + ') ===', _msg || '');
+        if (!hasPassed) {
+          hasPassed = true;
+        } else {
+          debug('Already passed (' + idx + ')',  _msg || '');
+          return;
+        }
+
+        var count = 0;
+        tests[idx] = true;
+        if (!toPrint) return;
+
+        // Print the current status
+        for (var i = 0; i < tests.length; i++) {
+          if (tests[i]) count++;
+        }
+        debug('passed: ' + count + '/' + tests.length);
+        if (count == tests.length) {
+          debug('===============');
+          debug('All tests done.');
+          debug('===============');
+        }
+      }; // end of my.pass
+      my.print = function() {
+        toPrint = true;
       };
+
+      // Run the test function
+      func.call(my, my.pass);
       return my;
-    }();
+    }; // end of return
   }; // end of setTest
 
   // -----------------------------
@@ -1141,22 +1163,14 @@
   // @graphId
   // -----------------------------
   var graphDB = function() {
-    var debug = setDebug('graphDB', true),
+    var debug = setDebug('graphDB', false),
         myUser, // current cope user
         myFB, getFB, // to get the current firebase
-        col, node, edge, files,
+        api = {},
+        //col, node, edge, files,
         isValidName,
         getRoot,
         myGraph = {};
-      
-    // To get roots of ref and storage based on graphId/appId
-    getRoot = function(_graphId) {
-      if (!_graphId) return null;
-      return {
-        ref: 'cope_user_apps/' + _graphId + '/public',
-        store: 'user_apps/' + _graphId
-      };
-    }; // end of getRoot
 
     // To get the current firebase instance
     getFB = function() {
@@ -1181,18 +1195,150 @@
       return false;
     };
 
+    // getApp - Node
+    api.node = function(_colName, _nodeKey) {
+      if (!isValidName(_colName) 
+          || !isValidName(_nodeKey)
+          || !this || !this.appRef) return null;
+      var myNode = {},
+          myAppRef = this.appRef;
+      
+      myNode.key = _nodeKey;
+      myNode.col = _colName;
+      myNode.val = function() {
+        var args = arguments,
+            thisNode = this,
+            done = function() {};
+        switch (args.length) {
+          case 0: // fetch all vals
+            // Firstly, find fields
+            myAppRef.child(_colName).child('__fields').once('value')
+              .then(function(_snap) {
+              var vals = {}, fields = [], count = 0;
+              if (_snap.val()) { // if field(s) exists
+                fields = Object.keys(_snap.val());
+                fields.forEach(function(_f) {
+                  myAppRef.child(_colName).child(_f).child(_nodeKey)
+                    .once('value')
+                    .then(function(_val) {
+                    count++;
+                    if (_val.val()) {
+                      vals[_f] = _val.val();
+                    }
+                    if (count == fields.length) {
+                      done.call(thisNode, vals);
+                    }
+                  });
+                });
+              } else { // no fields
+                done.call(thisNode, {});
+              } // end of else
+            });
+            break;
+
+          case 1: 
+            // 1. fetch specific value: val(<string>field)
+            if (typeof args[0] == 'string') { // args[0] -> field
+              myAppRef.child(_colName).child(_nodeKey)
+                .child(args[0]).once('value')
+                .then(function(_snap) {
+                done.call(thisNode, _snap.val()); 
+              });
+
+            // 2. set multiple values: val(<object>values)
+            } else if (typeof args[0] == 'object') { // args[0] -> obj
+              var obj = args[0], count = 0, keys;
+              keys = Object.keys(obj);
+              keys.forEach(function(_key) {
+                thisNode.val(_key, obj[_key]).then(function() {
+                  count++;
+                  if (count == keys.length) {
+                    done.call(thisNode, true);
+                  }
+                });
+              });
+            }
+            break;
+
+          case 2: // set specific value: val(field, value)
+            if (typeof args[0] == 'string') {
+              // Set the field
+              myAppRef.child(_colName).child('__fields')
+                .child(args[0]).set(true);
+              
+              // Record the node in "_nodes"
+              myAppRef.child('_nodes').child(_colName)
+                .child(_nodeKey).set(true);
+
+              // Set the value
+              myAppRef.child(_colName)
+                .child(args[0])
+                .child(_nodeKey)
+                .set(args[1])
+                .then(function() {
+                done.call(myNode, true);  
+              });
+            }
+            break;
+        } // end of switch
+        
+        return { 
+          then: function(_cb) { 
+            if (typeof _cb == 'function') { done = _cb; }
+          } // end of then 
+        };
+      }; // end of myNode.val
+
+      myNode.del = function(_isTrue) {
+        //var that = this;
+        var done;
+        if (_isTrue === true) {
+          // Remove values
+          myAppRef.child(_colName).child('__fields').once('value').then(function(_snap) {
+            var count = 0, fields = [];
+            if (!_snap.val()) return;
+
+            // Remove values of the node
+            fields = Object.keys(_snap.val());
+            fields.forEach(function(_f) {
+              myAppRef.child(_colName).child(_f)
+                .child(_nodeKey).set(null).then(function() {
+                count++;
+                if (count == fields.length) {
+                  
+                  // Remove the node from '_nodes'
+                  myAppRef.child('_nodes').child(_colName)
+                    .child(_nodeKey).set(null)
+                    .then(function() {
+                    if (typeof done == 'function') {
+                      done();
+                    }
+                  });
+                } // end of removal of the node
+              }); // end of removal of each field
+            });
+          });
+          return { then: function(_cb) { done = _cb; } };
+        }
+        return null;
+      }; // end of myNode.del
+      return myNode;
+    }; // end of api.node
+
     // getApp - Collection
-    col = function(_colName) {
-      if (!isValidName(_colName)) return false;
+    api.col = function(_colName) {
+      if (!isValidName(_colName) || !this || !this.appRef || !this.storeRef) return false;
 
       var myCol = {},
-          nodesColRef = this.nodesRef.child(_colName),
-          colRef = this.rootRef.child(_colName),
-          newRef;
+          appRef = this.appRef,
+          node = api.node.bind(this);
+          //nodesColRef = this.appRef.child(_colName),
+          //colRef = this.rootRef.child(_colName),
+          //newRef;
 
       // _nodes._cols.<colName>: true
-      this.nodesRef.child('_cols').child(_colName).set(true);
-      
+      appRef.child('_nodes/_cols').child(_colName).set(true);
+
       // To find node by key
       myCol.node = function(_key) { 
         if (!isValidName(_key)) return null;
@@ -1200,133 +1346,114 @@
       }; // end of myCol.get 
 
       myCol.getNodes = function() {
-        var _thenable = {}, _ns = [];
-        _thenable.then = function(cb) {
-          if (typeof cb != 'function') return null;
-          nodesColRef
-            .once('value')
-            .then(function(snap) {
-              if (snap.val()) {
-                _ns = Object.keys(snap.val())
-                  .map(function(_k) { 
-                    return node(colName, _k);
-                    //return {
-                    //  node: _node,
-                    //  data: snap.val()[_k]
-                    //}; 
-                  });
-                cb(_ns);
+        var ns = [];
+        return {
+          then: function(_cb) {
+            if (typeof _cb != 'function') return null;
+            appRef.child('_nodes').child(_colName)
+              .once('value')
+              .then(function(_snap) {
+              if (_snap.val()) {
+                ns = Object.keys(_snap.val()).map(function(_k) { 
+                  return node(colName, _k);
+                });
+                _cb(ns);
               }
-            });
-        }; // end of nodesColRef
-        return _thenable;
+            }); 
+          } // end of then
+        }; // end of return
       }; // end of myCol.getNodes
 
-      myCol.ref = function() {
-        return colRef;
-      };
-
-      myCol.col = colName;
+      myCol.col = _colName;
       return myCol;
-    }; // end of col
+    }; // end of api.col
 
-    // getApp - Node
-    node = function(_colName, _nodeKey) {
-      if (!isValidName(_colName) || !isValidName(_nodeKey)) return;
-      var myNode = {},
-          thenableWithCol,
-          myNodesColRef = this.nodesRef.child(colName),
-          myColRef = this.rootRef.child(colName);
-
-      thenableFromCol = function(_colRef) {
-        var _thenable = {}, that = this;
-        _thenable.then = function(cb) {
-          if (!_colRef.then) return {};
-          _colRef.then(function(snap) {
-            var fields = snap.val(), 
-                vals = {}, count = 0;
-            if (fields) {
-              fields = Object.keys(fields)
-                .map(function(_f) {
-                  return _f;
-                });
-              fields.forEach(function(_field) {
-                that.val(_field).then(function(val) {
-                  count++;
-                  if (val) vals[_field] = val;
-                  if (count == fields.length) {
-                    if (typeof cb != 'function') return;
-                    if (Object.keys(vals).length === 0) vals = null;
-                    return cb.call(that, vals);
-                  }
-                });
-              }); // end of fields.forEach
-            } // end of if
-          }); // end of _colRef.then
-        }; // end of _thenable.then
-        return _thenable;
-      }; // end of thenableFromCol
-      myNode.val = function() {
-        var args = arguments, that = this;
-
-        switch (args.length) {
-          case 0: // get all vals
-            return thenableFromCol.call(that, myColRef.child('__fields').once('value'));
-            break;
-          case 1: 
-            if (typeof args[0] == 'string') {
-              // Get specific value by key
-              return thenable.call(that, myColRef.child(args[0]).child(nodeKey).once('value'));
-            } else if (typeof args[0] == 'object') {
-              // Set multiple fields at once
-              var _thenable = {}, saveVals;
-              saveVals = function(_cb) {
-                var _c = 0, _fs = Object.keys(args[0]);
-                if (typeof _cb != 'function') _cb = function() {};
-
-                _fs.forEach(function(_field) {
-                  var _val = args[0][_field];
-                  that.val(_field, _val).then(function() {
-                    _c++; 
-                    if (_c == _fs.length) {
-                      _cb.call(myNode);
-                    }
+    // getApp - Edges
+    api.edges = function(_label) {
+      if (!isValidName(_label) 
+          || !this || !this.appRef) return null;
+      var myEdges = {}, myAppRef = this.appRef,
+          setEdge, findNodes,
+          node = api.node.bind(this);
+      setEdge = function(_na, _nb, _v) {
+        var done = function() {}, 
+            count = 0;
+        if (!_na || !_na.col || !_na.key
+            || !_nb || !_nb.col || !_nb.key) {
+          return null;
+        }
+        // Set _edges/_labels/<label>
+        myAppRef.child('_edges').child('_labels')
+          .child(_label)
+          .set(true);
+        // Set _edges/<label>/from/cA/kA/cB/kB
+        myAppRef.child('_edges').child(_label).child('from')
+          .child(_na.col).child(_na.key)
+          .child(_nb.col).child(_nb.key)
+          .set(_v)
+          .then(function() {
+            count++; if (count == 2) { done(); }
+          });
+        // Set _edges/<label>/to/cB/kB/cA/kA
+        myAppRef.child('_edges').child(_label).child('to')
+          .child(_nb.col).child(_nb.key)
+          .child(_na.col).child(_na.key)
+          .set(_v)
+          .then(function() {
+            count++; if (count == 2) { done(); }
+          });
+        return {
+          then: function(_cb) { 
+            if (typeof _cb == 'function') {
+              done = _cb;
+            } 
+          }
+        };
+      }; // end of setEdge
+      findNodes = function(_dir, _n) {
+        debug('findNodes _dir', _dir);
+        debug('findNodes _n', _n);
+        if (_dir != 'from' && _dir != 'to') return null;
+        if (!_n.col || !_n.key) return null;
+        return {
+          then: function(_cb) {
+            if (typeof _cb != 'function') return null;
+            myAppRef.child('_edges').child(_label).child(_dir)
+              .child(_n.col).child(_n.key)
+              .once('value')
+              .then(function(_snap) {
+              var val = _snap.val(),
+                  nodes = [];
+              if (val) { // <_col>/<_key>: true
+                Object.keys(val).forEach(function(_col) {
+                  Object.keys(val[_col]).forEach(function(_key) {
+                    nodes.push(node(_col, _key));
                   });
                 });
               }
-              saveVals(); // in case _thenable.then isn't called
-              _thenable.then = function(_cb) {
-                saveVals(_cb);
-              };
-              return _thenable;
-            }
-            break;
-          case 2: // set specific value by key
-            if (typeof args[0] != 'string') return;
-            myColRef.child('__fields').child(args[0]).set(true);
-            return thenable.call(that, myColRef.child(args[0]).child(nodeKey).set(args[1]));
-            break;
-        } // end of switch
-      }; // end of myNode.val
-      
-      myNode.del = function(_isTrue) {
-        var that = this;
-        if (_isTrue === true) {
-          myColRef.child('__fields').once('value').then(function(snap) {
-            Object.keys(snap.val()).forEach(function(_f) {
-              myColRef.child(_f).child(nodeKey).ref.set(null);
-            });
-          });
-          return thenable.call(that, myNodesColRef.child(nodeKey).ref.set(null));
-        }
-      }; // end of myNode.del
+              _cb(nodes); // callback with nodes
+            }); // end of appRef
+          } // end of then
+        }; // end of return
+      }; // end of findNodes
 
-      myNode.key = nodeKey;
-      myNode.col = colName;
-      return myNode;
-    }; // end of node
+      myEdges.add = function(_na, _nb) {
+        return setEdge(_na, _nb, true);
+      }; 
+      myEdges.del = function(_na, _nb) {
+        return setEdge(_na, _nb, null);
+      }; 
+      myEdges.from = function(_n) {
+        return findNodes('from', _n);
+      };
+      myEdges.to = function(_n) {
+        return findNodes('to', _n);
+      };
+      return myEdges;
+    }; // end of api.edges
 
-    edge = function(edgeLabel) {
+    /*
+    api.edge = function(edgeLabel) {
       var myEdge = {},
           startRef, find, add, remove;
       
@@ -1442,10 +1569,34 @@
       myEdge.add = add;
       return myEdge;
     }; // end of edge
+    */
 
-    files = function() {
+    // getApp - Files
+    api.files = function() {
       var manager = {},
-          saveCallback; // set by calling manager.save().then()
+          appRef = this.appRef,
+          storeRef = this.storeRef;
+      if (!appRef || !storeRef) {
+        console.error('Failed to find appRef or storeRef');
+        return null;
+      }
+
+      manager.open = function(_path) {
+        if (!isValidName(_path)) return null;
+        return {
+          then: function(_cb) {
+            if (typeof _cb != 'function') return null;
+            appRef.child('_files').once('value').then(function(_snap) {
+              var val = _snap.val();
+              _cb(val);
+            });
+          } // end of then
+        }; // end of return 
+      }; // end of manager.open
+
+      return manager;
+
+      var saveCallback; // set by calling manager.save().then()
       manager.open = function(_path) {
         var _thenable = {}, openCallback,
             startRef = rootRef().child('_files');
@@ -1619,7 +1770,7 @@
         return _thenable;
       };
       return manager;
-    }; // end of files
+    }; // end of api.files
 
 
 
@@ -1668,22 +1819,31 @@
               var appsRef = _fb.database().ref('cope_user_apps'),
                   usersRef = _fb.database().ref('cope_users');
 
+              // Check if _appId was already taken
               appsRef.child('_app_list').child(_appId)
                 .once('value').then(function(snap) {
-                if (snap.val()) {
+                if (snap.val()) { // _appId already in used
                   debug(_appId, 'App "' + _appId + '" already exists.');
                   _cb.call(myGraph, null);
-                } else {
+                } else { // _appId not in used
                   // Create app
                   debug(_appId, 'prepare to create app');
                   var owner = {}; 
                   owner[user.uid] = true;
+                  
+                  // Add to user's "own_apps"
                   usersRef.child(user.uid).child('own_apps').child(_appId).set(true);
+
+                  // Add to "_app_list"
                   appsRef.child('_app_list').child(_appId).set(true);
+
+                  // Initiate the credentials of the app with owner data
                   appsRef.child(_appId).child('credentials')
                     .set({ owner: owner, partners: owner })
                     .then(function() {
                     debug('App "' + _appId + '" has been created.');
+
+                    // Callback with the newly built app
                     _cb.call(myGraph, myGraph.getApp(_appId));  
                   });
                 }
@@ -1697,27 +1857,25 @@
     }; // end of myGraph.createApp
 
     myGraph.getApp = function(_appId) {
-      if (!_appId) return null;
-      var rootRef, storeRef, nodesRef, edgesRef,
-          graphRoot = getRoot(_appId).ref,
-          storeRoot = getRoot(_appId).store,
-          appGraph = {};
-      appGraph.appId = _appId;
+      if (!isValidName(_appId)) return null;
+      
+      // Define roots of ref and storage based on _appId
+      var appRoot = 'cope_user_apps/' + _appId + '/public',
+          storeRoot = 'user_apps/' + _appId;
 
       return {
         then: function(_cb) {
           if (typeof _cb != 'function') return null;
           getFB().then(function(_fb) {
-            var obj = {};
-            obj.rootRef = _fb.database().ref(graphRoot);
+            var appGraph = {}, obj = {};
+            obj.appRef = _fb.database().ref(appRoot);
             obj.storeRef = _fb.database().ref(storeRoot);
-            obj.nodesRef = obj.rootRef.child('_nodes');
-            obj.edgesRef = obj.rootRef.child('_edges');
       
-            appGraph.col = col.bind(obj);
-            appGraph.node = node.bind(obj);
-            appGraph.edge = edge.bind(obj);
-            appGraph.files = files.bind(obj);
+            appGraph.col = api.col.bind(obj);
+            appGraph.node = api.node.bind(obj);
+            appGraph.edges = api.edges.bind(obj);
+            appGraph.files = api.files.bind(obj);
+            appGraph.appId = _appId;
 
             _cb(appGraph);
           }); // end of getFB

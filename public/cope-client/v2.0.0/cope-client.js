@@ -1683,9 +1683,6 @@
           if (typeof cb != 'function') return null;
           if (myUser) return cb(myUser);
           getFB().then(function(_fb) {
-            // TBD: test
-            _fb.auth().signOut();
-
             _fb.auth().onAuthStateChanged(function(user) {
               myUser = null;
               if (user) {

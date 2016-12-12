@@ -1,0 +1,41 @@
+extends layout
+
+block content
+  #page-container.purely
+    #nav.nav-top.cope
+      .container
+        #logo.logo.text
+          | #{title}
+    #page.page-wrap.cope
+      #dashboard.container
+        .row
+          .col-xs-12.col-md-4.col-md-push-8
+            h4 Account
+            #account.row
+              .col-xs-12
+                .cope-card.bg-w
+                  h3 Chopssin
+                  p chopssin@gmail.com
+          .col-xs-12.col-md-8.col-md-pull-4
+            h4 Apps
+            .row
+              #app.col-xs-12
+                #sample.cope-card.bg-w
+                  h3 台南市城市交流藝廊
+                  p App ID: diplogifts-1
+                  p Partner
+                  p 發佈中(expired at 2018/12/1)
+              .col-xs-12
+                button#btn-add-app.cope-btn(style="margin: 16px 0")
+                  h4 Add new app
+      #dashboard-app.container.hidden
+        .row
+          .col-xs-12
+            h3 台南市城市交流藝廊
+        .row
+          #overview-app.col-xs-12
+            h4 Overview
+            
+block javascripts
+  script( src = "javascripts/test-cope.js" )
+  script( src = "javascripts/cope-home.js" )

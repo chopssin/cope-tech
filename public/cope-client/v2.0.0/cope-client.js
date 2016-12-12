@@ -208,7 +208,7 @@
   // -----------------------------
   // Editor
   // -----------------------------
-  var editor = function() {
+  var editor = function(_graphDB) {
 
     var debug = setDebug('Editor', true);
 
@@ -222,10 +222,11 @@
         ImageChooserView, // choose images from the collection
         ImageUploaderView, // upload images from local
         lastOpenedVu, // record opened views in modal
-        my = {},
-        mainApp = this, // the copeApp
-        that = this; // the copeApp
-
+        myGraphDB = _graphDB,
+        my = {};
+        //mainApp = this, // the copeApp
+        //that = this; // the copeApp
+    
     // Cope Account
     CopeAccountView = Views.class('CopeAccount');
     CopeAccountView.dom(function() {
@@ -439,7 +440,6 @@
     }); // end of ImageUploader.dom
     ImageUploaderView.render(function() {
       var that = this,
-          G = mainApp.useGraphDB(), 
           counter = 0, // count processed images
           //callback = this.val('callback') || function() {},
           $images = this.$el('@images'),
@@ -526,7 +526,7 @@
                 file: thumb
               };
 
-              G.files().saveMany([thumbParams, fileParams]).then(function(_pairs) {
+              myGraphDB.files().saveMany([thumbParams, fileParams]).then(function(_pairs) {
                 count++;
                 var imgObj = {};
                 _pairs.forEach(function(x) {
@@ -579,7 +579,12 @@
         e.stopPropagation();
       });
     }); // end of ModalView.render
-    vuModal = ModalView.build({ selector: 'body', method: 'prepend' });
+
+    // Initial modal built only once
+    if (!this.vuModal) { 
+      this.vuModal = ModalView.build({ selector: 'body', method: 'prepend' });
+    }
+    vuModal = this.vuModal;
 
     // Editor's methods
     my.open = function(obj) {
@@ -614,11 +619,13 @@
       
     // @multi
     my.openImages = function(_params) { 
+      if (!myGraphDB) return;
       return my.open({ use: 'ImageChooser', data: _params });
     }; // end of my.openImages
       
     // @multi
     my.openImageUploader = function(_params) { 
+      if (!myGraphDB) return;
       return my.open({ use: 'ImageUploader', data: _params });
     }; // end of my.openImageUploader
 
@@ -633,7 +640,9 @@
       _thenable.then = function(_cb) {
         if (typeof _cb == 'function') { done = _cb; }
       }
-      mainApp.useGraphDB().files().open(path).then(function(res) {
+
+      if (!myGraphDB) return;
+      myGraphDB.files().open(path).then(function(res) {
         debug('getImages - res', res);
 
         Object.keys(res).forEach(function(_t) {
@@ -680,7 +689,7 @@
     // 3. <object> { path }
     my.delImages = function(imgArr) {
       debug('delImages', imgArr); // imgArr = [<x>]
-      if (!Array.isArray(imgArr)) return;
+      if (!Array.isArray(imgArr) || !myGraphDB) return;
 
       var paths = [], _thenable = {}, done, validate;
       validate = function(_p) {
@@ -714,7 +723,7 @@
       });
 
       debug('delImages', paths);
-      mainApp.useGraphDB().files().delMany(paths).then(function() {
+      myGraphDB.files().delMany(paths).then(function() {
         console.log('Deleted.');
         if (typeof done == 'function') {
           done(paths);
@@ -1452,125 +1461,6 @@
       return myEdges;
     }; // end of api.edges
 
-    /*
-    api.edge = function(edgeLabel) {
-      var myEdge = {},
-          startRef, find, add, remove;
-      
-      if (typeof edgeLabel != 'string') return null;
-      startRef = edgesRef().child(edgeLabel);
-
-      // _edges._labels.<label> : true
-      edgesRef().child('_labels').child(edgeLabel).ref.set(true);
-
-      // Set find based on 'from' or 'to'
-      find = function(direction, _n) {
-        var _thenable = {}, done;
-        if (!_n.key || !_n.col) { return null; }
-
-        _thenable.then = function(cb) {
-          if (typeof cb == 'function') done = cb;
-        };
-
-        startRef.child(direction).child(_n.col).child(_n.key)
-          .once('value')
-          .then(function(snap) {
-              // eg. <toCol>: <toKey>: true
-              if (snap.val()) {
-                var val = snap.val(),
-                    objs = [];
-
-                Object.keys(val).forEach(function(_col) {
-                  Object.keys(val[_col]).forEach(function(_key) {
-                    //objs.push({
-                    //  col: _col,
-                    //  key: _key
-                    //});
-                    objs.push(node(_col, _key));
-                  });
-                });
-                if (typeof done == 'function') {
-                  done.call(myEdge, objs);
-                }
-              } else {
-                debug('edge.find', 'Found nothing in ' + edgeLabel);
-                debug('edge.find', 'direction = ' + direction);
-                debug('edge.find', _n);
-              }
-          }) // end of then
-          .catch(function(err) {
-            console.error(err);
-          });
-        return _thenable;
-      }; // end of find
-
-      remove = function(_from, _to) {
-        if (!_from || !_from.col || !_from.key) return null;
-        if (!_to || !_to.col || !_to.key) return null;
-        var _thenable = {}, done;
-        _thenable.then = function(_cb) {
-          done = _cb;
-        };
-
-        startRef.child('from')
-          .child(_from.col).child(_from.key)
-          .child(_to.col).child(_to.key)
-          .ref.set(null)
-          .then(function() {
-            startRef.child('to')
-              .child(_to.col).child(_to.key)
-              .child(_from.col).child(_from.key)
-              .ref.set(null)
-              .then(function() {
-                if (typeof done == 'function') {
-                  done();
-                }
-              });
-          });
-        return _thenable;
-      }; // end of remove
-
-      add = function(_from, _to) {
-        if (!_from || !_from.col || !_from.key) return null;
-        if (!_to || !_to.col || !_to.key) return null;
-
-        var _thenable = {}, done;
-        _thenable.then = function(_cb) {
-          done = _cb;
-        };
-        
-        startRef.child('from')
-          .child(_from.col).child(_from.key)
-          .child(_to.col).child(_to.key)
-          .ref.set(true)
-          .then(function() {
-            startRef.child('to')
-              .child(_to.col).child(_to.key)
-              .child(_from.col).child(_from.key)
-              .ref.set(true)
-              .then(function() {
-                if (typeof done == 'function') {
-                  done();
-                }
-              });
-          });
-        return _thenable;
-      }; // end of add
-
-      myEdge.from = function(_n) {
-        return find('from', _n);
-      };
-
-      myEdge.to = function(_n) {
-        return find('to', _n);
-      };
-
-      myEdge.remove = remove;
-      myEdge.add = add;
-      return myEdge;
-    }; // end of edge
-    */
-
     // getApp - Files
     api.files = function() {
       var manager = {},
@@ -1594,6 +1484,7 @@
         }; // end of return 
       }; // end of manager.open
 
+      console.log('TBD: complete api.files');
       return manager;
 
       var saveCallback; // set by calling manager.save().then()
@@ -1792,17 +1683,36 @@
           if (typeof cb != 'function') return null;
           if (myUser) return cb(myUser);
           getFB().then(function(_fb) {
+            // TBD: test
+            _fb.auth().signOut();
+
             _fb.auth().onAuthStateChanged(function(user) {
               myUser = null;
               if (user) {
                 myUser = user;
                 cb(myUser);
               } else {
-                // TBD: Sign in panel
-                console.log('TBD: Sign in from here');
-              }
-            });
-          });
+                editor().openCopeAccount().res('try', function(pairs) {
+                  // Fetch from Editor
+                  var email = pairs.account,
+                      password = pairs.pwd,
+                      that = this;
+                  debug('signIn', pairs);
+                  _fb.auth().signInWithEmailAndPassword(email, password)
+                    .then(function() {
+                      that.ds({ 'ok': true });
+                      if (typeof _done == 'function') {
+                        _done(app.auth().currentUser);
+                      }
+                    })
+                    .catch(function(err) {
+                      debug('signIn', err);
+                      that.ds({ 'error': err.code });
+                    }); // end of catch
+                }); // end of myEditor
+              } // end of else
+            }); // end of _fb.auth()
+          }); // end of getFB()
         } // end of then
       }; // end of return
     }; // end of myGraphDB

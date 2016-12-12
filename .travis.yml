@@ -9,7 +9,7 @@ deploy:
   keyfile: client-secret.json
   project: cope-326d5
   skip_cleanup: true
-  default: true
+  version: v2
 notifications:
   slack:
     secure: XfC1hJWQtu/81FD65oy8bpd4e55wMurCIDhoevdWI44Y3KXJDRjzOjoKrc2+tEgqsc1AHrx+NxakK+f6uZgjGBUXUj+vg7vruXn79Udto0GOK+vYJSI7kp+LcKdsme9TMfZiSRuGlapHmr6enwNLq+zdNxST8oh6mAEFEJlzDLncQaYA+wKY9Sqru+OAEGlkAO1P1HRGySp7ipCf08lxClXJ9bfg9IjCxEdxQO/knY9Iyhexh4JoGllLax4EYynyvWEqN8XInUoJzT6ifskHha5L+5Ym8u1DJAkP2Cm6MvvzudwXKMl8dJarDhH8ouI54jAKBbpkbw1KdpcxvcYBwhRCj4z6Zzap1sZf3bPSBrGJ/kwVhgVaAh7b5GUKN0OSF+ekQwlLIQwFDz1K01FwQIPvxVg2RXvh0jO1CVFPzDdvrRwFBUAJIUceArRDZ6YiiwTlLSduB5ZYWY3z60P1Lq10bqR1jjGQ+3F8KYeMcOaz2/GN/RHCM34sWK43oHL5eBnuGj4bL7wW1uJiP1G2KjkuZ1OY3Q7vBDOL8zIhGTulNgBW9A2ScWx2oiliULn43wTn4JGIXlutg2i5M7J6NZ2qqapMx6bGKPihQBDLdAVxLq3hiH+m9WGB5TF4gADOtmVdNwL9/s87xtAV6LzVoeJ/Fa+kLPxCeGdR18qG/sM=

@@ -1845,7 +1845,7 @@
         then: function(_cb) {
           if (typeof _cb != 'function') return null;
           getFB().then(function(_fb) {
-            var appGraph = {}, obj = {};
+            var appGraph = {}, obj = {}, appName;
             obj.appRef = _fb.database().ref(appRoot);
             obj.storeRef = _fb.database().ref(storeRoot);
     
@@ -1854,8 +1854,21 @@
             appGraph.edges = api.edges.bind(obj);
             appGraph.files = api.files.bind(obj);
             appGraph.appId = _appId;
-
-            _cb(appGraph);
+            appGraph.appName = function(_appName) {
+              if (typeof _appName == 'string') {
+                appName = _appName;
+                _fb.database().ref(appRoot)
+                  .child('appName').set(appName);
+              }
+              return appName;
+            };
+            
+            _fb.database().ref(appRoot)
+              .child('appName').once('value')
+              .then(function(_snap) {
+              appName = _snap.val();
+              _cb(appGraph);
+            }); // end of "get appName"
           }); // end of getFB
         } // end of then
       }; // end of return

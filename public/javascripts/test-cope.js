@@ -1,6 +1,8 @@
 (function($) {
 
-var test = util.setTest('test-cope');
+var graphDB = Cope.graphDB,
+    util = Cope.util,
+    test = util.setTest('test-cope');
 
 // Test - graphDB
 test(function(pass) {
@@ -59,7 +61,7 @@ test(function(pass) {
                   dreamedBys.del(daydream, _n).then(function() {
                     pass('deleted the edge');
                   });
-                }).print();
+                });
               });
 
               test(function(pass) { 
@@ -79,6 +81,8 @@ test(function(pass) {
   }); // end of test
 
   pass('Start test');
+}).done(function() {
+  console.log('Tests all passed.');
 }); // end of test
 
 // Test - use jQuery

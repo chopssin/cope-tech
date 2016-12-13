@@ -1,7 +1,14 @@
 (function($) {
 
+var G = Cope.graphDB(),
+    dataSnap = Cope.dataSnap,
+    util = Cope.util,
+    fetchDS = dataSnap(),
+    nav,
+    debug = util.setDebug('cope-home', true);
+
 // Navigation
-var nav = function(_sec) {
+nav = function(_sec) {
   switch(_sec) {
     case 'home':
       $('#dashboard').removeClass('hidden');
@@ -21,5 +28,12 @@ $('#logo').click(function() {
 $('#sample').click(function() {
   nav('app');
 });
+
+fetchDS.load(function() {
+  G.listMyApps().then(function(_list) {
+    debug(_list);
+  });
+});
+fetchDS.load();
 
 })(jQuery);

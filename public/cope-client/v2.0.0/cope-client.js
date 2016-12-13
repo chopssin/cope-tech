@@ -62,9 +62,10 @@
   // -----------------------------
   // setTest
   // -----------------------------
-  var setTest = function(_tag) {
+  var setTest = function(_tag, _print) {
     var tag = _tag || new Date().getTime().toString(36),
         tests = [], 
+        allDone = function() {},
         debug = setDebug('TEST "' + tag + '"', true);
 
     return function(_func) {
@@ -79,11 +80,11 @@
 
       my.debug = debug;
       my.pass = function(_msg) {
-        debug('=== PASSED (' + idx + ') ===', _msg || '');
+        if (_print) debug('=== PASSED (' + idx + ') ===', _msg || '');
         if (!hasPassed) {
           hasPassed = true;
         } else {
-          debug('Already passed (' + idx + ')',  _msg || '');
+          if (_print) debug('Already passed (' + idx + ')',  _msg || '');
           return;
         }
 
@@ -95,15 +96,21 @@
         for (var i = 0; i < tests.length; i++) {
           if (tests[i]) count++;
         }
-        debug('passed: ' + count + '/' + tests.length);
-        if (count == tests.length) {
+        if (_print) debug('passed: ' + count + '/' + tests.length);
+        if (_print && count == tests.length) {
           debug('===============');
           debug('All tests done.');
           debug('===============');
         }
+        allDone();
       }; // end of my.pass
       my.print = function() {
         toPrint = true;
+      };
+      my.done = function(_cb) {
+        if (typeof _cb == 'function') {
+          allDone = _cb;
+        }
       };
 
       // Run the test function
@@ -210,7 +217,7 @@
   // -----------------------------
   var editor = function(_graphDB) {
 
-    var debug = setDebug('Editor', true);
+    var debug = setDebug('Editor', false);
 
     var Views = views(),
         ModalView = Views.class('Modal'),
@@ -1171,14 +1178,14 @@
   // @Editor
   // @graphId
   // -----------------------------
+  var hasInit = false;
+
   var graphDB = function() {
     var debug = setDebug('graphDB', false),
         myUser, // current cope user
-        myFB, getFB, // to get the current firebase
+        getFB, // to get the current firebase
+        isValidName, // check if the input is valid for firebase #child
         api = {},
-        //col, node, edge, files,
-        isValidName,
-        getRoot,
         myGraph = {};
 
     // To get the current firebase instance
@@ -1186,13 +1193,41 @@
       return {
         then: function(cb) {
           if (typeof cb != 'function') return null;
-          if (myFB) return cb(myFB);
-          $.get({ url: '/cope-config' }).done(function(config) {
-            myFB = firebase.initializeApp(config);
-            return cb(myFB);
-          });
-        }
-      };
+          var initFB, findFB, count = 0;
+
+          initFB = function() {
+            if (hasInit) {
+              setTimeout(findFB, 100);
+              return;
+            }
+            // The following should be called only once
+            $.get({ url: '/cope-config' }).done(function(config) {
+              try {
+                hasInit = true;
+                firebase.initializeApp(config);
+              } catch (err) { 
+                //count++;
+              }
+              findFB();
+            });
+          };
+
+          findFB = function() {
+            try {
+              return cb(firebase.app());
+            } catch (err) {
+              count++;
+              if (count > 50) {
+                return console.error('Failed to find firebase instance');
+              }
+              debug('getFB - initFB count', count);
+              initFB();
+            }
+          };
+
+          findFB();
+        } // then
+      }; // return
     }; // end of getFB
 
     // To verify the validity of _name
@@ -1712,7 +1747,7 @@
           }); // end of getFB()
         } // end of then
       }; // end of return
-    }; // end of myGraphDB
+    }; // end of myGraph.user
 
     myGraph.createApp = function(_appId) {
       return { 
@@ -1763,6 +1798,42 @@
       }; // end of return
     }; // end of myGraph.createApp
 
+    myGraph.listMyApps = function() {
+      debug('listMyApps', 'Start.');
+      return {
+        then: function(_cb) {
+          if (typeof _cb != 'function') return null;
+          debug('listMyApps', 'Try to get user');
+          myGraph.user().then(function(_user) {
+            debug('listMyApps', 'user ' + _user.uid);
+            getFB().then(function(_fb) {
+              debug('listMyApps', 'Try to get app list');
+              _fb.database()
+                .ref('cope_users/' + _user.uid)
+                .once('value')
+                .then(function(_snap) {
+                  var myVal = _snap.val(),
+                      o = [], p = [];
+                  if (myVal.own_apps) {
+                    o = Object.keys(myVal.own_apps);
+                  }
+                  if (myVal.partner_apps) {
+                    p = Object.keys(myVal.partner_apps);
+                  }
+                  _cb({
+                    own_apps: o,
+                    partner_apps: p
+                  });  
+              }) // end of _fb .. then
+              .catch(function(err) {
+                console.error(err);
+              }); 
+            }); // end of getFB
+          }); // end of myGraph.user()
+        } // end of then
+      }; // end of return
+    }; // end of myGraph.listApps
+
     myGraph.getApp = function(_appId) {
       if (!isValidName(_appId)) return null;
       
@@ -1777,7 +1848,7 @@
             var appGraph = {}, obj = {};
             obj.appRef = _fb.database().ref(appRoot);
             obj.storeRef = _fb.database().ref(storeRoot);
-      
+    
             appGraph.col = api.col.bind(obj);
             appGraph.node = api.node.bind(obj);
             appGraph.edges = api.edges.bind(obj);
@@ -2437,20 +2508,19 @@
     var debug = setDebug('copeApp', false);
     var my = {},
         app, 
-        myViews, // where we store constructed Views
-        myEditor, // where we store constructed Editor
+        //myViews, // where we store constructed Views
+        //myEditor, // where we store constructed Editor
         myGraphDB, // where we store constructed GraphDB
         pageProtos = {};
 
-    my.useViews = function() {
+    /*my.useViews = function() {
       if (!myViews) { myViews = views(); }
       return myViews;
     };
     my.useEditor = function() {
-      if (!myViews) { myViews = views(); }
       if (!myEditor) { myEditor = editor.call(my); }
       return myEditor; 
-    };
+    };*/
 
     if (!_appId) {
       debug('Found no _appId in copeApp(_appId): return app builder');
@@ -2515,34 +2585,26 @@
       return null;
     };
     my.build = function(params) {
-      //var pageName, func, editable, config;
-      //myGraphId = params.graphId;
-
       my.path = params.path;
       my.editable = params.editable;
-
-      $.ajax({
-        type: 'GET',
-        url: '/cope-config'
-      }).done(function(_config) {
-      
-        // Init myGraphDB
-        my.useGraphDB(_config); debug('config', _config);
-
-        // TBD: get appName
-        // ......
-
-        // Render the page
-        my.usePage(params.page); 
-      });
+      my.usePage(params.page);
     }; // end of my.build
     return my;
   }; // end of function copeApp
 
-  window.dataSnap = dataSnap;
-  window.views = views;
-  window.util = util;
-  window.graphDB = graphDB;
-  window.copeApp = copeApp;
+  //window.dataSnap = dataSnap;
+  //window.views = views;
+  //window.util = util;
+  //window.graphDB = graphDB;
+  //window.copeApp = copeApp;
+
+  var Cope = {};
+  Cope.dataSnap = dataSnap;
+  Cope.views = views;
+  Cope.util = util;
+  Cope.graphDB = graphDB;
+  Cope.copeApp = copeApp;
+
+  window.Cope = Cope;
 
 })(jQuery);

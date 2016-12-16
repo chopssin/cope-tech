@@ -1803,11 +1803,8 @@
       return {
         then: function(_cb) {
           if (typeof _cb != 'function') return null;
-          debug('listMyApps', 'Try to get user');
           myGraph.user().then(function(_user) {
-            debug('listMyApps', 'user ' + _user.uid);
             getFB().then(function(_fb) {
-              debug('listMyApps', 'Try to get app list');
               _fb.database()
                 .ref('cope_users/' + _user.uid)
                 .once('value')
@@ -1832,7 +1829,7 @@
           }); // end of myGraph.user()
         } // end of then
       }; // end of return
-    }; // end of myGraph.listApps
+    }; // end of myGraph.listMyApps
 
     myGraph.getApp = function(_appId) {
       if (!isValidName(_appId)) return null;
@@ -1860,7 +1857,7 @@
                 _fb.database().ref(appRoot)
                   .child('appName').set(appName);
               }
-              return appName;
+              return appName || 'Untitled';
             };
             
             _fb.database().ref(appRoot)
@@ -1868,6 +1865,8 @@
               .then(function(_snap) {
               appName = _snap.val();
               _cb(appGraph);
+            }).catch(function(err) {
+              console.error(err);  
             }); // end of "get appName"
           }); // end of getFB
         } // end of then

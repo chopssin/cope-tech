@@ -10,6 +10,8 @@ deploy:
     project: cope-326d5
     skip_cleanup: true
     version: v2
+    on: 
+      branch: gae-deploy
   - provider: script
     script: deploy.sh
     on: 

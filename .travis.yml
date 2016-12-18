@@ -12,7 +12,7 @@ deploy:
     skip_cleanup: true
     version: v2
     on: 
-      branch: gae-deploy
+      branch: deploy-gae
   - provider: script
     script: deploy.sh
     skip_cleanup: true

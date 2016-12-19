@@ -105,28 +105,32 @@ ViewAppPage.dom(function() {
     + '<div class="col-xs-12">' 
       + '<h3 data-component="appName"></h3>'
     + '</div>'
-    + '<div class="col-xs-12"><div class="cope-card bg-w"><ul>'
-      + '<li>' 
-        + '<div class="title">App Id</div>'
-        + '<div data-component="appId"></div>'
-      + '</li>'
-      + '<li>' 
-        + '<div class="title">URL</div>'
-        + '<div data-component="url"></div>'
-      + '</li>'
-      + '<li>' 
-        + '<div class="title">Owner</div>'
-        + '<div data-component="owner"></div>'
-      + '</li>'
-      + '<li>' 
-        + '<div class="title">Partners</div>'
-        + '<div data-component="partners"></div>'
-      + '</li>'
-      + '<li>' 
-        + '<div class="title">Expired at</div>'
-        + '<div data-component="expired-at"></div>'
-      + '</li>'
-    + '</ul></div></div>'
+    + '<div class="col-xs-12" style="height:700px; overflow:hidden">'
+      + '<div style="margin-top:100px" class="svg-wrap" data-component="svg"></div>'
+      + '<div data-component="card" class="cope-card no-shadow"><ul>'
+        + '<li>' 
+          + '<div class="title">App Id</div>'
+          + '<div data-component="appId"></div>'
+        + '</li>'
+        + '<li>' 
+          + '<div class="title">URL</div>'
+          + '<div data-component="url"></div>'
+        + '</li>'
+        + '<li>' 
+          + '<div class="title">Owner</div>'
+          + '<div data-component="owner"></div>'
+        + '</li>'
+        + '<li>' 
+          + '<div class="title">Partners</div>'
+          + '<div data-component="partners"></div>'
+        + '</li>'
+        + '<li>' 
+          + '<div class="title">Expired at</div>'
+          + '<div data-component="expired-at"></div>'
+        + '</li>'
+      + '</ul></div>'
+    + '</div>'
+    //+ '<div class="col-xs-12"><svg width="960" height="600"></svg></div>'
   + '</div>';
 });
 ViewAppPage.render(function() {
@@ -154,5 +158,101 @@ ViewAppPage.render(function() {
   // val.partners
   // val.expiredAt
 });
+ViewAppPage.render(function() { // draw the graph
+  
+  var $card = this.$el('@card'),
+      $svgWrap = this.$el('@svg'),
+      w = $svgWrap.width();
+  $svgWrap.html('<svg width="' + w + '" height="600"></svg>');
+  $card.css('z-index', 0);
+  $svgWrap.css('z-index', 1);
+
+  $card.off('click').on('click', function() {
+    $card // bring the card to front
+      .removeClass('no-shadow')
+      .addClass('bg-w')
+      .css('z-index', 2);
+  });
+  $svgWrap.off('click').on('click', function() {
+    $card // put the card backward
+      .addClass('no-shadow')
+      .removeClass('bg-w')
+      .css('z-index', 0);
+  });
+
+  var svg = d3.select("svg"),
+      width = +svg.attr("width"),
+      height = +svg.attr("height");
+
+  var color = d3.scaleOrdinal(d3.schemeCategory20);
+
+  var simulation = d3.forceSimulation()
+      .force("link", d3.forceLink().id(function(d) { return d.id; }))
+      .force("charge", d3.forceManyBody())
+      .force("center", d3.forceCenter(width / 2, height / 2));
+
+  d3.json("d3-sample.json", function(error, graph) {
+    if (error) throw error;
+
+    var link = svg.append("g")
+        .attr("class", "links")
+        .selectAll("line")
+        .data(graph.links)
+        .enter().append("line")
+        .attr("stroke-width", function(d) { return Math.sqrt(d.value); });
+
+    var node = svg.append("g")
+        .attr("class", "nodes")
+        .selectAll("circle")
+        .data(graph.nodes)
+        .enter().append("circle")
+        .attr("r", 5)
+        .attr("fill", function(d) { return color(d.group); })
+        .call(d3.drag()
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended));
+
+    node.append("title")
+        .text(function(d) { return d.id; });
+
+    simulation
+      .nodes(graph.nodes)
+      .on("tick", ticked);
+
+    simulation.force("link")
+      .links(graph.links);
+
+    function ticked() {
+      link
+        .attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+      node
+        .attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
+    }
+  });
+
+  function dragstarted(d) {
+    if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+  }
+
+  function dragged(d) {
+    d.fx = d3.event.x;
+    d.fy = d3.event.y;
+  }
+
+  function dragended(d) {
+    if (!d3.event.active) simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+  }
+
+}); // end of ViewAppPage.render // draw the graph
 
 })(jQuery);

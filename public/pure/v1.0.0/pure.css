@@ -256,7 +256,8 @@
   box-shadow: none;
 }
 
-.cope-card ul {
+.cope-card ul,
+.cope-btn ul {
   list-style: none;
   text-decoration: none;
   font-size: 1.2em;
@@ -265,11 +266,13 @@
   margin: 0;
 }
 
-.cope-card ul li {
+.cope-card ul li,
+.cope-btn ul li {
   padding: 8px;
 }
 
-.cope-card ul .title {
+.cope-card ul .title,
+.cope-btn ul .title {
   color: #aaa;
   font-size: 0.8em;
 }

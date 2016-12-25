@@ -1,16 +1,16 @@
 (function($) {
 
-var G = Cope.graphDB(),
-    Views = Cope.views(),
+var G = Cope.useGraphDB(),
+    Views = Cope.useViews(),
+    Util = Cope.Util,
     dataSnap = Cope.dataSnap,
-    util = Cope.util,
     fetchDS = dataSnap(),
     renderDS = dataSnap(),
     ViewAppCard = Views.class('AppCard'),
     ViewAppPage = Views.class('AppPage'),
     ViewDataGraph = Views.class('DataGraph'),
-    nav,
-    debug = util.setDebug('cope-home', true);
+    debug = Util.setDebug('cope-home', true),
+    nav;
 
 // Navigation
 function nav(_sec) {
@@ -126,29 +126,30 @@ ViewAppCard.render(function() {
 // "AppPage"
 ViewAppPage.dom(function() {
   return '<div' + this._ID + 'class="row">' 
-    + '<div class="col-xs-12">' 
-      + '<h3 data-component="appName"></h3>'
-    + '</div>'
     + '<div class="col-xs-12" style="height:700px; overflow:hidden">'
-      + '<div style="margin-top:100px" class="svg-wrap" data-component="svg"></div>'
-      + '<div data-component="card" class="cope-card no-shadow"><ul>'
-        + '<li>' 
+      + '<div class="svg-wrap" data-component="svg"></div>'
+      + '<div data-component="card" class="cope-btn bg-w touchable" style="text-align:left"><ul>'
+        + '<li data-component="display-li">' 
+          + '<div class="title">App Name</div>'
+          + '<div data-component="appName"></div>'
+        + '</li>'
+        + '<li class="hidden">' 
           + '<div class="title">App Id</div>'
           + '<div data-component="appId"></div>'
         + '</li>'
-        + '<li>' 
+        + '<li class="hidden">' 
           + '<div class="title">URL</div>'
           + '<div data-component="url"></div>'
         + '</li>'
-        + '<li>' 
+        + '<li class="hidden">' 
           + '<div class="title">Owner</div>'
           + '<div data-component="owner"></div>'
         + '</li>'
-        + '<li>' 
+        + '<li class="hidden">' 
           + '<div class="title">Partners</div>'
           + '<div data-component="partners"></div>'
         + '</li>'
-        + '<li>' 
+        + '<li class="hidden">' 
           + '<div class="title">Expired at</div>'
           + '<div data-component="expired-at"></div>'
         + '</li>'
@@ -188,6 +189,7 @@ ViewAppPage.render(function() { // draw the graph
   var appCard = this.val('appCard'),
       graph = this.val('graph');
       $card = this.$el('@card'),
+      $li = this.$el('@display-li'),
       $svgWrap = this.$el('@svg'),
       w = $svgWrap.width(),
 
@@ -201,20 +203,22 @@ ViewAppPage.render(function() { // draw the graph
     }
   });
 
-  $card.css('z-index', 0);
-  $svgWrap.css('z-index', 1);
+  $card.css('z-index', 1);
+  $svgWrap.css('z-index', 0);
 
   $card.off('click').on('click', function() {
-    $card // bring the card to front
-      .removeClass('no-shadow')
-      .addClass('bg-w')
-      .css('z-index', 2);
+    $card.find('li').removeClass('hidden');
+    $li.removeClass('hidden');
+    $card
+      .removeClass('cope-btn')
+      .toggleClass('cope-card', true, 1000, "easeOutSine");
   });
   $svgWrap.off('click').on('click', function() {
-    $card // put the card backward
-      .addClass('no-shadow')
-      .removeClass('bg-w')
-      .css('z-index', 0);
+    $card.find('li').addClass('hidden');
+    $li.removeClass('hidden');
+    $card
+      .removeClass('cope-card')
+      .toggleClass('cope-btn', true, 1000, "easeOutSine");
   });
 
 }); // end of ViewAppPage.render // draw the graph

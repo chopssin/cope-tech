@@ -1003,9 +1003,9 @@
   }; //dataURItoBlob
 
   // -----------------------------
-  // views
+  // useViews
   // -----------------------------
-  var views = function() {
+  var useViews = function() {
     var my = {},
         classes = {},
         count = 0,
@@ -1171,16 +1171,16 @@
       return classes[viewName];
     }; // end of my.class
     return my;
-  }; // end of views
+  }; // end of useViews
   
   // -----------------------------
-  // graphDB
+  // useGraphDB
   // @Editor
   // @graphId
   // -----------------------------
   var hasInit = false;
 
-  var graphDB = function() {
+  var useGraphDB = function() {
     var debug = setDebug('graphDB', false),
         myUser, // current cope user
         getFB, // to get the current firebase
@@ -2511,7 +2511,7 @@
     };
     //myDB.node = node;
     return myDB;
-  }; // end of graphDB
+  }; // end of useGraphDB
 
   // -----------------------------
   // copeApp
@@ -2611,11 +2611,14 @@
   //window.copeApp = copeApp;
 
   var Cope = {};
+  //Cope.util = util;
+  //Cope.graphDB = graphDB;
+  //Cope.views = views;
+  Cope.useGraphDB = useGraphDB;
+  Cope.useViews = useViews;
   Cope.dataSnap = dataSnap;
-  Cope.views = views;
-  Cope.util = util;
-  Cope.graphDB = graphDB;
   Cope.copeApp = copeApp;
+  Cope.Util = util;
 
   window.Cope = Cope;
 

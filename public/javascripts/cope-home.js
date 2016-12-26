@@ -44,7 +44,7 @@ fetchDS.load(function() {
         if (count == _res.own_apps.length) {
           debug(myOwnApps);
           // Update renderDS's data with "myOwnApps"
-          renderDS.update({ 'myOwnApps': myOwnApps });
+          renderDS.val('myOwnApps', myOwnApps);
           renderDS.load();
         }
       });
@@ -54,7 +54,7 @@ fetchDS.load(function() {
 
 // Stage of rendering views
 renderDS.load(function() {
-  var myOwnApps = this.val().myOwnApps;
+  var myOwnApps = this.val('myOwnApps');
   $('#my-apps').html('');
   
   myOwnApps.forEach(function(_a) {
@@ -99,7 +99,7 @@ fetchDS.load();
 
 // "AppCard"  
 ViewAppCard.dom(function() {
-  return '<div' + this._ID + ' class="cope-card touchable bg-w" style="margin-bottom:16px">'
+  return '<div' + this.ID + ' class="cope-card touchable bg-w" style="margin-bottom:16px">'
     + '<h3 data-component="appName"></h3>'
     + '<p data-component="appId"></p>'
     + '<p data-component="role"></p>'
@@ -125,9 +125,10 @@ ViewAppCard.render(function() {
 
 // "AppPage"
 ViewAppPage.dom(function() {
-  return '<div' + this._ID + 'class="row">' 
+  console.log('dom dom');
+  return '<div' + this.ID + 'class="row">' 
     + '<div class="col-xs-12" style="height:700px; overflow:hidden">'
-      + '<div class="svg-wrap" data-component="svg"></div>'
+      + '<div class="svg-wrap" data-component="svg">0</div>'
       + '<div data-component="card" class="cope-btn bg-w touchable" style="text-align:left"><ul>'
         + '<li data-component="display-li">' 
           + '<div class="title">App Name</div>'
@@ -155,7 +156,6 @@ ViewAppPage.dom(function() {
         + '</li>'
       + '</ul></div>'
     + '</div>'
-    //+ '<div class="col-xs-12"><svg width="960" height="600"></svg></div>'
   + '</div>';
 }); // end of ViewAppPage.dom
 
@@ -165,7 +165,6 @@ ViewAppPage.render(function() {
       appName, appId, url, role, expiredAt;
   if (!val) return;
 
-  console.log(val);
   appName = val.appName || '';
   appId = val.appId || '';
   role = val.role;
@@ -187,12 +186,11 @@ ViewAppPage.render(function() {
 
 ViewAppPage.render(function() { // draw the graph
   var appCard = this.val('appCard'),
-      graph = this.val('graph');
+      graph = this.val('graph'),
       $card = this.$el('@card'),
       $li = this.$el('@display-li'),
       $svgWrap = this.$el('@svg'),
-      w = $svgWrap.width(),
-
+      w = $svgWrap.width();
 
   Views.class('DataGraph').build({
     sel: this.sel('@svg'),
@@ -232,7 +230,7 @@ ViewAppPage.render(function() { // draw the graph
 ViewDataGraph.dom(function() {
   var w = this.val('width'), 
       h = this.val('height');
-  return '<svg' + this._ID + 'id="svg" width="'+ w +'" height="' + h + '"></svg>';
+  return '<svg' + this.ID + 'id="svg" width="'+ w +'" height="' + h + '"></svg>';
 });
 
 ViewDataGraph.render(function() {

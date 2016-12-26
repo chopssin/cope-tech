@@ -1,5 +1,8 @@
 (function($) {
-  Phrases = {};
+  var Cope = {};
+  Cope.Util = {};
+
+  var Phrases = {};
   Phrases.PROCESSING = '處理中';
   Phrases.CHOOSE = '選取';
   Phrases.CHOOSE_IMG = '選取圖片';
@@ -8,9 +11,9 @@
   Phrases.DONE = '確定';
 
   // -----------------------------
-  // setDebug
+  // Cope.Util.setDebug
   // -----------------------------
-  var setDebug = function(_name, _toggle, _tag) {
+  Cope.Util.setDebug = function(_name, _toggle, _tag) {
     if (typeof _name != 'string') {
       return console.error('setDebug = function(String _name'
         + '[, Boolean _toggle[, String _tag]])');
@@ -60,13 +63,13 @@
   }; // end of setDebug
 
   // -----------------------------
-  // setTest
+  // Cope.Util.setTest
   // -----------------------------
-  var setTest = function(_tag, _print) {
+  Cope.Util.setTest = function(_tag, _print) {
     var tag = _tag || new Date().getTime().toString(36),
         tests = [], 
         allDone = function() {},
-        debug = setDebug('TEST "' + tag + '"', true);
+        debug = Cope.Util.setDebug('TEST "' + tag + '"', true);
 
     return function(_func) {
       var func = _func,
@@ -120,9 +123,261 @@
   }; // end of setTest
 
   // -----------------------------
-  // dataSnap
+  // Cope.Util
   // -----------------------------
-  var dataSnap = function(_name) {
+  var cal = {}, // to memorize calculated dates
+      daysInMonth = function(_month, _year) {
+        return new Date(_year, _month, 0).getDate();
+      };
+      
+  Cope.Util.getCal = function(_year) {
+    if (!cal[_year + '']) {
+      cal[_year + ''] = {};
+      for (var month = 1; month < 13; month++) {
+        var days = daysInMonth(month, _year);
+        cal[_year + ''][month + ''] = {};
+        for (var date = 1; date < (days+1); date++) {
+          cal[_year + ''][month + ''][date + ''] 
+            = new Date(_year, month, date).getDay();
+        }
+      }
+    }
+    return cal[year + ''];
+  }; // end of util.getCal
+
+  Cope.Util.daysAfterNow = function(days) {
+    var now = new Date().getTime(),
+        time;
+    days = parseInt(days, 10);
+    if (isNaN(days)) return;
+
+    time = now + days * 86400000;
+    now = new Date(time);
+    return {
+      timestamp: time, 
+      year: now.getFullYear(),
+      month: now.getMonth(),
+      date: now.getDate(),
+      hr: now.getHours(),
+      min: now.getMinutes()
+    };
+  }; // end of util.daysAfterNow
+
+  Cope.Util.timeOf = function(timestamp) {
+    if (!timestamp) return {};
+
+    if (typeof timestamp == 'string') {
+      // e.g. 2012-3-22, 2012/3/22
+      var str = timestamp.split(/\/|\-/).join('/');
+      timestamp = new Date(str).getTime();
+    }
+
+    var t = parseInt(timestamp, 10),
+        d = new Date(t),
+        two = function(num) { // two-digit
+          return ('00' + num).slice(-2);
+        };
+    if (!d) return {};
+    var year = d.getFullYear(),
+        month = d.getMonth() + 1,
+        date = d.getDate(),
+        hr = d.getHours(),
+        min = d.getMinutes(),
+        sec = d.getSeconds(),
+        fullDate = year
+          + '/' + month
+          + '/' + date;
+        fullTime = two(hr) 
+          + ':' + two(min)
+          + ':' + two(sec);
+    return {
+      timestamp: timestamp,
+      fullDate: fullDate,
+      fullTime: fullTime,
+      year: year,
+      month: month,
+      date: date,
+      hr: hr,
+      min: min,
+      sec: sec
+    };
+  }; // end of util.dateOf
+  
+  Cope.Util.setTimer = function() {
+    var start = new Date().getTime();
+    return {
+      lap: function() {
+        var duration = (new Date().getTime() - start) / 1000;
+        console.log('[debug] start = ' + start + '; duration = ' + duration);
+        return duration;
+      }
+    };
+  };//util.setTimer
+
+  // --- Cope.Util.thumbnailer ---
+  Cope.Util.thumbnailer = function(img, sx, lobes) {
+    var elem = document.createElement("canvas");
+    if (!lobes) lobes = 1;
+    
+    return new Thumbnailer(elem, img, sx, lobes);
+    //thumb.done(function() {
+    //  console.log(thumb);
+    //});
+    //return thumb;
+  }; // end of util.thumbnailer
+  
+  // returns a function that calculates lanczos weight
+  function lanczosCreate(lobes) {
+    return function(x) {
+        if (x > lobes)
+            return 0;
+        x *= Math.PI;
+        if (Math.abs(x) < 1e-16)
+            return 1;
+        var xx = x / lobes;
+        return Math.sin(x) * Math.sin(xx) / x / xx;
+    };
+  }
+
+  // elem: canvas element, img: image element, sx: scaled width, lobes: kernel radius
+  function Thumbnailer(elem, img, sx, lobes) {
+    this.canvas = elem;
+    elem.width = img.width;
+    elem.height = img.height;
+    elem.style.display = "none";
+    this.ctx = elem.getContext("2d");
+    this.ctx.drawImage(img, 0, 0);
+    this.img = img;
+    this.src = this.ctx.getImageData(0, 0, img.width, img.height);
+    this.dest = {
+        width : sx,
+        height : Math.round(img.height * sx / img.width),
+    };
+    this.dest.data = new Array(this.dest.width * this.dest.height * 3);
+    this.lanczos = lanczosCreate(lobes);
+    this.ratio = img.width / sx;
+    this.rcp_ratio = 2 / this.ratio;
+    this.range2 = Math.ceil(this.ratio * lobes / 2);
+    this.cacheLanc = {};
+    this.center = {};
+    this.icenter = {};
+    this.p_unit = Math.ceil(sx / 100);
+    this._progress = 0;
+
+    if ((img.width / sx) < 2) {
+      setTimeout(this.process3, 0, this);
+    } else {
+      setTimeout(this.process1, 0, this, 0);
+    }
+  }
+  Thumbnailer.prototype.onload = function() {
+    if (this.onload) {
+      this.onload.call();
+    }
+  };
+  Thumbnailer.prototype.onprogress = function(_p) {
+    if (this.onprogress) {
+      this.onprogress.call(_p);
+    }
+  };
+  Thumbnailer.prototype.process1 = function(self, u) {
+    if (u % self.p_unit == 0) {
+      self.onprogress(u / self.dest.width);
+    } 
+    self.center.x = (u + 0.5) * self.ratio;
+    self.icenter.x = Math.floor(self.center.x);
+    for (var v = 0; v < self.dest.height; v++) {
+        self.center.y = (v + 0.5) * self.ratio;
+        self.icenter.y = Math.floor(self.center.y);
+        var a, r, g, b;
+        a = r = g = b = 0;
+        for (var i = self.icenter.x - self.range2; i <= self.icenter.x + self.range2; i++) {
+            if (i < 0 || i >= self.src.width)
+                continue;
+            var f_x = Math.floor(1000 * Math.abs(i - self.center.x));
+            if (!self.cacheLanc[f_x])
+                self.cacheLanc[f_x] = {};
+            for (var j = self.icenter.y - self.range2; j <= self.icenter.y + self.range2; j++) {
+                if (j < 0 || j >= self.src.height)
+                    continue;
+                var f_y = Math.floor(1000 * Math.abs(j - self.center.y));
+                if (self.cacheLanc[f_x][f_y] == undefined)
+                    self.cacheLanc[f_x][f_y] = self.lanczos(Math.sqrt(Math.pow(f_x * self.rcp_ratio, 2)
+                            + Math.pow(f_y * self.rcp_ratio, 2)) / 1000);
+                weight = self.cacheLanc[f_x][f_y];
+                if (weight > 0) {
+                    var idx = (j * self.src.width + i) * 4;
+                    a += weight;
+                    r += weight * self.src.data[idx];
+                    g += weight * self.src.data[idx + 1];
+                    b += weight * self.src.data[idx + 2];
+                }
+            }
+        }
+        var idx = (v * self.dest.width + u) * 3;
+        self.dest.data[idx] = r / a;
+        self.dest.data[idx + 1] = g / a;
+        self.dest.data[idx + 2] = b / a;
+    }
+
+    if (++u < self.dest.width)
+        setTimeout(self.process1, 0, self, u);
+    else
+        setTimeout(self.process2, 0, self);
+  };
+  Thumbnailer.prototype.process2 = function(self) {
+    console.log('process2');
+    self.canvas.width = self.dest.width;
+    self.canvas.height = self.dest.height;
+    self.ctx.drawImage(self.img, 0, 0, self.dest.width, self.dest.height);
+    self.src = self.ctx.getImageData(0, 0, self.dest.width, self.dest.height);
+    var idx, idx2;
+    for (var i = 0; i < self.dest.width; i++) {
+        for (var j = 0; j < self.dest.height; j++) {
+            idx = (j * self.dest.width + i) * 3;
+            idx2 = (j * self.dest.width + i) * 4;
+            self.src.data[idx2] = self.dest.data[idx];
+            self.src.data[idx2 + 1] = self.dest.data[idx + 1];
+            self.src.data[idx2 + 2] = self.dest.data[idx + 2];
+        }
+    }
+    self.ctx.putImageData(self.src, 0, 0);
+    self.canvas.style.display = "block";
+    self.onload();
+  };
+  Thumbnailer.prototype.process3 = function(self) {
+    console.log('process3: actually just turn img into canvas');
+    self.ctx.putImageData(self.src, 0, 0);
+    self.canvas.style.display = "block";
+    self.onload();
+  }
+  // end of Thumbnailer
+  
+  Cope.Util.dataURItoBlob = dataURItoBlob;
+  function dataURItoBlob(dataURI) {
+    // convert base64/URLEncoded data component to raw binary data held in a string
+    var byteString;
+    if (dataURI.split(',')[0].indexOf('base64') >= 0)
+        byteString = atob(dataURI.split(',')[1]);
+    else
+        byteString = unescape(dataURI.split(',')[1]);
+
+    // separate out the mime component
+    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+    // write the bytes of the string to a typed array
+    var ia = new Uint8Array(byteString.length);
+    for (var i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+
+    return new Blob([ia], {type:mimeString});
+  }; //dataURItoBlob
+
+  // -----------------------------
+  // Cope.dataSnap
+  // -----------------------------
+  Cope.dataSnap = function(_name) {
     var my = {},
         data = {},
         registry = {},
@@ -135,7 +390,7 @@
       || (new Date().getTime().toString(36))
           + '_' + Math.floor(Math.random() * 1000);
     
-    debug = setDebug('dataSnap ' + myName); // set the initial silent debugger
+    debug = Cope.Util.setDebug('dataSnap ' + myName); // set the initial silent debugger
 
     emit = function() {
       Object.keys(registry).forEach(function(id) {
@@ -143,38 +398,53 @@
       });
     };
 
-    my.setDebug = function() {
-      debug = setDebug.apply(arguments);
-    };
-
     my.enroll = function(_vu) {
       if (typeof _vu == 'object'
-        && typeof _vu._id == 'string') {
-        registry[_vu._id] = _vu;
+        && typeof _vu.id == 'string') {
+        registry[_vu.id] = _vu;
         //_vu.ds((_snapName || name), my);
       } else {
         console.error('_vu is not an valid View object');
       }
     };
 
-    my.val = function(_data) {
-      if (_data) {
-        data = _data;
-        emit();
-      }
-      debug('val', data);
-      return data;
-    };
+    my.val = function() {
+      var args = arguments;
+      switch (args.length) {
+        
+        // Get all values
+        case 0:
+          return data;
+          break;
+        case 1:
+          switch (typeof args[0]) {
+            
+            // Get specific value by args[0]
+            case 'string': 
+              return data[args[0]];
+              break;
+            
+            // Set value(s) and emit changes
+            case 'object': 
+              Object.keys(args[0]).forEach(function(_key) {
+                data[_key] = args[0][_key];
+              });
+              emit();
+              break;
+          }
+          break;
 
-    my.update = function(_updates) {
-      if (typeof _updates == 'object') {
-        for (var name in _updates) {
-          data[name] = _updates[name];
-        }
-      }
-      debug('update', data);
-      emit();
-    };
+        // Set a value and emit the change
+        case 2:
+          if (typeof args[0] == 'string') {
+            data[args[0]] = args[1];
+          }
+          break;
+      } // end of switch
+
+      debug('val', data);
+      return;
+    }; // end of my.val
 
     my.load = function(name, func) {
       debug('load', '.load(name, func)');
@@ -210,16 +480,16 @@
     }; // end of my.load
 
     return my;
-  }; // end of dataSnap
+  }; // end of Cope.dataSnap
 
   // -----------------------------
-  // Editor
+  // Cope.useEditor
   // -----------------------------
-  var editor = function(_graphDB) {
+  Cope.useEditor = function(_graphDB) {
 
-    var debug = setDebug('Editor', false);
+    var debug = Cope.Util.setDebug('Editor', false);
 
-    var Views = views(),
+    var Views = useViews(),
         ModalView = Views.class('Modal'),
         vuModal,
         ViewClasses = {},
@@ -233,6 +503,30 @@
         my = {};
         //mainApp = this, // the copeApp
         //that = this; // the copeApp
+    
+    // Render initial lightbox and modal
+    ModalView.dom(function() { 
+      return '<div' + this._ID + 'id="Editor-zone" class="Editor-lightbox">' 
+        + '<div data-component="modal" class="modal">'
+        + '</div>'
+      + '</div>';
+    }); // end of ModalView.dom
+    ModalView.render(function() { 
+      var $this = this.$el();
+      this.$el().off('click').on('click', function(e) {
+        $this.hide();
+        $('body').removeClass('frozen');
+      });
+      this.$el('@modal').unbind('click').click(function(e) {
+        e.stopPropagation();
+      });
+    }); // end of ModalView.render
+
+    // Initial modal built only once
+    if (!this.vuModal) { 
+      this.vuModal = ModalView.build({ selector: 'body', method: 'prepend' });
+    }
+    vuModal = this.vuModal;
     
     // Cope Account
     CopeAccountView = Views.class('CopeAccount');
@@ -568,30 +862,6 @@
       });
     });
     ViewClasses.ImageUploader = ImageUploaderView;
-    
-    // Render initial lightbox and modal
-    ModalView.dom(function() { 
-      return '<div' + this._ID + 'id="Editor-zone" class="Editor-lightbox">' 
-        + '<div data-component="modal" class="modal">'
-        + '</div>'
-      + '</div>';
-    }); // end of ModalView.dom
-    ModalView.render(function() { 
-      var $this = this.$el();
-      this.$el().off('click').on('click', function(e) {
-        $this.hide();
-        $('body').removeClass('frozen');
-      });
-      this.$el('@modal').unbind('click').click(function(e) {
-        e.stopPropagation();
-      });
-    }); // end of ModalView.render
-
-    // Initial modal built only once
-    if (!this.vuModal) { 
-      this.vuModal = ModalView.build({ selector: 'body', method: 'prepend' });
-    }
-    vuModal = this.vuModal;
 
     // Editor's methods
     my.open = function(obj) {
@@ -744,268 +1014,13 @@
       vuModal.$el().click(); 
     };
     return my;
-  }; // end of function "editor"
+  }; // end of Cope.useEditor
 
   // -----------------------------
-  // util
+  // Cope.useViews
   // -----------------------------
-  var util = {},
-      _cal = {},
-      daysInMonth = function(month, year) {
-        return new Date(year, month, 0).getDate();
-      };
-
-  util.setDebug = setDebug;
-  util.setTest = setTest;
-      
-  util.getCal = function(year) {
-    if (!_cal[year + '']) {
-      _cal[year + ''] = {};
-      for (var month = 1; month < 13; month++) {
-        var days = daysInMonth(month, year);
-        _cal[year + ''][month + ''] = {};
-        for (var date = 1; date < (days+1); date++) {
-          _cal[year + ''][month + ''][date + ''] 
-            = new Date(year, month, date).getDay();
-        }
-      }
-    }
-    return _cal[year + ''];
-  }; // end of util.getCal
-
-  util.daysAfterNow = function(days) {
-    var now = new Date().getTime(),
-        time;
-    days = parseInt(days, 10);
-    if (isNaN(days)) return;
-
-    time = now + days * 86400000;
-    now = new Date(time);
-    return {
-      timestamp: time, 
-      year: now.getFullYear(),
-      month: now.getMonth(),
-      date: now.getDate(),
-      hr: now.getHours(),
-      min: now.getMinutes()
-    };
-  }; // end of util.daysAfterNow
-
-  util.timeOf = function(timestamp) {
-    if (!timestamp) return {};
-
-    if (typeof timestamp == 'string') {
-      // e.g. 2012-3-22, 2012/3/22
-      var str = timestamp.split(/\/|\-/).join('/');
-      timestamp = new Date(str).getTime();
-    }
-
-    var t = parseInt(timestamp, 10),
-        d = new Date(t),
-        two = function(num) { // two-digit
-          return ('00' + num).slice(-2);
-        };
-    if (!d) return {};
-    var year = d.getFullYear(),
-        month = d.getMonth() + 1,
-        date = d.getDate(),
-        hr = d.getHours(),
-        min = d.getMinutes(),
-        sec = d.getSeconds(),
-        fullDate = year
-          + '/' + month
-          + '/' + date;
-        fullTime = two(hr) 
-          + ':' + two(min)
-          + ':' + two(sec);
-    return {
-      timestamp: timestamp,
-      fullDate: fullDate,
-      fullTime: fullTime,
-      year: year,
-      month: month,
-      date: date,
-      hr: hr,
-      min: min,
-      sec: sec
-    };
-  }; // end of util.dateOf
-  
-  util.setTimer = function() {
-    var start = new Date().getTime();
-    return {
-      lap: function() {
-        var duration = (new Date().getTime() - start) / 1000;
-        console.log('[debug] start = ' + start + '; duration = ' + duration);
-        return duration;
-      }
-    };
-  };//util.setTimer
-
-  // --- util.thumbnailer ---
-  util.thumbnailer = function(img, sx, lobes) {
-    var elem = document.createElement("canvas");
-    if (!lobes) lobes = 1;
-    
-    var thumb = new Thumbnailer(elem, img, sx, lobes);
-    //thumb.done(function() {
-    //  console.log(thumb);
-    //});
-    return thumb;
-  }; // end of util.thumbnailer
-  
-  // returns a function that calculates lanczos weight
-  function lanczosCreate(lobes) {
-    return function(x) {
-        if (x > lobes)
-            return 0;
-        x *= Math.PI;
-        if (Math.abs(x) < 1e-16)
-            return 1;
-        var xx = x / lobes;
-        return Math.sin(x) * Math.sin(xx) / x / xx;
-    };
-  }
-
-  // elem: canvas element, img: image element, sx: scaled width, lobes: kernel radius
-  function Thumbnailer(elem, img, sx, lobes) {
-    this.canvas = elem;
-    elem.width = img.width;
-    elem.height = img.height;
-    elem.style.display = "none";
-    this.ctx = elem.getContext("2d");
-    this.ctx.drawImage(img, 0, 0);
-    this.img = img;
-    this.src = this.ctx.getImageData(0, 0, img.width, img.height);
-    this.dest = {
-        width : sx,
-        height : Math.round(img.height * sx / img.width),
-    };
-    this.dest.data = new Array(this.dest.width * this.dest.height * 3);
-    this.lanczos = lanczosCreate(lobes);
-    this.ratio = img.width / sx;
-    this.rcp_ratio = 2 / this.ratio;
-    this.range2 = Math.ceil(this.ratio * lobes / 2);
-    this.cacheLanc = {};
-    this.center = {};
-    this.icenter = {};
-    this.p_unit = Math.ceil(sx / 100);
-    this._progress = 0;
-
-    if ((img.width / sx) < 2) {
-      setTimeout(this.process3, 0, this);
-    } else {
-      setTimeout(this.process1, 0, this, 0);
-    }
-  }
-  Thumbnailer.prototype.onload = function() {
-    if (this.onload) {
-      this.onload.call();
-    }
-  };
-  Thumbnailer.prototype.onprogress = function(_p) {
-    if (this.onprogress) {
-      this.onprogress.call(_p);
-    }
-  };
-  Thumbnailer.prototype.process1 = function(self, u) {
-    if (u % self.p_unit == 0) {
-      self.onprogress(u / self.dest.width);
-    } 
-    self.center.x = (u + 0.5) * self.ratio;
-    self.icenter.x = Math.floor(self.center.x);
-    for (var v = 0; v < self.dest.height; v++) {
-        self.center.y = (v + 0.5) * self.ratio;
-        self.icenter.y = Math.floor(self.center.y);
-        var a, r, g, b;
-        a = r = g = b = 0;
-        for (var i = self.icenter.x - self.range2; i <= self.icenter.x + self.range2; i++) {
-            if (i < 0 || i >= self.src.width)
-                continue;
-            var f_x = Math.floor(1000 * Math.abs(i - self.center.x));
-            if (!self.cacheLanc[f_x])
-                self.cacheLanc[f_x] = {};
-            for (var j = self.icenter.y - self.range2; j <= self.icenter.y + self.range2; j++) {
-                if (j < 0 || j >= self.src.height)
-                    continue;
-                var f_y = Math.floor(1000 * Math.abs(j - self.center.y));
-                if (self.cacheLanc[f_x][f_y] == undefined)
-                    self.cacheLanc[f_x][f_y] = self.lanczos(Math.sqrt(Math.pow(f_x * self.rcp_ratio, 2)
-                            + Math.pow(f_y * self.rcp_ratio, 2)) / 1000);
-                weight = self.cacheLanc[f_x][f_y];
-                if (weight > 0) {
-                    var idx = (j * self.src.width + i) * 4;
-                    a += weight;
-                    r += weight * self.src.data[idx];
-                    g += weight * self.src.data[idx + 1];
-                    b += weight * self.src.data[idx + 2];
-                }
-            }
-        }
-        var idx = (v * self.dest.width + u) * 3;
-        self.dest.data[idx] = r / a;
-        self.dest.data[idx + 1] = g / a;
-        self.dest.data[idx + 2] = b / a;
-    }
-
-    if (++u < self.dest.width)
-        setTimeout(self.process1, 0, self, u);
-    else
-        setTimeout(self.process2, 0, self);
-  };
-  Thumbnailer.prototype.process2 = function(self) {
-    console.log('process2');
-    self.canvas.width = self.dest.width;
-    self.canvas.height = self.dest.height;
-    self.ctx.drawImage(self.img, 0, 0, self.dest.width, self.dest.height);
-    self.src = self.ctx.getImageData(0, 0, self.dest.width, self.dest.height);
-    var idx, idx2;
-    for (var i = 0; i < self.dest.width; i++) {
-        for (var j = 0; j < self.dest.height; j++) {
-            idx = (j * self.dest.width + i) * 3;
-            idx2 = (j * self.dest.width + i) * 4;
-            self.src.data[idx2] = self.dest.data[idx];
-            self.src.data[idx2 + 1] = self.dest.data[idx + 1];
-            self.src.data[idx2 + 2] = self.dest.data[idx + 2];
-        }
-    }
-    self.ctx.putImageData(self.src, 0, 0);
-    self.canvas.style.display = "block";
-    self.onload();
-  };
-  Thumbnailer.prototype.process3 = function(self) {
-    console.log('process3: actually just turn img into canvas');
-    self.ctx.putImageData(self.src, 0, 0);
-    self.canvas.style.display = "block";
-    self.onload();
-  }
-  // end of Thumbnailer
-  
-  util.dataURItoBlob = dataURItoBlob;
-  function dataURItoBlob(dataURI) {
-    // convert base64/URLEncoded data component to raw binary data held in a string
-    var byteString;
-    if (dataURI.split(',')[0].indexOf('base64') >= 0)
-        byteString = atob(dataURI.split(',')[1]);
-    else
-        byteString = unescape(dataURI.split(',')[1]);
-
-    // separate out the mime component
-    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-
-    // write the bytes of the string to a typed array
-    var ia = new Uint8Array(byteString.length);
-    for (var i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-    }
-
-    return new Blob([ia], {type:mimeString});
-  }; //dataURItoBlob
-
-  // -----------------------------
-  // useViews
-  // -----------------------------
-  var useViews = function() {
+  Cope.useViews = function() {
+    var debug = Cope.Util.setDebug('useViews', true);
     var my = {},
         classes = {},
         count = 0,
@@ -1014,43 +1029,21 @@
         newView; // construct new vu
     timestamp = timestamp + Math.floor(Math.random() * 10000).toString(36);
 
-    newView = function(_data) {
+    newView = function(_data, _load) {
       var vu = {},
-          _id,
-          $el, sel, val, 
-          update, load,
-          res, // send eventType and data to outside
-          _resFuncs = {},
-          ds, // method to update data and trigger functions
-          data = {},
-          myDataSnap = dataSnap(), // default dataSnap
-          dataSnaps = {},
-          voidDS = dataSnap();
+          id,
+          resFuncs = {},
+          myLoadFunc,
+          vuDataSnap = Cope.dataSnap(); // built-in dataSnap
 
       count = count + 1;
-      _id = timestamp + '_' + count;
-      if (typeof _data == 'object') {
-        data = _data;
-      }
+      id = timestamp + '_' + count;
 
-      val = function(key, _val) {
-        if (arguments.length > 0 
-            && typeof key != 'string') return;
+      vu.id = id;
+      vu.ID = ' data-vuid="' + id + '" ';
 
-        switch (arguments.length) {
-          case 2: 
-            data[key] = _val;
-            return data[key];
-            break;
-          case 1: 
-            return data[key];
-            break;
-          case 0:
-            return data;
-        }
-      };
-      sel = function(_path) {
-        var root = '[data-vuid="' + _id + '"]';
+      vu.sel = function(_path) {
+        var root = '[data-vuid="' + id + '"]';
         if (!_path) {
           return root;
         } else if (_path.charAt(0) === '@') { // eg. "@display"
@@ -1059,70 +1052,50 @@
         }
         return root + ' ' + _path;
       };
-      $el = function(_path) {
+
+      vu.$el = function(_path) {
         return $(this.sel(_path));
       };
-      res = function(_name, _arg) {
+
+      vu.res = function(_name, _arg) {
         if (typeof _name != 'string') return;
         if (typeof _arg == 'function') {
           // to set res functions
-          _resFuncs[_name] = _arg;
+          resFuncs[_name] = _arg;
         } else {
-          // to run res functions with data
-          if (typeof _resFuncs[_name] == 'function') {
-            _resFuncs[_name].call(vu, _arg);
+          // to run res functions,
+          // which only allowed atmost one parameter
+          if (typeof resFuncs[_name] == 'function') {
+            resFuncs[_name].call(vu, _arg);
           }
         }
         return this;
-      };
-      ds = function(_name, _ds) {
-        switch (arguments.length) {
-          case 0: 
-            return myDataSnap;
-            break;
-          case 1:
-            if (typeof _name == 'string') {
-              // Find the customed dataSnap
-              return dataSnaps[_name] || voidDS;
-            } else if (typeof _name == 'object') {
-              // Set the default dataSnap
-              var obj = _name; // arg_0 is the updates obj
-              update(obj);
-              myDataSnap.update(obj);
-            }
-            break;
-          case 2:
-            if (typeof _name == 'string') {
-              if (_name && _ds) {
-                dataSnaps[_name] = _ds;
-                _ds.enroll(vu);
-              }
-            }
-            break;
-        }
-      }; // end of ds
-      update = function(_updates) {
-        // Update data
-        if (typeof _updates == 'object') {
-          // e.g. updates = { 'os': '10.2' }
-          Object.keys(_updates).forEach(function(name) {
-            var uVal = _updates[name];
-            val(name, uVal);
-          });
-        }
-      }; // end of update
+      }; // end of vu.res
 
-      vu._id = _id;
-      vu._ID = ' data-vuid="' + _id + '" ';
-      vu.$el = $el;
-      vu.sel = sel;
-      vu.val = val;
-      vu.update = update;
-      vu.load = load; // will be made by proto
-      vu.ds = ds;
-      vu.res = res.bind(vu);
+      vu.load = function() {
+        _load(vu);
+      }; 
+
+      vu.val = function() {
+        return vuDataSnap.val.apply(null, arguments);
+      };
+
+      vu.ds = function() {
+        return myDataSnap;
+      };
       
-      myDataSnap.enroll(vu);
+      // Set initial data if provided
+      if (typeof _data == 'object') {
+        vuDataSnap.val(_data); // Note. Since no vu
+        // has enrolled in vuDataSnap (not even this vu),
+        // the emit function of vuDataSnap will not make
+        // any differences by setting the initial data.
+      }
+
+      // Enroll in built-in dataSnap
+      vuDataSnap.enroll(vu);
+
+      // vu.load would be set by "proto" in "my.class"
       return vu;
     }; // end of newView
     my.class = function(viewName) {
@@ -1133,15 +1106,15 @@
             render,
             renderAll;
         renderAll = function(_vu) {
-          renderFuncs.forEach(function(rend) {
-            if (typeof rend == 'function') { 
-              rend.call(_vu);
+          renderFuncs.forEach(function(_rend) {
+            if (typeof _rend == 'function') { 
+              _rend.call(_vu);
             }
           });
         }; // end of renderAll
-        proto.dom = function(func) {
-          if (typeof func == 'function') { 
-            dom = func;
+        proto.dom = function(_func) {
+          if (typeof _func == 'function') { 
+            dom = _func;
           } 
         };
         // Append a render function to the array
@@ -1151,19 +1124,13 @@
           } 
         };
         proto.build = function(obj) {
-          var vu = newView(obj.data || {}),
+          if (!obj) return console.error('lack of valid obj');
+          var data = obj.data || {},
+              vu = newView(data, renderAll),
               selector = obj.sel || obj.selector,
               method = obj.method || 'html';
-          try {
-            // Render dom
-            vu.load = function() {
-              if (vu.$el().length < 1) {
-                $(selector)[method](dom.call(vu));
-              }
-              renderAll(vu);
-            };
-            vu.load();
-          } catch (err) { console.error(err); }
+          $(selector)[method](dom.call(vu));
+          vu.load();
           return vu;
         }; // end of proto.build
         classes[viewName] = proto;
@@ -1171,17 +1138,16 @@
       return classes[viewName];
     }; // end of my.class
     return my;
-  }; // end of useViews
+  }; // end of Cope.useViews
   
   // -----------------------------
-  // useGraphDB
+  // Cope.useGraphDB
   // @Editor
   // @graphId
   // -----------------------------
   var hasInit = false;
-
-  var useGraphDB = function() {
-    var debug = setDebug('graphDB', false),
+  Cope.useGraphDB = function() {
+    var debug = Cope.Util.setDebug('graphDB', false),
         myUser, // current cope user
         getFB, // to get the current firebase
         isValidName, // check if the input is valid for firebase #child
@@ -1506,6 +1472,7 @@
         return null;
       }
 
+      // To get the tree of URL(s) from _path
       manager.open = function(_path) {
         if (!isValidName(_path)) return null;
         return {
@@ -1514,66 +1481,43 @@
             appRef.child('_files').once('value').then(function(_snap) {
               var val = _snap.val();
               _cb(val);
-            });
+            }).catch(function(err) { console.error(err); });
           } // end of then
         }; // end of return 
       }; // end of manager.open
 
-      console.log('TBD: complete api.files');
-      return manager;
-
-      var saveCallback; // set by calling manager.save().then()
-      manager.open = function(_path) {
-        var _thenable = {}, openCallback,
-            startRef = rootRef().child('_files');
-        _thenable.then = function(cb) {
-          if (typeof cb == 'function') {
-            openCallback = cb;
-          }
-        };
-           
-        if (_path) {
-          startRef = startRef.child(_path);
-        }
-        startRef.once('value').then(function(snap) {
-          var val = snap.val();
-          debug('files.open', val);
-          openCallback(val);
-        });
-        return _thenable;
-      };
-      manager.save = function(_params) { // save a file per call
-        var _thenable = {},
-            uploadTask, saveCallback, 
+      // To save single file
+      manager.save = function(_params) { 
+        var uploadTask, saveCallback, 
             folder = _params.folder,
-            timestamp = _params.timestamp + '',
-            filename = _params.filename,
+            timestamp = '' + (_params.timestamp || new Date().getTime()),
+            filename = _params.filename || 'unknown',
             file = _params.file,
-            _path = [folder, timestamp, filename],
-            path,
-            err;
+            pathNames = [folder, timestamp, filename],
+            path; // to store the validated path from pathNames
 
-        _path = _path.map(function(x) {
+        if (!file || !isValidName(folder)) {
+          throw new Error('lack of specified folder or file');
+        }
+
+        // Validate the path of the file
+        pathNames = pathNames.map(function(x) {
           if (typeof x == 'string') {
-            if (x.charAt(0) == '/') {
-              x = x.slice(1);
-            }
-            x = x.replace(/\//g, '')
-               .replace(/\s/g, '_')
+            x = x.replace(/\s/g, '_')
                .replace(/\/|\\/g, '_')
                .replace(/\.|\#|\$|\[|\]/g, '_');
           } 
-          if (!x) err = true;
+          if (!x) throw new Error('Found invalid name in path');
           return x;
         });
-        path = _path.join('/');
 
+        // Obtain the valid path
+        path = pathNames.join('/');
         debug('save', 'saving "' + path + '"');
-        if (err) return console.err(_path);
-        //-------------- Start the upload task
-        uploadTask = storeRef()
-          .child(_path[0]).child(_path[1]).child(_path[2])
-          .put(file);
+        
+        // Start the upload task
+        uploadTask = storeRef.child(path).put(file);
+
         uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED, // or 'state_changed'
           function(snapshot) {
             // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
@@ -1608,7 +1552,7 @@
             var downloadURL = uploadTask.snapshot.downloadURL;
         
             // Save the downloadURL
-            rootRef().child('_files').child(path).ref.set(downloadURL)
+            appRef.child('_files').child(path).set(downloadURL)
               .then(function() {
                 try {
                   saveCallback({
@@ -1624,27 +1568,31 @@
         //--------------
 
         // To set the saveCallback function
-        _thenable.then = function(cb) {
-          if (typeof cb == 'function') {
-            saveCallback = cb;
+        return {
+          then: function(_cb) {
+            if (typeof cb == 'function') {
+              saveCallback = cb;
+            }
           }
         };
-        return _thenable;
       }; // end of manager.save
 
-      manager.saveMany = function(paramsArr) {
-        var _thenable = {}, that = this, objs = [],
+      manager.saveMany = function(_paramsArr) {
+        var thenable = {}, that = this, objs = [],
+            count = 0, // count saved files
             done;
-        if (!Array.isArray(paramsArr)) return;
+        if (!Array.isArray(_paramsArr)) return;
 
         debug('saveMany', 'Called.');
-        paramsArr.forEach(function(x, idx) {
+        _paramsArr.forEach(function(x, idx) {
           var exec = function() {
             that.save(x).then(function(_obj) {
               debug('saveMany', 'idx = ' + idx);
               debug('saveMany', _obj);
               objs[idx] = _obj;
-              if (objs.length == paramsArr.length) {
+              count++;
+
+              if (count == paramsArr.length) {
                 debug('saveMany', 'Done.');
                 // TBD: what if some fail to upload
                 if (typeof done == 'function') {
@@ -1657,34 +1605,34 @@
           }(); // end of exec
         }); // end of paramsArr.forEach
         
-        _thenable.then = function(_done) {
+        thenable.then = function(_done) {
           done = _done;
         };
-        return _thenable;
+        return thenable;
       }; // end of manager.saveMany
 
       manager.del = function(_path) {
-        var _thenable = {}, done;
-        _thenable.then = function(_cb) {
+        var thenable = {}, done;
+        thenable.then = function(_cb) {
           if (typeof _cb == 'function') done = _cb;
         };
-        storeRef().child(_path).delete().then(function() {
-          rootRef().child('_files').child(_path).ref.set(null)
+        storeRef.child(_path).delete().then(function() {
+          appRef.child('_files').child(_path).set(null)
             .then(function() {
               if (typeof done == 'function') done();
             });
         });
-        return _thenable;
+        return thenable;
       }; // end of manager.del
 
-      manager.delMany = function(arr) { // arr = [<string> path]
-        var _thenable = {}, done, count = 0, that = this;
-        _thenable.then = function(_cb) {
+      manager.delMany = function(_arr) { // arr = [<string> path]
+        var thenable = {}, done, count = 0, that = this;
+        thenable.then = function(_cb) {
           if (typeof _cb == 'function') done = _cb;
         };
         try {
-          arr.forEach(function(x) {
-            that.del(x).then(function() {
+          _arr.forEach(function(_path) {
+            that.del(_path).then(function() {
               count++;
               debug('delMany count', count);
               if (count == arr.length) {
@@ -1693,8 +1641,9 @@
             });
           });
         } catch (err) { console.error(err); }
-        return _thenable;
+        return thenable;
       };
+
       return manager;
     }; // end of api.files
 
@@ -1724,7 +1673,7 @@
                 myUser = user;
                 cb(myUser);
               } else {
-                editor().openCopeAccount().res('try', function(pairs) {
+                useEditor.call(Cope).openCopeAccount().res('try', function(pairs) {
                   // Fetch from Editor
                   var email = pairs.account,
                       password = pairs.pwd,
@@ -1741,7 +1690,7 @@
                       debug('signIn', err);
                       that.ds({ 'error': err.code });
                     }); // end of catch
-                }); // end of myEditor
+                }); // end of useEditor
               } // end of else
             }); // end of _fb.auth()
           }); // end of getFB()
@@ -2511,13 +2460,13 @@
     };
     //myDB.node = node;
     return myDB;
-  }; // end of useGraphDB
+  }; // end of Cope.useGraphDB
 
   // -----------------------------
-  // copeApp
+  // TBD: rewrite copeApp
   // -----------------------------
   var copeApp = function(_appId) {
-    var debug = setDebug('copeApp', false);
+    var debug = Cope.Util.setDebug('copeApp', false);
     var my = {},
         app, 
         //myViews, // where we store constructed Views
@@ -2543,12 +2492,12 @@
             done = _cb;
           }
           $.ajax({ type:'GET', url:'/cope-config' }).done(function(_config) {
-            graphDB.call(my, _config).create(_appId).then(function() {
+            useGraphDB.call(Cope, _config).create(_appId).then(function() {
               if (typeof done == 'function') {
                 debug('Done.');
                 done(copeApp(_appId));
               }
-            }); // end of graphDB.call
+            }); // end of useGraphDB.call
           });
           return _thenable;
         }();
@@ -2568,7 +2517,7 @@
       if (!func) return console.error('Failed to load page');
       if (this.editable) {
         try {
-          my.useGraphDB().user().then(function(_user) {
+          useGraphDB.call(Cope).user().then(function(_user) {
             func.call(my);
           });
         } catch (err) { console.error(err); }
@@ -2603,22 +2552,6 @@
     }; // end of my.build
     return my;
   }; // end of function copeApp
-
-  //window.dataSnap = dataSnap;
-  //window.views = views;
-  //window.util = util;
-  //window.graphDB = graphDB;
-  //window.copeApp = copeApp;
-
-  var Cope = {};
-  //Cope.util = util;
-  //Cope.graphDB = graphDB;
-  //Cope.views = views;
-  Cope.useGraphDB = useGraphDB;
-  Cope.useViews = useViews;
-  Cope.dataSnap = dataSnap;
-  Cope.copeApp = copeApp;
-  Cope.Util = util;
 
   window.Cope = Cope;
 

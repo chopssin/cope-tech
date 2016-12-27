@@ -1,7 +1,7 @@
-(function($) {
+(function($, Cope) {
 
 var G = Cope.useGraphDB(),
-    Views = Cope.useViews(),
+    Views = Cope.useViews('views'),
     Util = Cope.Util,
     dataSnap = Cope.dataSnap,
     fetchDS = dataSnap(),
@@ -105,4 +105,4 @@ renderDS.load(function() {
 // All start from here
 fetchDS.load();
 
-})(jQuery);
+})(jQuery, Cope, undefined);

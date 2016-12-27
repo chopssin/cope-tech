@@ -1,5 +1,6 @@
 (function($, Cope) {
-var Views = Cope.useViews(),
+var debug = Cope.Util.setDebug('views.js', true),
+    Views = Cope.useViews('views'),
     ViewAppCard = Views.class('AppCard'),
     ViewAppPage = Views.class('AppPage'),
     ViewDataGraph = Views.class('DataGraph'),

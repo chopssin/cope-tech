@@ -1,13 +1,13 @@
 (function($) {
 
 var G = Cope.useGraphDB(),
-    Util = Cope.Util,
-    test = Util.setTest('test-cope');
+    test = Cope.Util.setTest('test-cope');
 
 // Test - graphDB
 test(function(pass) {
   
   var debug = this.debug;
+  debug('Start');
   
   // Test - create new app with appId = "testApp2"
   test(function(pass) {

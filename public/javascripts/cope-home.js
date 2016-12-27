@@ -35,6 +35,8 @@ $('#logo').click(function() {
 accountDS.load(function() {
   ViewAccountCard.build({
     sel: '#account'
+  }).res('signout', function() {
+    G.user().signOut();
   });
 });
 accountDS.load();

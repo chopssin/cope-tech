@@ -35,7 +35,6 @@ ViewAppCard.render(function() {
 
 // "AccountCard"
 ViewAccountCard.dom(function() {
-  console.log('adada');
   return '<div' + this.ID + '>' 
     + '<h3 data-component="name"></h3>'
     + '<p data-component="mail"></p>'
@@ -44,9 +43,11 @@ ViewAccountCard.dom(function() {
 });
 
 ViewAccountCard.render(function() {
-  var $signout = this.$el('@signout');
+  var $signout = this.$el('@signout'),
+      that = this;
   $signout.off('click').on('click', function() {
     debug('Sign out');
+    that.res('signout');
   });
 });
 // end of "AccountCard"

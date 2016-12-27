@@ -487,9 +487,9 @@
   // -----------------------------
   Cope.useEditor = function(_graphDB) {
 
-    var debug = Cope.Util.setDebug('Editor', false);
+    var debug = Cope.Util.setDebug('Cope.useEditor', true);
 
-    var Views = useViews(),
+    var Views = Cope.useViews(),
         ModalView = Views.class('Modal'),
         vuModal,
         ViewClasses = {},
@@ -506,7 +506,7 @@
     
     // Render initial lightbox and modal
     ModalView.dom(function() { 
-      return '<div' + this._ID + 'id="Editor-zone" class="Editor-lightbox">' 
+      return '<div' + this.ID + 'id="Editor-zone" class="Editor-lightbox">' 
         + '<div data-component="modal" class="modal">'
         + '</div>'
       + '</div>';
@@ -531,7 +531,7 @@
     // Cope Account
     CopeAccountView = Views.class('CopeAccount');
     CopeAccountView.dom(function() {
-      return '<div' + this._ID + 'class="cope-account">'
+      return '<div' + this.ID + 'class="cope-account">'
         + '<h3>Cope | Sign in</h3>'
         + '<input data-component="account" type="email" placeholder="Email">'
         + '<input data-component="pwd" type="password" placeholder="Password">'
@@ -545,6 +545,11 @@
           ok = this.val('ok'),
           that = this;
 
+      if (ok) {
+        my.dismiss();
+        return;
+      }
+
       this.$el('button').off('click').on('click', function() {
         account = that.$el('@account').val().trim();
         pwd = that.$el('@pwd').val();
@@ -556,9 +561,6 @@
         debug('CopeAccount - error', error);
         this.$el('@status').text('Wrong user/password');
       }
-      if (ok) {
-        my.dismiss();
-      }
     });
     ViewClasses.CopeAccount = CopeAccountView;
 
@@ -567,7 +569,7 @@
     WriterView = Views.class('Blank');
     WriterView.dom(function() {
       var label = this.val('label') || '';
-      return '<div' + this._ID +'>' 
+      return '<div' + this.ID +'>' 
           + '<label data-component="label">' + label +'</label>'
           + '<textarea></textarea>'
           + '<button class="final">Save</button>';
@@ -627,7 +629,7 @@
       var src = this.val('src'),
           img = this.val('img');
       if (!src) return '<h3>Failed to open image</h3>';
-      if (img) return '<div' + this._ID + ' style="width:100%;"></div>';
+      if (img) return '<div' + this.ID + ' style="width:100%;"></div>';
       return '<img width="100%" src="' + src + '">';
       //return 'img width="100%" src="' + src + '"';
     });
@@ -640,7 +642,7 @@
     
     ImageChooserView = Views.class('ImageChooser');
     ImageChooserView.dom(function() {
-      return '<div' + this._ID + '>' 
+      return '<div' + this.ID + '>' 
           + '<div class="image-chooser" data-component="list"></div>'
           + '<div style="width:100%">'
             + '<button data-component="doneBtn" class="final">'
@@ -726,7 +728,7 @@
     ImageUploaderView = Views.class('ImageUploader');
     ImageUploaderView.dom(function() {
       var multi = this.val('multi') ? 'multiple' : '';
-      return '<div'+ this._ID +'>'
+      return '<div'+ this.ID +'>'
         + '<h4>' + Phrases.CHOOSE_IMG + '</h4>'
         + '<div data-component="images" style="width:100%"></div>'
         + '<input type="file" data-component="file-input" accept="image/*"'
@@ -1087,7 +1089,7 @@
       };
 
       vu.ds = function() {
-        return myDataSnap;
+        return vuDataSnap;
       };
       
       // Set initial data if provided
@@ -1157,7 +1159,7 @@
   // -----------------------------
   var hasInit = false;
   Cope.useGraphDB = function() {
-    var debug = Cope.Util.setDebug('graphDB', false),
+    var debug = Cope.Util.setDebug('graphDB', true),
         myUser, // current cope user
         getFB, // to get the current firebase
         isValidName, // check if the input is valid for firebase #child
@@ -1672,6 +1674,7 @@
     
     
     myGraph.user = function() {
+      debug('#user', "called");
       return {
         then: function(cb) {
           if (typeof cb != 'function') return null;
@@ -1681,30 +1684,37 @@
               myUser = null;
               if (user) {
                 myUser = user;
+                debug('#user', myUser);
                 cb(myUser);
               } else {
-                useEditor.call(Cope).openCopeAccount().res('try', function(pairs) {
+                debug('#user', 'Unverified user');
+                Cope.useEditor(myGraph).openCopeAccount().res('try', function(pairs) {
                   // Fetch from Editor
                   var email = pairs.account,
                       password = pairs.pwd,
                       that = this;
-                  debug('signIn', pairs);
+                  debug('#user - signed in as', email);
                   _fb.auth().signInWithEmailAndPassword(email, password)
                     .then(function() {
-                      that.ds({ 'ok': true });
-                      if (typeof _done == 'function') {
-                        _done(app.auth().currentUser);
-                      }
+                      that.val({ 'ok': true }); // talk to Editor
+                      //if (typeof _done == 'function') {
+                      //  _done(app.auth().currentUser);
+                      //}
                     })
                     .catch(function(err) {
-                      debug('signIn', err);
-                      that.ds({ 'error': err.code });
+                      debug('#user', err);
+                      that.val({ 'error': err.code }); // talk to Editor
                     }); // end of catch
                 }); // end of useEditor
               } // end of else
             }); // end of _fb.auth()
           }); // end of getFB()
-        } // end of then
+        }, // end of then
+        signOut: function() {
+          getFB().then(function(_fb) {
+            _fb.auth().signOut();
+          });
+        } // end of signOut
       }; // end of return
     }; // end of myGraph.user
 
@@ -1869,14 +1879,14 @@
             debug('signIn', pairs);
             app.auth().signInWithEmailAndPassword(email, password)
               .then(function() {
-                that.ds({ 'ok': true });
+                that.val({ 'ok': true });
                 if (typeof _done == 'function') {
                   _done(app.auth().currentUser);
                 }
               })
               .catch(function(err) {
                 debug('signIn', err);
-                that.ds({ 'error': err.code });
+                that.val({ 'error': err.code });
               });
           });
         }; // end of signIn

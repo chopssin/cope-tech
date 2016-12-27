@@ -104,8 +104,9 @@
 .Editor-lightbox .modal button.final {
   float: right;
   color: #fff;
-  background: #2cb5e8;
-  background: linear-gradient(141deg, #0fb8ad 0%, #1fc8db 51%, #2cb5e8 75%);
+  /*background: linear-gradient(141deg, #0fb8ad 0%, #1fc8db 51%, #2cb5e8
+   * 75%);*/
+  background-color: #236eb6;
   font-size: 1.2em;
   padding: 14px;
   -webkit-border-radius: 4px;
@@ -115,7 +116,9 @@
   border: 0;
 }
 .Editor-lightbox .modal button.final:hover {
-  background: linear-gradient(141deg, #0fb8ad, #86dbdb 45.38%, #2cb5e8 75%);
+  background-color: #2f6193;
+  /*background: linear-gradient(141deg, #0fb8ad, #86dbdb 45.38%, #2cb5e8
+   * 75%);*/
 }
 .Editor-lightbox canvas,
 .Editor-lightbox img {
@@ -188,76 +191,94 @@
 }
 
 /* Cope */
-.cope.bg-blue,
-.cope .bg-blue {
-  background-color: rgb(59, 120, 231);
+.color-w {
+  color: #fff;
 }
 
-.cope.bg-w,
-.cope .bg-w {
+.color-blue {
+  color: #236eb6;
+}
+
+.color-b {
+  color: #333;
+}
+
+.bg-w {
   background-color: #fff;
 }
 
-.cope.nav-top {
+.bg-blue {
+  background-color: #236eb6;
+}
+
+.nav-top {
   background: #fff;
   -webkit-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .4);
   -moz-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .4);
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .4);
 }
 
-.cope.page-wrap {
+.page-wrap {
   padding-top: 100px;
   background: #efefea;
 }
 
-.cope .logo.text {
+.logo.text {
   font-weight: 400;
   letter-spacing: 4px;
   color: #555;
 }
 
-.cope .logo.text:hover {
+.logo.text:hover {
   color: #333;
 }
 
-.cope-btn,
 .cope-card {
   display: block;
   position: relative;
-  width: 100%;
-  max-width: 500px;
   padding: 8px;
+  border: none;
   -webkit-box-shadow: 0px 4px 6px 0 rgba(0, 0, 0, .4);
   -moz-box-shadow: 0px 4px 6px 0 rgba(0, 0, 0, .4);
   box-shadow: 0px 4px 6px 0 rgba(0, 0, 0, .4);
+  width: intrinsic;           /* Safari/WebKit uses a non-standard name */
+  width: -moz-max-content;    /* Firefox/Gecko */
+  width: -webkit-max-content; /* Chrome */
 }
 
-.cope-btn {
-  width: 200px;
+.cope-card.wider {
+  width: 100%;
+  max-width: 500px;
   align-items: flex-start;
-  text-align: center;
-  border: none;
-  background: #fff;
+}
+
+.cope-card.touchable {
   cursor: pointer;
 }
 
+.cope-card.as-btn {
+  min-width: 86px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 400;
+  padding: 10px 32px;
+}
+
 .cope-card.touchable:hover,
-.cope-btn:hover {
+.cope-card.as-btn:hover {
   -webkit-box-shadow: 0px 6px 9px 0 rgba(0, 0, 0, .4);
   -moz-box-shadow: 0px 6px 9px 0 rgba(0, 0, 0, .4);
   box-shadow: 0px 6px 9px 0 rgba(0, 0, 0, .4);
   cursor: pointer;
 }
 
-.cope-card.no-shadow,
-.cope-btn.no-shadow {
+.cope-card.no-shadow {
   -webkit-box-shadow: none;
   -moz-box-shadow: none;
   box-shadow: none;
 }
 
-.cope-card ul,
-.cope-btn ul {
+.cope-card ul {
   list-style: none;
   text-decoration: none;
   font-size: 1.2em;
@@ -266,13 +287,11 @@
   margin: 0;
 }
 
-.cope-card ul li,
-.cope-btn ul li {
+.cope-card ul li {
   padding: 8px;
 }
 
-.cope-card ul .title,
-.cope-btn ul .title {
+.cope-card ul .title {
   color: #aaa;
   font-size: 0.8em;
 }

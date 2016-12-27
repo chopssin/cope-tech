@@ -16,6 +16,7 @@ var G = Cope.useGraphDB(),
 
 // Navigation
 function nav(_sec) {
+  $('html, body').scrollTop(0);
   switch(_sec) {
     case 'home':
       $('#dashboard').removeClass('hidden');
@@ -33,10 +34,15 @@ $('#logo').click(function() {
 
 // Get my account
 accountDS.load(function() {
-  ViewAccountCard.build({
+  var card = ViewAccountCard.build({
     sel: '#account'
   }).res('signout', function() {
     G.user().signOut();
+  });
+
+  G.user().then(function(_user) {
+    debug(_user);
+    card.val({ mail: _user.email });
   });
 });
 accountDS.load();

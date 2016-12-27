@@ -536,7 +536,8 @@
         + '<input data-component="account" type="email" placeholder="Email">'
         + '<input data-component="pwd" type="password" placeholder="Password">'
         + '<span data-component="status" class="color-red"></span>'
-        + '<button class="final">Go</button>'
+        //+ '<button class="final">Go</button>'
+        + '<button class="cope-card as-btn bg-blue color-w final">Go</button>'
         + '</div>';
     });
     CopeAccountView.render(function() {

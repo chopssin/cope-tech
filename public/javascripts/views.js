@@ -8,7 +8,7 @@ var debug = Cope.Util.setDebug('views.js', true),
 
 // "AppCard"  
 ViewAppCard.dom(function() {
-  return '<div' + this.ID + ' class="cope-card touchable bg-w" style="margin-bottom:16px">'
+  return '<div' + this.ID + ' class="cope-card wider touchable bg-w" style="margin-bottom:16px">'
     + '<h3 data-component="appName"></h3>'
     + '<p data-component="appId"></p>'
     + '<p data-component="role"></p>'
@@ -36,15 +36,19 @@ ViewAppCard.render(function() {
 // "AccountCard"
 ViewAccountCard.dom(function() {
   return '<div' + this.ID + '>' 
-    + '<h3 data-component="name"></h3>'
+    + '<h3 data-component="name">Cope User</h3>'
     + '<p data-component="mail"></p>'
-    + '<button data-component="signout" class="cope-btn">Sign out</button>'
+    + '<button data-component="signout" class="cope-card as-btn bg-blue color-w">Sign out</button>'
     + '</div>';
 });
 
 ViewAccountCard.render(function() {
   var $signout = this.$el('@signout'),
+      mail = this.val('mail'),
       that = this;
+
+  if (mail) this.$el('@mail').html(mail);
+
   $signout.off('click').on('click', function() {
     debug('Sign out');
     that.res('signout');
@@ -58,7 +62,7 @@ ViewAppPage.dom(function() {
   return '<div' + this.ID + 'class="row">' 
     + '<div class="col-xs-12" style="height:700px; overflow:hidden">'
       + '<div class="svg-wrap" data-component="svg">0</div>'
-      + '<div data-component="card" class="cope-btn bg-w touchable" style="text-align:left"><ul>'
+      + '<div data-component="card" class="cope-card touchable wrap bg-w" style="text-align:left"><ul>'
         + '<li data-component="display-li">' 
           + '<div class="title">App Name</div>'
           + '<div data-component="appName"></div>'
@@ -78,6 +82,7 @@ ViewAppPage.dom(function() {
         + '<li class="hidden">' 
           + '<div class="title">Partners</div>'
           + '<div data-component="partners"></div>'
+          + '<a>Add partner</a>'
         + '</li>'
         + '<li class="hidden">' 
           + '<div class="title">Expired at</div>'
@@ -136,16 +141,15 @@ ViewAppPage.render(function() { // draw the graph
   $card.off('click').on('click', function() {
     $card.find('li').removeClass('hidden');
     $li.removeClass('hidden');
-    $card
-      .removeClass('cope-btn')
-      .toggleClass('cope-card', true, 1000, "easeOutSine");
+    //$card
+    //  .addClass('wider');
+      //.toggleClass('wrap', false, 1000, "easeOutSine");
   });
   $svgWrap.off('click').on('click', function() {
     $card.find('li').addClass('hidden');
     $li.removeClass('hidden');
-    $card
-      .removeClass('cope-card')
-      .toggleClass('cope-btn', true, 1000, "easeOutSine");
+    //$card
+    //  .removeClass('wider');
   });
 
 }); // end of ViewAppPage.render // draw the graph

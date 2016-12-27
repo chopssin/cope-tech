@@ -1019,8 +1019,14 @@
   // -----------------------------
   // Cope.useViews
   // -----------------------------
-  Cope.useViews = function() {
+  var usedViews = {};
+  Cope.useViews = function(_namespace) { 
     var debug = Cope.Util.setDebug('useViews', true);
+    if (typeof _namespace == 'string' 
+        && usedViews[_namespace]) {
+      return usedViews[_namespace];
+    }
+
     var my = {},
         classes = {},
         count = 0,
@@ -1137,6 +1143,10 @@
       }
       return classes[viewName];
     }; // end of my.class
+    
+    if (typeof _namespace == 'string') {
+      usedViews[_namespace] = my;
+    }
     return my;
   }; // end of Cope.useViews
   

@@ -24,4 +24,8 @@ router.get('/cope-config', function(req, res, next) {
   res.send(config);
 });
 
+router.get('/test', function(req, res, next) {
+  res.render('test', { title: 'Cope - Test page' });
+});
+
 module.exports = router;

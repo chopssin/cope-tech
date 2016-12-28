@@ -74,12 +74,12 @@
   margin-top: 160px;
   margin-bottom: 50vh;
   background: #fff;
-  background: linear-gradient(141deg, #fff 0%, #fff 51%, #fdfdfd 75%);
+  /*background: linear-gradient(141deg, #fff 0%, #fff 51%, #fdfdfd 75%);
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
   -ms-border-radius: 4px;
   border-radius: 4px;
-  box-shadow: 1px 1px 3px #ccc;
+  box-shadow: 1px 1px 3px #ccc;*/
 }
 
 .Editor-lightbox .modal label,
@@ -109,10 +109,10 @@
   background-color: #236eb6;
   font-size: 1.2em;
   padding: 14px;
-  -webkit-border-radius: 4px;
+  /*-webkit-border-radius: 4px;
   -moz-border-radius: 4px;
   -ms-border-radius: 4px;
-  border-radius: 4px;
+  border-radius: 4px;*/
   border: 0;
 }
 .Editor-lightbox .modal button.final:hover {

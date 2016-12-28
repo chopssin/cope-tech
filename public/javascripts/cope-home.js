@@ -43,6 +43,9 @@ accountDS.load(function() {
   G.user().then(function(_user) {
     debug(_user);
     card.val({ mail: _user.email });
+
+    // Set email
+    _user.val('email', _user.email);
   });
 });
 accountDS.load();
@@ -100,10 +103,12 @@ renderDS.load(function() {
             appCard: vuCard,
             graph: graph
           }
-        }).res('selected', function(node) {
+        }).res('select-node', function(node) {
           // TBD: Node being selected
           // Show node's value
-          debug('selected node', node);
+          debug('select-node', node);
+        }).res('add-partner', function(_val) {
+          debug('add-partner', _val);
         });
       }); // end of getting initial graph
     }); // end of AppCard

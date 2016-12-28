@@ -1,10 +1,15 @@
 (function($, Cope) {
 var debug = Cope.Util.setDebug('views.js', true),
-    Views = Cope.useViews('views'),
+    Editor = Cope.useEditor(),
+    
+    Views = Cope.useViews('views'), // global views
     ViewAppCard = Views.class('AppCard'),
     ViewAppPage = Views.class('AppPage'),
     ViewDataGraph = Views.class('DataGraph'),
-    ViewAccountCard = Views.class('AccountCard');
+    ViewAccountCard = Views.class('AccountCard'),
+
+    priViews = Cope.useViews(), // private views
+    ViewAddInput = priViews.class('AddInput');
 
 // "AppCard"  
 ViewAppCard.dom(function() {
@@ -82,7 +87,7 @@ ViewAppPage.dom(function() {
         + '<li class="hidden">' 
           + '<div class="title">Partners</div>'
           + '<div data-component="partners"></div>'
-          + '<a>Add partner</a>'
+          + '<a data-component="add-partner">Add partner</a>'
         + '</li>'
         + '<li class="hidden">' 
           + '<div class="title">Expired at</div>'
@@ -123,8 +128,10 @@ ViewAppPage.render(function() { // draw the graph
       graph = this.val('graph'),
       $card = this.$el('@card'),
       $li = this.$el('@display-li'),
+      $addPartner = this.$el('@add-partner'),
       $svgWrap = this.$el('@svg'),
-      w = $svgWrap.width();
+      w = $svgWrap.width(),
+      that = this;
 
   Views.class('DataGraph').build({
     sel: this.sel('@svg'),
@@ -151,7 +158,16 @@ ViewAppPage.render(function() { // draw the graph
     //$card
     //  .removeClass('wider');
   });
-
+  $addPartner.off('click').on('click', function() {
+    Editor.openModal(function(_sel) { 
+      ViewAddInput.build({
+        sel: _sel,
+        data: { placeholder: 'Email' }
+      }).res('value', function(_val) {
+        that.res('add-partner', _val);  
+      });
+    }); // end of Editor.openModal
+  }); // end of $addPartner click
 }); // end of ViewAppPage.render // draw the graph
 // end of "AppPage"
 
@@ -245,5 +261,22 @@ ViewDataGraph.render(function() {
   }
 }); // end of ViewDataGraph.render
 // end of "DataGraph"
+
+// "AddInput"
+ViewAddInput.dom(function() {
+  var ph = this.val('placeholder');
+  return '<div' + this.ID + '>' 
+    + '<input type = "text" placeholder="' + ph + '">'
+    + '<button class="cope-card final">Add</button>'
+    + '</div>';
+}); 
+
+ViewAddInput.render(function() {
+  var that = this;
+  this.$el('button').off('click').on('click', function() {
+    that.res('value', that.$el('input').val().trim());
+  });
+});
+// end of "AddInput"
 
 })(jQuery, Cope, undefined)

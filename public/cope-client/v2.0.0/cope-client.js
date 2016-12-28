@@ -1686,8 +1686,64 @@
     
     
     
-    
-    
+    var makeUser = function(_user) {
+      if (!_user.uid) {
+        return;
+      }
+      var user = {};
+      user.val = function() {
+        var args = arguments,
+            done = function() {};
+        getFB().then(function(_fb) {
+          var ref = _fb.database().ref('cope_users')
+            .child(_user.uid)
+            .child('public');
+          switch (args.length) {
+            case 0: // Do nothing...
+              break;
+            case 1: 
+              switch (typeof args[0]) {
+                case 'string': // getter
+                  console.log(args[0]);
+                  ref.child(args[0]).once('value').then(function(_snap) {
+                    done(_snap.val());
+                  });
+                  break;
+                case 'object': // setter
+                  var count = 0,
+                      keys = Object.keys(args[0]);
+                  keys.forEach(function(_key) {
+                    ref.child(_key).set(args[0][_key])
+                      .then(function() {
+                        count++;
+                        if (count == keys.length) {
+                          done();
+                        }
+                      });
+                  });
+                  break;
+              }
+              break;
+            case 2: // setter
+              if (typeof args[0] == 'string') {
+                var ups = {};
+                ref.child(args[0]).set(args[1]).then(function() { done(); });
+              }
+              break;
+          } // end of switch
+        }); // end of getFB
+        return {
+          then: function(_cb) {
+            if (typeof _cb == 'function') {
+              done = _cb;
+            }
+          }
+        }
+      }; // end of user.val
+
+      user.email = _user.email;
+      return user;
+    }; // end of makeUser
     
     myGraph.user = function() {
       debug('#user', "called");
@@ -1699,7 +1755,7 @@
             _fb.auth().onAuthStateChanged(function(user) {
               myUser = null;
               if (user) {
-                myUser = user;
+                myUser = makeUser(user); // make user obj
                 debug('#user', myUser);
                 cb(myUser);
               } else {
@@ -1742,7 +1798,7 @@
           getFB().then(function(_fb) {
             debug(_appId, 'got firebase instance');
             myGraph.user().then(function(user) { // get the current user
-              debug(_appId, 'got Cope user ' + user.uid);
+              debug(_appId, 'got Cope user ' + user.email);
               var appsRef = _fb.database().ref('cope_user_apps'),
                   usersRef = _fb.database().ref('cope_users');
 
@@ -1759,7 +1815,8 @@
                   owner[user.uid] = true;
                   
                   // Add to user's "own_apps"
-                  usersRef.child(user.uid).child('own_apps').child(_appId).set(true);
+                  //usersRef.child(user.uid).child('own_apps').child(_appId).set(true);
+                  user.val('own_apps/' + _appId, true);
 
                   // Add to "_app_list"
                   appsRef.child('_app_list').child(_appId).set(true);
@@ -1789,28 +1846,15 @@
         then: function(_cb) {
           if (typeof _cb != 'function') return null;
           myGraph.user().then(function(_user) {
-            getFB().then(function(_fb) {
-              _fb.database()
-                .ref('cope_users/' + _user.uid)
-                .once('value')
-                .then(function(_snap) {
-                  var myVal = _snap.val(),
-                      o = [], p = [];
-                  if (myVal.own_apps) {
-                    o = Object.keys(myVal.own_apps);
-                  }
-                  if (myVal.partner_apps) {
-                    p = Object.keys(myVal.partner_apps);
-                  }
-                  _cb({
-                    own_apps: o,
-                    partner_apps: p
-                  });  
-              }) // end of _fb .. then
-              .catch(function(err) {
-                console.error(err);
-              }); 
-            }); // end of getFB
+            debug('listMyApps', _user);
+            _user.val('own_apps').then(function(_val) {
+              var o = [], p = [];
+              o = Object.keys(_val);
+              _cb({
+                own_apps: o,
+                partner_apps: 'TBD'
+              });  
+            });
           }); // end of myGraph.user()
         } // end of then
       }; // end of return

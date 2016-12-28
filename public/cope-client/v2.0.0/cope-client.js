@@ -573,7 +573,7 @@
       return '<div' + this.ID +'>' 
           + '<label data-component="label">' + label +'</label>'
           + '<textarea></textarea>'
-          + '<button class="final">Save</button>';
+          + '<button class="final cope-card as-btn">Save</button>';
         + '</div>';
     }); // end of Blank.dom
     WriterView.render(function() {
@@ -886,6 +886,21 @@
       vuModal.$el().fadeIn(300);
       return lastOpenedVu;
     }; // end of my.open
+
+    my.openModal = function(_fn) {
+      if (typeof _fn == 'function') {
+        
+        // Clear the modal
+        $('body').addClass('frozen');
+        vuModal.$el('@modal').html('');
+
+        // Send selector back
+        _fn(vuModal.sel('@modal'));
+
+        // Fade in the modal
+        vuModal.$el().fadeIn(300);
+      }
+    }; // end of my.openWith
 
     my.openCopeAccount = function() {
       return my.open({ use: 'CopeAccount' });

@@ -1675,29 +1675,53 @@
       return manager;
     }; // end of api.files
 
-
-
-
-
-
-
-    //-----------------------
-    
-    
-    
-    
+    // function "makeUser"
+    // Return an User object with the following methods:
+    // val: to access data in "public"
+    // cred: to access data in "credentials"
+    // send: to send data to other cope users' "inbox"
+    // fetch: to retreive data in "inbox"
     var makeUser = function(_user) {
       if (!_user.uid) {
         return;
       }
-      var user = {};
-      user.val = function() {
+      var findUser = function(_email, _cb) {
+        getFB().then(function(_fb) {
+          // Find Cope user by email
+          _fb.database().ref('cope_users')
+            .orderByChild('public/email')
+            .equalTo(_email)
+            .once('value')
+            .then(function(_snap) {
+              var foundUser = null;
+              if (_snap.val()) foundUser = Object.keys(_snap.val())[0];
+              if (!foundUser) {
+                debug('dataSend', 'found no user by ' + _email);
+              } else {
+                if (typeof _cb == 'function') {
+                  _cb(foundUser);
+                }
+              }
+            }).catch(function(err) {
+              debug('dataSend', 'found no user by ' + _email);
+              console.error(err);
+            });
+        });
+      }; // end of findUser
+
+      var dataUpdate = function() {
+        console.log(this);
         var args = arguments,
-            done = function() {};
+            done = function() {},
+            dir = this && this.dir;
+        if (dir != 'public' && dir != 'credentials') return;
+
         getFB().then(function(_fb) {
           var ref = _fb.database().ref('cope_users')
-            .child(_user.uid)
-            .child('public');
+                    .child(_user.uid)
+                    .child(dir); 
+                    // dir should be either public or credentials
+
           switch (args.length) {
             case 0: // Do nothing...
               break;
@@ -1707,6 +1731,8 @@
                   console.log(args[0]);
                   ref.child(args[0]).once('value').then(function(_snap) {
                     done(_snap.val());
+                  }).catch(function(err) {
+                    console.error(err);
                   });
                   break;
                 case 'object': // setter
@@ -1739,8 +1765,89 @@
             }
           }
         }
-      }; // end of user.val
+      }; // end of function "dataUpdate"
 
+      // To send data to other Cope users
+      var dataSend = function(_email, _key, _val) {
+        var done = function() {};
+        findUser(_email, function(foundUser) {
+          getFB().then(function(_fb) {
+            // Found the matched user
+            // Send data to the user
+            try {
+              _fb.database().ref('cope_users')
+                .child(foundUser)
+                .child('inbox')
+                .child(_key)
+                .child(_user.uid)
+                .set(_val)
+                .then(function() {
+                  done();
+                })
+                .catch(function(err) {
+                  console.error(err);
+                });
+            } catch (err) { console.error(err); }
+          }); // end of getFB
+        }); // end of findUser
+        return {
+          then: function(_cb) {
+            if (typeof _cb == 'function') {
+              done = _cb;
+            }
+          }
+        };
+      }; // end of dataSend
+
+      // Get data from "inbox"
+      var dataFetch = function(_key) {
+        var done = function() {};
+        getFB().then(function(_fb) {
+          _fb.database().ref('cope_users')
+            .child(_user.uid)
+            .child('inbox')
+            .child(_key)
+            .on('value', function(_snap) {
+              done(_snap.val());
+            });
+        }); // end of getFB
+        return {
+          then: function(_cb) {
+            if (typeof _cb == 'function') {
+              done = _cb;
+            }
+          }
+        };
+      }; // end of dataFetch
+
+      var user = {};
+      user.addPartner = function(_appId, _email, _toAdd) {
+        var done = function() {};
+        findUser(_email, function(_foundUser) {
+          // TBD
+          getFB().then(function(_fb) {
+            _fb.database().ref('cope_user_apps')
+            .child(_appId)
+            .child('credentials/partners/' + _foundUser)
+            .set(_toAdd) // _toAdd should be true or null
+            .then(function() {
+              user.send(_email, 'add_partner_app', _appId).then(function() {
+                done();
+              });
+            });
+          }); // end of getFB.then
+        }); // end of findUser
+        return {
+          then: function(_cb) {
+            if (typeof _cb == 'function') done = _cb;
+          }
+        };
+      }; // end of addPartner
+
+      user.val = dataUpdate.bind({ dir: 'public' });
+      user.cred = dataUpdate.bind({ dir: 'credentials' });
+      user.send = dataSend;
+      user.fetch = dataFetch;
       user.email = _user.email;
       return user;
     }; // end of makeUser
@@ -1847,14 +1954,32 @@
           if (typeof _cb != 'function') return null;
           myGraph.user().then(function(_user) {
             debug('listMyApps', _user);
-            _user.val('own_apps').then(function(_val) {
-              var o = [], p = [];
-              o = Object.keys(_val);
-              _cb({
-                own_apps: o,
-                partner_apps: 'TBD'
-              });  
-            });
+            
+            // Get my own apps and partner apps
+            _user.val('own_apps').then(function(_ownApps) {
+              _user.val('partner_apps').then(function(_partnerApps) {
+                var o = [],
+                    p = [],
+                    apps = [];
+
+                if (_ownApps) o = Object.keys(_ownApps);
+                if (_partnerApps) p = Object.keys(_partnerApps);
+             
+                o.forEach(function(_id) {
+                  apps.push({ 
+                    isOwner: true,
+                    appId: _id
+                  });
+                });
+                p.forEach(function(_id) {
+                  apps.push({ 
+                    appId: _id
+                  });
+                });
+
+                _cb(apps);
+              });
+            }); // end of fetching apps
           }); // end of myGraph.user()
         } // end of then
       }; // end of return

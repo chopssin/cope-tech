@@ -314,6 +314,14 @@
   stroke-width: 1.5px;
 }
 
+/* AppPage */
+.node-data {
+  position: absolute;
+  top: 0;
+  right: 15px;
+}
+
+
 /* Extra Small Devices, Phones */
 @media only screen and (min-width : 480px) {
 }

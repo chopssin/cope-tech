@@ -94,6 +94,7 @@ ViewAppPage.dom(function() {
           + '<div data-component="expired-at"></div>'
         + '</li>'
       + '</ul></div>'
+      + '<div class="cope-card bg-w node-data" ></div>'
     + '</div>'
   + '</div>';
 }); // end of ViewAppPage.dom
@@ -140,6 +141,9 @@ ViewAppPage.render(function() { // draw the graph
       height: 600,
       graph: graph
     }
+  }).res('node-data', function(_d) {
+    debug(_d);  
+    that.$el('.node-data').html(`name:${_d.id}`);
   });
 
   $card.css('z-index', 1);
@@ -183,7 +187,8 @@ ViewDataGraph.dom(function() {
 });
 
 ViewDataGraph.render(function() {
-  var graph = this.val('graph');
+  var graph = this.val('graph'),
+      that = this;
 
   debug('ViewDataGraph - graph', graph);
 
@@ -242,6 +247,8 @@ ViewDataGraph.render(function() {
   }
 
   function dragstarted(d) {
+    that.res('node-data', d);
+
     if (!d3.event.active) simulation.alphaTarget(0.3).restart();
     d.fx = d.x;
     d.fy = d.y;

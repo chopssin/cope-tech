@@ -316,8 +316,8 @@
 
 /* AppPage */
 .node-data {
-  position: absolute;
-  top: 0;
+  position: fixed;
+  top: 100px;
   right: 15px;
   width: intrinsic;
 }

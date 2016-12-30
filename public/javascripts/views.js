@@ -25,11 +25,15 @@ ViewAppCard.render(function() {
   var that = this,
       name = this.val('appName'),
       id = this.val('appId'),
-      role = this.val('role'),
+      isOwner = this.val('isOwner'),
       stat = this.val('stat') || 'Expired in 700 days (2018/12/12)';
   if (name) this.$el('@appName').html(name);
   if (id) this.$el('@appId').html(id);
-  if (role) this.$el('@role').html(role);
+  if (isOwner) {
+    this.$el('@role').html('Owner');
+  } else {
+    this.$el('@role').html('Partner');
+  }
   if (stat) this.$el('@stat').html(stat);
 
   that.$el().off('click').on('click', function() {
@@ -63,7 +67,6 @@ ViewAccountCard.render(function() {
 
 // "AppPage"
 ViewAppPage.dom(function() {
-  console.log('dom dom');
   return '<div' + this.ID + 'class="row">' 
     + '<div class="col-xs-12" style="height:700px; overflow:hidden">'
       + '<div class="svg-wrap" data-component="svg">0</div>'
@@ -100,18 +103,23 @@ ViewAppPage.dom(function() {
 
 ViewAppPage.render(function() {
   var appCard = this.val('appCard'),
+      isOwner = this.val('isOwner'),
       val = appCard.val(),
-      appName, appId, url, role, expiredAt;
+      appName, appId, url, expiredAt;
   if (!val) return;
 
   appName = val.appName || '';
   appId = val.appId || '';
-  role = val.role;
+  isOwner = val.isOwner;
 
   this.$el('@appName').html(appName);
   this.$el('@appId').html(appId);
-  if (role == 'Owner') this.$el('@owner').html('Me');
-  if (role == 'Partner') this.$el('@partners').html('Me');
+  if (isOwner) {
+    this.$el('@owner').html('Me');
+  } else {
+    this.$el('@partners').html('Me');
+  }
+
   if (url) {
     this.$el('@url').html(val.url);
   } else {

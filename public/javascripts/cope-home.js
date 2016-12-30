@@ -46,44 +46,59 @@ accountDS.load(function() {
 
     // Set email
     _user.val('email', _user.email);
+
+    // Add partner apps
+    _user.fetch('add_partner_app').then(function(_val) {
+      if (!_val) return;
+
+      Object.keys(_val).forEach(function(_key) {
+        _user.val('partner_apps/' + _val[_key], true);
+      });
+    });
+    
+    // Got user
+    renderDS.val({ user: _user });
+    fetchDS.load();
   });
 });
+
+// Start from here
 accountDS.load();
 
 // Stage of fetching data
 fetchDS.load(function() {
-  G.listMyApps().then(function(_res) {
-    var count = 0, myOwnApps = [];
-    _res.own_apps.forEach(function(_appId) {
-      G.getApp(_appId).then(function(_appG) {
+  G.listMyApps().then(function(_apps) {
+    var count = 0, apps = [];
+    _apps.forEach(function(_a) {
+      G.getApp(_a.appId).then(function(_appG) {
         count++;
-        // Push the fetched app info into the array
-        myOwnApps.push({
+        apps.push({
           appName: _appG.appName(),
-          appId: _appG.appId
+          appId: _appG.appId,
+          isOwner: _a.isOwner || false
         });
-        if (count == _res.own_apps.length) {
-          debug(myOwnApps);
-          // Update renderDS's data with "myOwnApps"
-          renderDS.val('myOwnApps', myOwnApps);
+        if (count == _apps.length) {
+          debug('List my apps', apps);
+          renderDS.val('myApps', apps);
           renderDS.load();
         }
       });
-    });
-  });
-}); 
+    }); // end of _apps.forEach
+  }); // end of G.listMyApps
+}); // end of fetchDS.load
 
 // Stage of rendering views
 renderDS.load(function() {
-  var myOwnApps = this.val('myOwnApps');
+  var user = this.val('user'),
+      myApps = this.val('myApps');
   $('#my-apps').html('');
   
-  myOwnApps.forEach(function(_a) {
-    var vuCard = ViewAppCard.build({
+  myApps.forEach(function(_a) {
+    var appCard = ViewAppCard.build({
       sel: '#my-apps',
       method: 'append',
       data: {
-        role: 'Owner',
+        isOwner: _a.isOwner,
         appId: _a.appId,
         appName: _a.appName
       }
@@ -100,22 +115,21 @@ renderDS.load(function() {
         ViewAppPage.build({
           sel: '#app-page',
           data: { 
-            appCard: vuCard,
+            appCard: appCard,
             graph: graph
           }
         }).res('select-node', function(node) {
           // TBD: Node being selected
           // Show node's value
           debug('select-node', node);
-        }).res('add-partner', function(_val) {
-          debug('add-partner', _val);
+        }).res('add-partner', function(_email) {
+          if (!user) return;
+          debug('add-partner', _email);
+          user.addPartner(_a.appId, _email, true);
         });
       }); // end of getting initial graph
     }); // end of AppCard
   }); // end of myOwnApps.forEach
 }); // end of renderDS.load
-
-// All start from here
-fetchDS.load();
 
 })(jQuery, Cope, undefined);

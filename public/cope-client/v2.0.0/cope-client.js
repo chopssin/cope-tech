@@ -1,8 +1,8 @@
 (function($) {
-  var Cope = {};
+  let Cope = {};
   Cope.Util = {};
 
-  var Phrases = {};
+  let Phrases = {};
   Phrases.PROCESSING = '處理中';
   Phrases.CHOOSE = '選取';
   Phrases.CHOOSE_IMG = '選取圖片';
@@ -18,15 +18,15 @@
       return console.error('setDebug = function(String _name'
         + '[, Boolean _toggle[, String _tag]])');
     }
-    var tags = {}, debug; 
+    let tags = {}, debug; 
     if (_tag) tags[_tag] = true;
 
     debug = function() {
-      var val,
+      let val,
           theTag = '';
       if (!_toggle) return;
 
-      var args = arguments;
+      let args = arguments;
       switch (args.length) {
         case 0: // Show usage
           console.log('---------------------------');
@@ -66,13 +66,13 @@
   // Cope.Util.setTest
   // -----------------------------
   Cope.Util.setTest = function(_tag, _print) {
-    var tag = _tag || new Date().getTime().toString(36),
+    let tag = _tag || new Date().getTime().toString(36),
         tests = [], 
         allDone = function() {},
         debug = Cope.Util.setDebug('TEST "' + tag + '"', true);
 
     return function(_func) {
-      var func = _func,
+      let func = _func,
           idx = tests.length,
           toPrint = false,
           hasPassed = false,
@@ -91,12 +91,12 @@
           return;
         }
 
-        var count = 0;
+        let count = 0;
         tests[idx] = true;
         if (!toPrint) return;
 
         // Print the current status
-        for (var i = 0; i < tests.length; i++) {
+        for (let i = 0; i < tests.length; i++) {
           if (tests[i]) count++;
         }
         if (_print) debug('passed: ' + count + '/' + tests.length);
@@ -125,7 +125,7 @@
   // -----------------------------
   // Cope.Util
   // -----------------------------
-  var cal = {}, // to memorize calculated dates
+  let cal = {}, // to memorize calculated dates
       daysInMonth = function(_month, _year) {
         return new Date(_year, _month, 0).getDate();
       };
@@ -133,10 +133,10 @@
   Cope.Util.getCal = function(_year) {
     if (!cal[_year + '']) {
       cal[_year + ''] = {};
-      for (var month = 1; month < 13; month++) {
-        var days = daysInMonth(month, _year);
+      for (let month = 1; month < 13; month++) {
+        let days = daysInMonth(month, _year);
         cal[_year + ''][month + ''] = {};
-        for (var date = 1; date < (days+1); date++) {
+        for (let date = 1; date < (days+1); date++) {
           cal[_year + ''][month + ''][date + ''] 
             = new Date(_year, month, date).getDay();
         }
@@ -146,7 +146,7 @@
   }; // end of util.getCal
 
   Cope.Util.daysAfterNow = function(days) {
-    var now = new Date().getTime(),
+    let now = new Date().getTime(),
         time;
     days = parseInt(days, 10);
     if (isNaN(days)) return;
@@ -168,17 +168,17 @@
 
     if (typeof timestamp == 'string') {
       // e.g. 2012-3-22, 2012/3/22
-      var str = timestamp.split(/\/|\-/).join('/');
+      let str = timestamp.split(/\/|\-/).join('/');
       timestamp = new Date(str).getTime();
     }
 
-    var t = parseInt(timestamp, 10),
+    let t = parseInt(timestamp, 10),
         d = new Date(t),
         two = function(num) { // two-digit
           return ('00' + num).slice(-2);
         };
     if (!d) return {};
-    var year = d.getFullYear(),
+    let year = d.getFullYear(),
         month = d.getMonth() + 1,
         date = d.getDate(),
         hr = d.getHours(),
@@ -204,10 +204,10 @@
   }; // end of util.dateOf
   
   Cope.Util.setTimer = function() {
-    var start = new Date().getTime();
+    let start = new Date().getTime();
     return {
       lap: function() {
-        var duration = (new Date().getTime() - start) / 1000;
+        let duration = (new Date().getTime() - start) / 1000;
         console.log('[debug] start = ' + start + '; duration = ' + duration);
         return duration;
       }
@@ -216,7 +216,7 @@
 
   // --- Cope.Util.thumbnailer ---
   Cope.Util.thumbnailer = function(img, sx, lobes) {
-    var elem = document.createElement("canvas");
+    let elem = document.createElement("canvas");
     if (!lobes) lobes = 1;
     
     return new Thumbnailer(elem, img, sx, lobes);
@@ -234,7 +234,7 @@
         x *= Math.PI;
         if (Math.abs(x) < 1e-16)
             return 1;
-        var xx = x / lobes;
+        let xx = x / lobes;
         return Math.sin(x) * Math.sin(xx) / x / xx;
     };
   }
@@ -286,27 +286,27 @@
     } 
     self.center.x = (u + 0.5) * self.ratio;
     self.icenter.x = Math.floor(self.center.x);
-    for (var v = 0; v < self.dest.height; v++) {
+    for (let v = 0; v < self.dest.height; v++) {
         self.center.y = (v + 0.5) * self.ratio;
         self.icenter.y = Math.floor(self.center.y);
-        var a, r, g, b;
+        let a, r, g, b;
         a = r = g = b = 0;
-        for (var i = self.icenter.x - self.range2; i <= self.icenter.x + self.range2; i++) {
+        for (let i = self.icenter.x - self.range2; i <= self.icenter.x + self.range2; i++) {
             if (i < 0 || i >= self.src.width)
                 continue;
-            var f_x = Math.floor(1000 * Math.abs(i - self.center.x));
+            let f_x = Math.floor(1000 * Math.abs(i - self.center.x));
             if (!self.cacheLanc[f_x])
                 self.cacheLanc[f_x] = {};
-            for (var j = self.icenter.y - self.range2; j <= self.icenter.y + self.range2; j++) {
+            for (let j = self.icenter.y - self.range2; j <= self.icenter.y + self.range2; j++) {
                 if (j < 0 || j >= self.src.height)
                     continue;
-                var f_y = Math.floor(1000 * Math.abs(j - self.center.y));
+                let f_y = Math.floor(1000 * Math.abs(j - self.center.y));
                 if (self.cacheLanc[f_x][f_y] == undefined)
                     self.cacheLanc[f_x][f_y] = self.lanczos(Math.sqrt(Math.pow(f_x * self.rcp_ratio, 2)
                             + Math.pow(f_y * self.rcp_ratio, 2)) / 1000);
                 weight = self.cacheLanc[f_x][f_y];
                 if (weight > 0) {
-                    var idx = (j * self.src.width + i) * 4;
+                    let idx = (j * self.src.width + i) * 4;
                     a += weight;
                     r += weight * self.src.data[idx];
                     g += weight * self.src.data[idx + 1];
@@ -314,7 +314,7 @@
                 }
             }
         }
-        var idx = (v * self.dest.width + u) * 3;
+        let idx = (v * self.dest.width + u) * 3;
         self.dest.data[idx] = r / a;
         self.dest.data[idx + 1] = g / a;
         self.dest.data[idx + 2] = b / a;
@@ -331,9 +331,9 @@
     self.canvas.height = self.dest.height;
     self.ctx.drawImage(self.img, 0, 0, self.dest.width, self.dest.height);
     self.src = self.ctx.getImageData(0, 0, self.dest.width, self.dest.height);
-    var idx, idx2;
-    for (var i = 0; i < self.dest.width; i++) {
-        for (var j = 0; j < self.dest.height; j++) {
+    let idx, idx2;
+    for (let i = 0; i < self.dest.width; i++) {
+        for (let j = 0; j < self.dest.height; j++) {
             idx = (j * self.dest.width + i) * 3;
             idx2 = (j * self.dest.width + i) * 4;
             self.src.data[idx2] = self.dest.data[idx];
@@ -356,18 +356,18 @@
   Cope.Util.dataURItoBlob = dataURItoBlob;
   function dataURItoBlob(dataURI) {
     // convert base64/URLEncoded data component to raw binary data held in a string
-    var byteString;
+    let byteString;
     if (dataURI.split(',')[0].indexOf('base64') >= 0)
         byteString = atob(dataURI.split(',')[1]);
     else
         byteString = unescape(dataURI.split(',')[1]);
 
     // separate out the mime component
-    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    let mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
 
     // write the bytes of the string to a typed array
-    var ia = new Uint8Array(byteString.length);
-    for (var i = 0; i < byteString.length; i++) {
+    let ia = new Uint8Array(byteString.length);
+    for (let i = 0; i < byteString.length; i++) {
         ia[i] = byteString.charCodeAt(i);
     }
 
@@ -378,7 +378,7 @@
   // Cope.dataSnap
   // -----------------------------
   Cope.dataSnap = function(_name) {
-    var my = {},
+    let my = {},
         data = {},
         registry = {},
         loaders = {}, // methods to load data
@@ -409,7 +409,7 @@
     };
 
     my.val = function() {
-      var args = arguments;
+      let args = arguments;
       switch (args.length) {
         
         // Get all values
@@ -450,7 +450,7 @@
       debug('load', '.load(name, func)');
       switch (arguments.length) {
         case 0: // call all funcs in loaders
-          for (var _name in loaders) {
+          for (let _name in loaders) {
             debug('load', 'call ' + _name);
             loaders[_name].call(my);
           }
@@ -464,7 +464,7 @@
             }
           // Or set anonymous function  
           } else if (typeof name == 'function') {
-            var anonymous = (new Date().getTime()).toString(36);
+            let anonymous = (new Date().getTime()).toString(36);
             debug('load', 'set ' + anonymous);
             loaders[anonymous] = name;
           }
@@ -487,9 +487,9 @@
   // -----------------------------
   Cope.useEditor = function(_graphDB) {
 
-    var debug = Cope.Util.setDebug('Cope.useEditor', true);
+    let debug = Cope.Util.setDebug('Cope.useEditor', true);
 
-    var Views = Cope.useViews(),
+    let Views = Cope.useViews(),
         ModalView = Views.class('Modal'),
         vuModal,
         ViewClasses = {},
@@ -512,7 +512,7 @@
       + '</div>';
     }); // end of ModalView.dom
     ModalView.render(function() { 
-      var $this = this.$el();
+      let $this = this.$el();
       this.$el().off('click').on('click', function(e) {
         $this.hide();
         $('body').removeClass('frozen');
@@ -541,7 +541,7 @@
         + '</div>';
     });
     CopeAccountView.render(function() {
-      var account, pwd,
+      let account, pwd,
           error = this.val('error'),
           ok = this.val('ok'),
           that = this;
@@ -569,7 +569,7 @@
     // Blank
     WriterView = Views.class('Blank');
     WriterView.dom(function() {
-      var label = this.val('label') || '';
+      let label = this.val('label') || '';
       return '<div' + this.ID +'>' 
           + '<label data-component="label">' + label +'</label>'
           + '<textarea></textarea>'
@@ -577,7 +577,7 @@
         + '</div>';
     }); // end of Blank.dom
     WriterView.render(function() {
-      var node = this.val('node'),
+      let node = this.val('node'),
           field = this.val('field'),
           useDate = this.val('useDate'),
           map = this.val('map'), // raw -> val
@@ -627,7 +627,7 @@
 
     ImageViewerView = Views.class('ImageViewer');
     ImageViewerView.dom(function() {
-      var src = this.val('src'),
+      let src = this.val('src'),
           img = this.val('img');
       if (!src) return '<h3>Failed to open image</h3>';
       if (img) return '<div' + this.ID + ' style="width:100%;"></div>';
@@ -635,7 +635,7 @@
       //return 'img width="100%" src="' + src + '"';
     });
     ImageViewerView.render(function() {
-      var img = this.val('img');
+      let img = this.val('img');
       if (!img) return;
       this.$el().append(img);
     });// end of ImageViewerView.render
@@ -653,7 +653,7 @@
         + '</div>';
     });
     ImageChooserView.render(function() {
-      var $list = this.$el('@list'),
+      let $list = this.$el('@list'),
           multi = this.val('multi'),
           selected = [],
           that = this;
@@ -666,7 +666,7 @@
       // Get images with format { timestamp, filename, thumb, url }
       my.getImages().then(function(res) {
         res.timestamps.forEach(function(t) { 
-          var row = '<div class="row"' 
+          let row = '<div class="row"' 
             + ' style="margin:0; margin-bottom: 16px;"' 
             + ' data-component="row-'
             + t + '"></div>';
@@ -674,7 +674,7 @@
         }); 
 
         res.images.forEach(function(img, idx) {
-          var imgId = 'img-' + idx,
+          let imgId = 'img-' + idx,
               t = img.timestamp,
               $img,
               url = img.thumb || img.url,
@@ -688,8 +688,8 @@
 
                 if (multi) {
                   // Multiple selection
-                  var found;
-                  for (var i = 0; i < selected.length; i++) {
+                  let found;
+                  for (let i = 0; i < selected.length; i++) {
                     if (selected[i].imgId == imgId) {
                       found = i; // Already selected
                       break;
@@ -728,7 +728,7 @@
     // 2. Small with width < 480px (240 * 2)
     ImageUploaderView = Views.class('ImageUploader');
     ImageUploaderView.dom(function() {
-      var multi = this.val('multi') ? 'multiple' : '';
+      let multi = this.val('multi') ? 'multiple' : '';
       return '<div'+ this.ID +'>'
         + '<h4>' + Phrases.CHOOSE_IMG + '</h4>'
         + '<div data-component="images" style="width:100%"></div>'
@@ -743,7 +743,7 @@
       + '</div>';
     }); // end of ImageUploader.dom
     ImageUploaderView.render(function() {
-      var that = this,
+      let that = this,
           counter = 0, // count processed images
           //callback = this.val('callback') || function() {},
           $images = this.$el('@images'),
@@ -754,7 +754,7 @@
           $fileInput = this.$el('@file-input');
    
       $fileInput.change(function() {
-        var files = $fileInput.get(0).files,
+        let files = $fileInput.get(0).files,
             thumbs = [],
             total = files.length,
             timestamp = new Date().getTime(),
@@ -767,15 +767,15 @@
         $images.html('');
         $note.removeClass('hidden');
 
-        for (var i = 0; i < files.length; i++) {
+        for (let i = 0; i < files.length; i++) {
           p_counts[i] = 0;
-          var a = function(idx) { 
+          let a = function(idx) { 
 
             // Process each image
-            var file = files[idx],
+            let file = files[idx],
                 reader = new FileReader();
             reader.onload = function(e) {
-              var preview, 
+              let preview, 
                   img = new Image();
               img.onload = function() {
                 // Compress the image
@@ -789,7 +789,7 @@
                 };
                 thumb.onprogress = function(progress) {
                   p_counts[idx] = progress;
-                  var p_sum = p_counts.reduce(function(s, p) {
+                  let p_sum = p_counts.reduce(function(s, p) {
                     return s + p;
                   }, 0);
                   $progress.html('(' 
@@ -811,19 +811,19 @@
        
         // Set the Save button
         $saveBtn.off('click').on('click', function() {
-          var count = 0, imgObjs = [];
-          for (var i = 0; i < files.length; i++) { 
-            var a = function(idx) {
+          let count = 0, imgObjs = [];
+          for (let i = 0; i < files.length; i++) { 
+            let a = function(idx) {
 
-              var file = files[idx];
-              var thumb = dataURItoBlob(thumbs[idx].canvas.toDataURL("image/png"));
-              var fileParams = {
+              let file = files[idx];
+              let thumb = dataURItoBlob(thumbs[idx].canvas.toDataURL("image/png"));
+              let fileParams = {
                 folder: 'images',
                 timestamp: timestamp,
                 filename: file.name,
                 file: file
               };
-              var thumbParams = {
+              let thumbParams = {
                 folder: 'images',
                 timestamp: timestamp,
                 filename: file.name + '_thumb_',
@@ -832,7 +832,7 @@
 
               myGraphDB.files().saveMany([thumbParams, fileParams]).then(function(_pairs) {
                 count++;
-                var imgObj = {};
+                let imgObj = {};
                 _pairs.forEach(function(x) {
                   imgObj.timestamp = parseInt(x.timestamp);
                   if (x.path.slice(-7) == '_thumb_') {
@@ -868,7 +868,7 @@
 
     // Editor's methods
     my.open = function(obj) {
-      var UsedView = typeof obj.use == 'string'
+      let UsedView = typeof obj.use == 'string'
             ? ViewClasses[obj.use]
             : null;
       if (!UsedView) {
@@ -925,7 +925,7 @@
     }; // end of my.openImageUploader
 
     my.getImages = function() {
-      var _thenable = {},
+      let _thenable = {},
           _images = {}, // <t>.<f> -> { timestamp, filename, url, thumb }
           images = [], // flattened _images
           _timestamps = {},
@@ -943,7 +943,7 @@
         Object.keys(res).forEach(function(_t) {
           _timestamps[_t] = true,
           Object.keys(res[_t]).forEach(function(_f) {
-            var _filename = _f;
+            let _filename = _f;
             if (_f.slice(-7) == '_thumb_') {
               _filename = _f.slice(0, -7);
             }
@@ -986,10 +986,10 @@
       debug('delImages', imgArr); // imgArr = [<x>]
       if (!Array.isArray(imgArr) || !myGraphDB) return;
 
-      var paths = [], _thenable = {}, done, validate;
+      let paths = [], _thenable = {}, done, validate;
       validate = function(_p) {
         if (typeof _p == 'string') {
-          var _idx = _p.indexOf('images/');
+          let _idx = _p.indexOf('images/');
           if (_idx > -1) {
             _p = _p.slice(_idx);
             return _p;
@@ -1000,7 +1000,7 @@
       _thenable.then = function(_cb) { done = _cb; };
       
       imgArr.forEach(function(x) {
-        var _p;
+        let _p;
         if (typeof x == 'string') { //x: path
           _p = validate(x);
           if (_p) paths.push(_p);
@@ -1037,15 +1037,15 @@
   // -----------------------------
   // Cope.useViews
   // -----------------------------
-  var usedViews = {};
+  let usedViews = {};
   Cope.useViews = function(_namespace) { 
-    var debug = Cope.Util.setDebug('useViews', true);
+    let debug = Cope.Util.setDebug('useViews', true);
     if (typeof _namespace == 'string' 
         && usedViews[_namespace]) {
       return usedViews[_namespace];
     }
 
-    var my = {},
+    let my = {},
         classes = {},
         count = 0,
         renderedVus = {},
@@ -1054,7 +1054,7 @@
     timestamp = timestamp + Math.floor(Math.random() * 10000).toString(36);
 
     newView = function(_data, _load) {
-      var vu = {},
+      let vu = {},
           id,
           resFuncs = {},
           myLoadFunc,
@@ -1067,11 +1067,11 @@
       vu.ID = ' data-vuid="' + id + '" ';
 
       vu.sel = function(_path) {
-        var root = '[data-vuid="' + id + '"]';
+        let root = '[data-vuid="' + id + '"]';
         if (!_path) {
           return root;
         } else if (_path.charAt(0) === '@') { // eg. "@display"
-          var cmp = '[data-component="' + _path.slice(1) + '"]';
+          let cmp = '[data-component="' + _path.slice(1) + '"]';
           return root + cmp + ', ' + root + ' ' + cmp; 
         }
         return root + ' ' + _path;
@@ -1124,7 +1124,7 @@
     }; // end of newView
     my.class = function(viewName) {
       if (!classes[viewName]) {
-        var proto = {},
+        let proto = {},
             dom = function() { return ''; },
             renderFuncs = [],
             render,
@@ -1149,7 +1149,7 @@
         };
         proto.build = function(obj) {
           if (!obj) return console.error('lack of valid obj');
-          var data = obj.data || {},
+          let data = obj.data || {},
               vu = newView(data, renderAll),
               selector = obj.sel || obj.selector,
               method = obj.method || 'html';
@@ -1173,9 +1173,9 @@
   // @Editor
   // @graphId
   // -----------------------------
-  var hasInit = false;
+  let hasInit = false;
   Cope.useGraphDB = function() {
-    var debug = Cope.Util.setDebug('graphDB', true),
+    let debug = Cope.Util.setDebug('graphDB', true),
         myUser, // current cope user
         getFB, // to get the current firebase
         isValidName, // check if the input is valid for firebase #child
@@ -1187,7 +1187,7 @@
       return {
         then: function(cb) {
           if (typeof cb != 'function') return null;
-          var initFB, findFB, count = 0;
+          let initFB, findFB, count = 0;
 
           initFB = function() {
             if (hasInit) {
@@ -1238,13 +1238,13 @@
       if (!isValidName(_colName) 
           || !isValidName(_nodeKey)
           || !this || !this.appRef) return null;
-      var myNode = {},
+      let myNode = {},
           myAppRef = this.appRef;
       
       myNode.key = _nodeKey;
       myNode.col = _colName;
       myNode.val = function() {
-        var args = arguments,
+        let args = arguments,
             thisNode = this,
             done = function() {};
         switch (args.length) {
@@ -1252,7 +1252,7 @@
             // Firstly, find fields
             myAppRef.child(_colName).child('__fields').once('value')
               .then(function(_snap) {
-              var vals = {}, fields = [], count = 0;
+              let vals = {}, fields = [], count = 0;
               if (_snap.val()) { // if field(s) exists
                 fields = Object.keys(_snap.val());
                 fields.forEach(function(_f) {
@@ -1285,7 +1285,7 @@
 
             // 2. set multiple values: val(<object>values)
             } else if (typeof args[0] == 'object') { // args[0] -> obj
-              var obj = args[0], count = 0, keys;
+              let obj = args[0], count = 0, keys;
               keys = Object.keys(obj);
               keys.forEach(function(_key) {
                 thisNode.val(_key, obj[_key]).then(function() {
@@ -1328,12 +1328,12 @@
       }; // end of myNode.val
 
       myNode.del = function(_isTrue) {
-        //var that = this;
-        var done;
+        //let that = this;
+        let done;
         if (_isTrue === true) {
           // Remove values
           myAppRef.child(_colName).child('__fields').once('value').then(function(_snap) {
-            var count = 0, fields = [];
+            let count = 0, fields = [];
             if (!_snap.val()) return;
 
             // Remove values of the node
@@ -1367,7 +1367,7 @@
     api.col = function(_colName) {
       if (!isValidName(_colName) || !this || !this.appRef || !this.storeRef) return false;
 
-      var myCol = {},
+      let myCol = {},
           appRef = this.appRef,
           node = api.node.bind(this);
           //nodesColRef = this.appRef.child(_colName),
@@ -1384,7 +1384,7 @@
       }; // end of myCol.get 
 
       myCol.getNodes = function() {
-        var ns = [];
+        let ns = [];
         return {
           then: function(_cb) {
             if (typeof _cb != 'function') return null;
@@ -1410,11 +1410,11 @@
     api.edges = function(_label) {
       if (!isValidName(_label) 
           || !this || !this.appRef) return null;
-      var myEdges = {}, myAppRef = this.appRef,
+      let myEdges = {}, myAppRef = this.appRef,
           setEdge, findNodes,
           node = api.node.bind(this);
       setEdge = function(_na, _nb, _v) {
-        var done = function() {}, 
+        let done = function() {}, 
             count = 0;
         if (!_na || !_na.col || !_na.key
             || !_nb || !_nb.col || !_nb.key) {
@@ -1460,7 +1460,7 @@
               .child(_n.col).child(_n.key)
               .once('value')
               .then(function(_snap) {
-              var val = _snap.val(),
+              let val = _snap.val(),
                   nodes = [];
               if (val) { // <_col>/<_key>: true
                 Object.keys(val).forEach(function(_col) {
@@ -1492,7 +1492,7 @@
 
     // getApp - Files
     api.files = function() {
-      var manager = {},
+      let manager = {},
           appRef = this.appRef,
           storeRef = this.storeRef;
       if (!appRef || !storeRef) {
@@ -1507,7 +1507,7 @@
           then: function(_cb) {
             if (typeof _cb != 'function') return null;
             appRef.child('_files').once('value').then(function(_snap) {
-              var val = _snap.val();
+              let val = _snap.val();
               _cb(val);
             }).catch(function(err) { console.error(err); });
           } // end of then
@@ -1516,7 +1516,7 @@
 
       // To save single file
       manager.save = function(_params) { 
-        var uploadTask, saveCallback, 
+        let uploadTask, saveCallback, 
             folder = _params.folder,
             timestamp = '' + (_params.timestamp || new Date().getTime()),
             filename = _params.filename || 'unknown',
@@ -1549,7 +1549,7 @@
         uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED, // or 'state_changed'
           function(snapshot) {
             // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-            var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            let progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             console.log('Upload is ' + progress + '% done');
             switch (snapshot.state) {
               case firebase.storage.TaskState.PAUSED: // or 'paused'
@@ -1577,7 +1577,7 @@
             }
           }, function() {
             // Upload completed successfully, now we can get the download URL
-            var downloadURL = uploadTask.snapshot.downloadURL;
+            let downloadURL = uploadTask.snapshot.downloadURL;
         
             // Save the downloadURL
             appRef.child('_files').child(path).set(downloadURL)
@@ -1606,14 +1606,14 @@
       }; // end of manager.save
 
       manager.saveMany = function(_paramsArr) {
-        var thenable = {}, that = this, objs = [],
+        let thenable = {}, that = this, objs = [],
             count = 0, // count saved files
             done;
         if (!Array.isArray(_paramsArr)) return;
 
         debug('saveMany', 'Called.');
         _paramsArr.forEach(function(x, idx) {
-          var exec = function() {
+          let exec = function() {
             that.save(x).then(function(_obj) {
               debug('saveMany', 'idx = ' + idx);
               debug('saveMany', _obj);
@@ -1640,7 +1640,7 @@
       }; // end of manager.saveMany
 
       manager.del = function(_path) {
-        var thenable = {}, done;
+        let thenable = {}, done;
         thenable.then = function(_cb) {
           if (typeof _cb == 'function') done = _cb;
         };
@@ -1654,7 +1654,7 @@
       }; // end of manager.del
 
       manager.delMany = function(_arr) { // arr = [<string> path]
-        var thenable = {}, done, count = 0, that = this;
+        let thenable = {}, done, count = 0, that = this;
         thenable.then = function(_cb) {
           if (typeof _cb == 'function') done = _cb;
         };
@@ -1681,11 +1681,11 @@
     // cred: to access data in "credentials"
     // send: to send data to other cope users' "inbox"
     // fetch: to retreive data in "inbox"
-    var makeUser = function(_user) {
+    let makeUser = function(_user) {
       if (!_user.uid) {
         return;
       }
-      var findUser = function(_email, _cb) {
+      let findUser = function(_email, _cb) {
         getFB().then(function(_fb) {
           // Find Cope user by email
           _fb.database().ref('cope_users')
@@ -1693,7 +1693,7 @@
             .equalTo(_email)
             .once('value')
             .then(function(_snap) {
-              var foundUser = null;
+              let foundUser = null;
               if (_snap.val()) foundUser = Object.keys(_snap.val())[0];
               if (!foundUser) {
                 debug('dataSend', 'found no user by ' + _email);
@@ -1709,15 +1709,14 @@
         });
       }; // end of findUser
 
-      var dataUpdate = function() {
-        console.log(this);
-        var args = arguments,
+      let dataUpdate = function() {
+        let args = arguments,
             done = function() {},
             dir = this && this.dir;
         if (dir != 'public' && dir != 'credentials') return;
 
         getFB().then(function(_fb) {
-          var ref = _fb.database().ref('cope_users')
+          let ref = _fb.database().ref('cope_users')
                     .child(_user.uid)
                     .child(dir); 
                     // dir should be either public or credentials
@@ -1728,7 +1727,6 @@
             case 1: 
               switch (typeof args[0]) {
                 case 'string': // getter
-                  console.log(args[0]);
                   ref.child(args[0]).once('value').then(function(_snap) {
                     done(_snap.val());
                   }).catch(function(err) {
@@ -1736,7 +1734,7 @@
                   });
                   break;
                 case 'object': // setter
-                  var count = 0,
+                  let count = 0,
                       keys = Object.keys(args[0]);
                   keys.forEach(function(_key) {
                     ref.child(_key).set(args[0][_key])
@@ -1752,7 +1750,7 @@
               break;
             case 2: // setter
               if (typeof args[0] == 'string') {
-                var ups = {};
+                let ups = {};
                 ref.child(args[0]).set(args[1]).then(function() { done(); });
               }
               break;
@@ -1767,9 +1765,9 @@
         }
       }; // end of function "dataUpdate"
 
-      // To send data to other Cope users
-      var dataSend = function(_email, _key, _val) {
-        var done = function() {};
+      // To send data to other Cope users' "inbox"
+      let sendInbox = function(_email, _key, _val) {
+        let done = function() {};
         findUser(_email, function(foundUser) {
           getFB().then(function(_fb) {
             // Found the matched user
@@ -1797,11 +1795,11 @@
             }
           }
         };
-      }; // end of dataSend
+      }; // end of sendInbox
 
-      // Get data from "inbox"
-      var dataFetch = function(_key) {
-        var done = function() {};
+      // To read data from other users in "inbox"
+      let readInbox = function(_key) {
+        let done = function() {};
         getFB().then(function(_fb) {
           _fb.database().ref('cope_users')
             .child(_user.uid)
@@ -1809,6 +1807,28 @@
             .child(_key)
             .on('value', function(_snap) {
               done(_snap.val());
+            })
+        }); // end of getFB
+        return {
+          then: function(_cb) {
+            if (typeof _cb == 'function') {
+              done = _cb;
+            }
+          }
+        };
+      }; // end of readInbox
+
+      // To write or modify data in "inbox"
+      let writeInbox = function(_key, _val) {
+        let done = function() {};
+        getFB().then(function(_fb) {
+          _fb.database().ref('cope_users')
+            .child(_user.uid)
+            .child('inbox')
+            .child(_key)
+            .set(_val)
+            .then(function() {
+              done();
             });
         }); // end of getFB
         return {
@@ -1818,11 +1838,11 @@
             }
           }
         };
-      }; // end of dataFetch
+      }; // end of writeInbox
 
-      var user = {};
+      let user = {};
       user.addPartner = function(_appId, _email, _toAdd) {
-        var done = function() {};
+        let done = function() {};
         findUser(_email, function(_foundUser) {
           // TBD
           getFB().then(function(_fb) {
@@ -1842,12 +1862,18 @@
             if (typeof _cb == 'function') done = _cb;
           }
         };
-      }; // end of addPartner
+      }; // end of user.addPartner
 
+      
       user.val = dataUpdate.bind({ dir: 'public' });
       user.cred = dataUpdate.bind({ dir: 'credentials' });
-      user.send = dataSend;
-      user.fetch = dataFetch;
+      
+      // Inbox APIs: send, read, write 
+      user.send = sendInbox;
+      user.read = readInbox;
+      user.write = writeInbox;
+      
+      // Set email
       user.email = _user.email;
       return user;
     }; // end of makeUser
@@ -1869,7 +1895,7 @@
                 debug('#user', 'Unverified user');
                 Cope.useEditor(myGraph).openCopeAccount().res('try', function(pairs) {
                   // Fetch from Editor
-                  var email = pairs.account,
+                  let email = pairs.account,
                       password = pairs.pwd,
                       that = this;
                   debug('#user - signed in as', email);
@@ -1906,7 +1932,7 @@
             debug(_appId, 'got firebase instance');
             myGraph.user().then(function(user) { // get the current user
               debug(_appId, 'got Cope user ' + user.email);
-              var appsRef = _fb.database().ref('cope_user_apps'),
+              let appsRef = _fb.database().ref('cope_user_apps'),
                   usersRef = _fb.database().ref('cope_users');
 
               // Check if _appId was already taken
@@ -1918,7 +1944,7 @@
                 } else { // _appId not in used
                   // Create app
                   debug(_appId, 'prepare to create app');
-                  var owner = {}; 
+                  let owner = {}; 
                   owner[user.uid] = true;
                   
                   // Add to user's "own_apps"
@@ -1958,7 +1984,7 @@
             // Get my own apps and partner apps
             _user.val('own_apps').then(function(_ownApps) {
               _user.val('partner_apps').then(function(_partnerApps) {
-                var o = [],
+                let o = [],
                     p = [],
                     apps = [];
 
@@ -1989,14 +2015,14 @@
       if (!isValidName(_appId)) return null;
       
       // Define roots of ref and storage based on _appId
-      var appRoot = 'cope_user_apps/' + _appId + '/public',
+      let appRoot = 'cope_user_apps/' + _appId + '/public',
           storeRoot = 'user_apps/' + _appId;
 
       return {
         then: function(_cb) {
           if (typeof _cb != 'function') return null;
           getFB().then(function(_fb) {
-            var appGraph = {}, obj = {}, appName;
+            let appGraph = {}, obj = {}, appName;
             obj.appRef = _fb.database().ref(appRoot);
             obj.storeRef = _fb.database().ref(storeRoot);
     
@@ -2029,7 +2055,7 @@
 
     return myGraph;
     // TBD: change "params" to "_config"
-    // var myCopeApp = this,
+    // let myCopeApp = this,
     // myEditor = this.useEditor(),
     // graphId = myCopeApp.appId,
     // config = _config
@@ -2037,7 +2063,7 @@
     //
     // usage of useGraphDB: <- graphDB.call(theCopeApp, configData);
 
-    var myDB = {}, app, thenable,
+    let myDB = {}, app, thenable,
         rootRef, storeRef, nodesRef, edgesRef,
         col, node, edge, files,
         config = _config,
@@ -2052,13 +2078,13 @@
         //authRequired = params.auth || false,
         signIn = function(_done) {
           // Auth to write
-          //var email = account; //TBD: validate account //"chopssin@gmail.com";
-          //var password = pwd;  //TBD: validate pwd     //"shmily@cope";
+          //let email = account; //TBD: validate account //"chopssin@gmail.com";
+          //let password = pwd;  //TBD: validate pwd     //"shmily@cope";
           
           debug('signIn', 'Run signIn');
           myEditor.openCopeAccount().res('try', function(pairs) {
             // Fetch from Editor
-            var email = pairs.account,
+            let email = pairs.account,
                 password = pairs.pwd,
                 that = this;
             debug('signIn', pairs);
@@ -2085,7 +2111,7 @@
     }
 
     myDB.user = function() {
-      var _thenable = {}, done;
+      let _thenable = {}, done;
       _thenable.then = function(_cb) { done = _cb; };
       
       app.auth().onAuthStateChanged(function(user) {
@@ -2102,7 +2128,7 @@
 
     auth = function() { // _r: authIsRequired
       debug('auth', 'Auth the user');
-      var user = app.auth().currentUser,
+      let user = app.auth().currentUser,
           _thenable = {}, done;
 
       debug(app.auth());
@@ -2125,7 +2151,7 @@
       return {
         create: function(_appId) {
           debug('Try to create app "' + _appId + '"');
-          var _thenable = {}, done;
+          let _thenable = {}, done;
           _thenable.then = function(_cb) { done = _cb; };
 
           // Init a new app on firebase
@@ -2141,7 +2167,7 @@
               if (!_user.uid) return console.error('Failed to create app "' + _appId + '"');
               debug('Cope user', _user.uid);
 
-              var owner = {}; 
+              let owner = {}; 
               owner[_user.uid] = true;
               app.database().ref('cope_user_apps')
               .child(_appId)
@@ -2175,11 +2201,11 @@
     edgesRef = function() { return rootRef().child('_edges') };
     
     thenable = function(_ref) {
-      var _thenable = {}, that = this;
+      let _thenable = {}, that = this;
       _thenable.then = function(cb) {
         if (!_ref.then) return {};
         _ref.then(function(snap) {
-          var __val = (snap && snap.val())
+          let __val = (snap && snap.val())
             ? snap.val() : null;
           return cb.call(that, __val);
         });
@@ -2189,7 +2215,7 @@
     
     /*
     col = function(colName) {
-      var myCol = {},
+      let myCol = {},
           nodesColRef = nodesRef().child(colName),
           colRef = rootRef().child(colName),
           newRef;
@@ -2223,7 +2249,7 @@
       }; // end of myCol.get 
 
       myCol.getNodes = function() {
-        var _thenable = {}, _ns = [];
+        let _thenable = {}, _ns = [];
         _thenable.then = function(cb) {
           cb = (typeof cb == 'function') 
             ? cb : function() {};
@@ -2259,17 +2285,17 @@
     
     node = function(colName, nodeKey) {
       if (!colName || !nodeKey) return;
-      var myNode = {},
+      let myNode = {},
           thenableWithCol,
           myNodesColRef = this.nodesRef.child(colName),
           myColRef = this.rootRef.child(colName);
 
       thenableFromCol = function(_colRef) {
-        var _thenable = {}, that = this;
+        let _thenable = {}, that = this;
         _thenable.then = function(cb) {
           if (!_colRef.then) return {};
           _colRef.then(function(snap) {
-            var fields = snap.val(), 
+            let fields = snap.val(), 
                 vals = {}, count = 0;
             if (fields) {
               fields = Object.keys(fields)
@@ -2293,7 +2319,7 @@
         return _thenable;
       }; // end of thenableFromCol
       myNode.val = function() {
-        var args = arguments, that = this;
+        let args = arguments, that = this;
 
         switch (args.length) {
           case 0: // get all vals
@@ -2305,13 +2331,13 @@
               return thenable.call(that, myColRef.child(args[0]).child(nodeKey).once('value'));
             } else if (typeof args[0] == 'object') {
               // Set multiple fields at once
-              var _thenable = {}, saveVals;
+              let _thenable = {}, saveVals;
               saveVals = function(_cb) {
-                var _c = 0, _fs = Object.keys(args[0]);
+                let _c = 0, _fs = Object.keys(args[0]);
                 if (typeof _cb != 'function') _cb = function() {};
 
                 _fs.forEach(function(_field) {
-                  var _val = args[0][_field];
+                  let _val = args[0][_field];
                   that.val(_field, _val).then(function() {
                     _c++; 
                     if (_c == _fs.length) {
@@ -2336,7 +2362,7 @@
       }; // end of myNode.val
       
       myNode.del = function(_isTrue) {
-        var that = this;
+        let that = this;
         if (_isTrue === true) {
           myColRef.child('__fields').once('value').then(function(snap) {
             Object.keys(snap.val()).forEach(function(_f) {
@@ -2353,7 +2379,7 @@
     }; // end of node
 
     edge = function(edgeLabel) {
-      var myEdge = {},
+      let myEdge = {},
           startRef, find, add, remove;
       
       if (typeof edgeLabel != 'string') return null;
@@ -2364,7 +2390,7 @@
 
       // Set find based on 'from' or 'to'
       find = function(direction, _n) {
-        var _thenable = {}, done;
+        let _thenable = {}, done;
         if (!_n.key || !_n.col) { return null; }
 
         _thenable.then = function(cb) {
@@ -2376,7 +2402,7 @@
           .then(function(snap) {
               // eg. <toCol>: <toKey>: true
               if (snap.val()) {
-                var val = snap.val(),
+                let val = snap.val(),
                     objs = [];
 
                 Object.keys(val).forEach(function(_col) {
@@ -2406,7 +2432,7 @@
       remove = function(_from, _to) {
         if (!_from || !_from.col || !_from.key) return null;
         if (!_to || !_to.col || !_to.key) return null;
-        var _thenable = {}, done;
+        let _thenable = {}, done;
         _thenable.then = function(_cb) {
           done = _cb;
         };
@@ -2433,7 +2459,7 @@
         if (!_from || !_from.col || !_from.key) return null;
         if (!_to || !_to.col || !_to.key) return null;
 
-        var _thenable = {}, done;
+        let _thenable = {}, done;
         _thenable.then = function(_cb) {
           done = _cb;
         };
@@ -2470,10 +2496,10 @@
     }; // end of edge
 
     files = function() {
-      var manager = {},
+      let manager = {},
           saveCallback; // set by calling manager.save().then()
       manager.open = function(_path) {
-        var _thenable = {}, openCallback,
+        let _thenable = {}, openCallback,
             startRef = rootRef().child('_files');
         _thenable.then = function(cb) {
           if (typeof cb == 'function') {
@@ -2485,14 +2511,14 @@
           startRef = startRef.child(_path);
         }
         startRef.once('value').then(function(snap) {
-          var val = snap.val();
+          let val = snap.val();
           debug('files.open', val);
           openCallback(val);
         });
         return _thenable;
       };
       manager.save = function(_params) { // save a file per call
-        var _thenable = {},
+        let _thenable = {},
             uploadTask, saveCallback, 
             folder = _params.folder,
             timestamp = _params.timestamp + '',
@@ -2526,7 +2552,7 @@
         uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED, // or 'state_changed'
           function(snapshot) {
             // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-            var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            let progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             console.log('Upload is ' + progress + '% done');
             switch (snapshot.state) {
               case firebase.storage.TaskState.PAUSED: // or 'paused'
@@ -2554,7 +2580,7 @@
             }
           }, function() {
             // Upload completed successfully, now we can get the download URL
-            var downloadURL = uploadTask.snapshot.downloadURL;
+            let downloadURL = uploadTask.snapshot.downloadURL;
         
             // Save the downloadURL
             rootRef().child('_files').child(path).ref.set(downloadURL)
@@ -2582,13 +2608,13 @@
       }; // end of manager.save
 
       manager.saveMany = function(paramsArr) {
-        var _thenable = {}, that = this, objs = [],
+        let _thenable = {}, that = this, objs = [],
             done;
         if (!Array.isArray(paramsArr)) return;
 
         debug('saveMany', 'Called.');
         paramsArr.forEach(function(x, idx) {
-          var exec = function() {
+          let exec = function() {
             that.save(x).then(function(_obj) {
               debug('saveMany', 'idx = ' + idx);
               debug('saveMany', _obj);
@@ -2613,7 +2639,7 @@
       }; // end of manager.saveMany
 
       manager.del = function(_path) {
-        var _thenable = {}, done;
+        let _thenable = {}, done;
         _thenable.then = function(_cb) {
           if (typeof _cb == 'function') done = _cb;
         };
@@ -2627,7 +2653,7 @@
       }; // end of manager.del
 
       manager.delMany = function(arr) { // arr = [<string> path]
-        var _thenable = {}, done, count = 0, that = this;
+        let _thenable = {}, done, count = 0, that = this;
         _thenable.then = function(_cb) {
           if (typeof _cb == 'function') done = _cb;
         };
@@ -2670,9 +2696,9 @@
   // -----------------------------
   // TBD: rewrite copeApp
   // -----------------------------
-  var copeApp = function(_appId) {
-    var debug = Cope.Util.setDebug('copeApp', false);
-    var my = {},
+  let copeApp = function(_appId) {
+    let debug = Cope.Util.setDebug('copeApp', false);
+    let my = {},
         app, 
         //myViews, // where we store constructed Views
         //myEditor, // where we store constructed Editor
@@ -2692,7 +2718,7 @@
       debug('Found no _appId in copeApp(_appId): return app builder');
       my.create = function(_appId) {
         return function() {
-          var _thenable = {}, done;
+          let _thenable = {}, done;
           _thenable.then = function(_cb) {
             done = _cb;
           }
@@ -2718,7 +2744,7 @@
       }
     };
     my.usePage = function(_pageName) {
-      var func = pageProtos[_pageName];
+      let func = pageProtos[_pageName];
       if (!func) return console.error('Failed to load page');
       if (this.editable) {
         try {

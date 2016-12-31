@@ -103,22 +103,21 @@ ViewAppPage.dom(function() {
 }); // end of ViewAppPage.dom
 
 ViewAppPage.render(function() {
-  var appCard = this.val('appCard'),
-      isOwner = this.val('isOwner'),
-      val = appCard.val(),
-      appName, appId, url, expiredAt;
-  if (!val) return;
-
-  appName = val.appName || '';
-  appId = val.appId || '';
-  isOwner = val.isOwner;
+  let appName = this.val('appName'), // string
+      appId = this.val('appId'), // string
+      url = this.val('url'), // string
+      owner = this.val('owner'), // string
+      partners = this.val('partners'), // string array
+      expiredAt = this.val('expiredAt'); // timestamp
 
   this.$el('@appName').html(appName);
   this.$el('@appId').html(appId);
-  if (isOwner) {
-    this.$el('@owner').html('Me');
-  } else {
-    this.$el('@partners').html('Me');
+  if (owner) {
+    this.$el('@owner').html(owner);
+  } 
+  if (partners) {
+    // TBD: partners
+    //this.$el('@partners').html('Me');
   }
 
   if (url) {
@@ -133,8 +132,7 @@ ViewAppPage.render(function() {
 }); // end of ViewAppPage.render
 
 ViewAppPage.render(function() { // draw the graph
-  var appCard = this.val('appCard'),
-      graph = this.val('graph'),
+  var graph = this.val('graph'),
       $card = this.$el('@card'),
       $li = this.$el('@display-li'),
       $addPartner = this.$el('@add-partner'),
@@ -142,6 +140,9 @@ ViewAppPage.render(function() { // draw the graph
       w = $svgWrap.width(),
       that = this;
 
+  if (!graph) return;
+  
+  // Build the graph view  
   Views.class('DataGraph').build({
     sel: this.sel('@svg'),
     data: {
@@ -157,6 +158,7 @@ ViewAppPage.render(function() { // draw the graph
   $card.css('z-index', 1);
   $svgWrap.css('z-index', 0);
 
+  // To switch between the graph view and app card
   $card.off('click').on('click', function() {
     $card.find('li').removeClass('hidden');
     $li.removeClass('hidden');
@@ -170,6 +172,8 @@ ViewAppPage.render(function() { // draw the graph
     //$card
     //  .removeClass('wider');
   });
+
+  // Set "add partner" link
   $addPartner.off('click').on('click', function() {
     Editor.openModal(function(_sel) { 
       ViewAddInput.build({

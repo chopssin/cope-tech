@@ -47,14 +47,25 @@ accountDS.load(function() {
     // Set email
     _user.val('email', _user.email);
 
-    // Add partner apps
-    _user.fetch('add_partner_app').then(function(_val) {
+    // Update partner apps
+    _user.read('add_partner_app').then(function(_val) {
       if (!_val) return;
 
-      Object.keys(_val).forEach(function(_key) {
-        _user.val('partner_apps/' + _val[_key], true);
+      // Update my apps from "add_partner_app", 
+      // which store <appId> sent from other user
+      let count = 0, keys = Object.keys(_val);
+      keys.forEach(function(_key) {
+        _user.val('partner_apps/' + _val[_key], true)
+          .then(function() {
+            count++;
+            if (count == keys.length) {
+
+              // Erase data in "add_partner_app"
+              _user.write('add_partner_app', null);
+            }
+          });
       });
-    });
+    }); // end of _user.read
     
     // Got user
     renderDS.val({ user: _user });
@@ -107,6 +118,7 @@ renderDS.load(function() {
       // Navigate to app section
       nav('app');
 
+      // TBD: Get app info
       // Get the initial graph
       d3.json('d3-sample.json', function(err, graph) {
         if (err) throw err;
@@ -115,7 +127,11 @@ renderDS.load(function() {
         ViewAppPage.build({
           sel: '#app-page',
           data: { 
-            appCard: appCard,
+            appId: _a.appId,
+            appName: _a.appName,
+            owner: _a.isOwner ? 'Me' : 'Someone else',
+            partners: ['Mr. Su'],
+            url: _a.url,
             graph: graph
           }
         }).res('select-node', function(node) {

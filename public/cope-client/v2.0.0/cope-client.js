@@ -438,6 +438,7 @@
         case 2:
           if (typeof args[0] == 'string') {
             data[args[0]] = args[1];
+            emit();
           }
           break;
       } // end of switch
@@ -1132,7 +1133,7 @@
         renderAll = function(_vu) {
           renderFuncs.forEach(function(_rend) {
             if (typeof _rend == 'function') { 
-              _rend.call(_vu);
+              _rend.call(_vu, _vu);
             }
           });
         }; // end of renderAll
@@ -1153,7 +1154,7 @@
               vu = newView(data, renderAll),
               selector = obj.sel || obj.selector,
               method = obj.method || 'html';
-          $(selector)[method](dom.call(vu));
+          $(selector)[method](dom.call(vu, vu));
           vu.load();
           return vu;
         }; // end of proto.build
@@ -1169,10 +1170,635 @@
   }; // end of Cope.useViews
   
   // -----------------------------
+  // Cope.appGraph
+  // -----------------------------
+  //let hasInitFB; // has init the default firebase
+  Cope.appGraph = function(_appId) {
+
+    // To print debug messages
+    let debug = Cope.Util.setDebug('appGraph', true);
+    
+    // To verify whether _name is valid input string
+    let notValid = function(_name) {
+      if (typeof _name == 'string'
+        && _name.charAt(0) != '_') {
+        return false;
+      }
+      debug(`[ERR] ${_name} is not valid.`);
+      return true;
+    }; // end of notValid
+
+    let asGlobal = (typeof _appId != 'string' || arguments.length == 0),
+        myUser, // current user using this appGraph
+        //api = {}, // to store and bind APIs to myGraph
+        myGraph = {}, // the object to be returned
+        hasInitFB = this.hasInitFB || false,
+        GRAPH_ROOT = '', STORE_ROOT = '';
+
+    if (!asGlobal && !notValid(_appId)) {
+      // Define roots of ref and storage based on _appId
+      GRAPH_ROOT = 'cope_user_apps/' + _appId + '/graph',
+      STORE_ROOT = 'user_apps/' + _appId;
+    };
+
+    let myGraphRef = function(_fb) {
+      try {
+        return _fb.database().ref(GRAPH_ROOT);
+      } catch (err) { console.error(err); }
+    }; // end of myGraphRef
+
+    // To check whether _cb is a function
+    let isFunc = function(_cb) {
+      return typeof _cb == 'function';
+    };
+
+    // To get the current firebase instance
+    let getFB = function() {
+      return {
+        then: function(_cb) {
+          if (!isFunc(_cb)) return;
+          let initFB, findFB, count = 0;
+
+          initFB = function() {
+            if (hasInitFB) {
+              return setTimeout(findFB, 100);
+            } else {
+              debug('Set hasInitFB as true');
+              hasInitFB = true;
+            }
+            // The following should be called only once
+            $.get({ url: '/cope-config' }).done(function(config) {
+              try {
+                firebase.initializeApp(config);
+                //findFB();
+                setTimeout(findFB, 100);
+              } catch (err) { 
+                console.error(err);
+              }
+            });
+          };
+
+          findFB = function() {
+            if (!hasInitFB) {
+              return initFB();
+            } 
+
+            try {
+              let fbApp = firebase.app();
+              if (fbApp) {
+                debug('Found firebase app');
+                return _cb(fbApp);
+              }
+            } catch (err) {
+              if (count < 10) {
+                count++;
+                setTimeout(findFB, 100);
+              } else {
+                return console.error('Failed to find firebase instance');
+              }
+            }
+          };
+
+          // Start with findDB
+          findFB();
+        } // end of then
+      }; // end of return
+    }; // end of getFB
+
+    // User interface
+    let makeUser = function(_user) {
+      let user = {};
+      if (!_user.uid) {
+        return;
+      }
+      let findUser = function(_email, _cb) {
+        getFB().then(function(_fb) {
+          // Find Cope user by email
+          _fb.database().ref('cope_users')
+            .orderByChild('public/email')
+            .equalTo(_email)
+            .once('value')
+            .then(function(_snap) {
+              let foundUser = null;
+              if (_snap.val()) foundUser = Object.keys(_snap.val())[0];
+              if (!foundUser) {
+                debug('dataSend', 'found no user by ' + _email);
+              } else {
+                if (typeof _cb == 'function') {
+                  _cb(foundUser);
+                }
+              }
+            }).catch(function(err) {
+              debug('dataSend', 'found no user by ' + _email);
+              console.error(err);
+            });
+        });
+      }; // end of findUser
+
+      let dataUpdate = function() {
+        let args = arguments,
+            done = function() {},
+            dir = this && this.dir;
+        if (dir != 'public' && dir != 'credentials') return;
+
+        getFB().then(function(_fb) {
+          let ref = _fb.database().ref('cope_users')
+                    .child(_user.uid)
+                    .child(dir); 
+                    // dir should be either public or credentials
+
+          switch (args.length) {
+            case 0: // Do nothing...
+              break;
+            case 1: 
+              switch (typeof args[0]) {
+                case 'string': // getter
+                  ref.child(args[0]).once('value').then(function(_snap) {
+                    done(_snap.val());
+                  }).catch(function(err) {
+                    console.error(err);
+                  });
+                  break;
+                case 'object': // setter
+                  let count = 0,
+                      keys = Object.keys(args[0]);
+                  keys.forEach(function(_key) {
+                    ref.child(_key).set(args[0][_key])
+                      .then(function() {
+                        count++;
+                        if (count == keys.length) {
+                          done();
+                        }
+                      });
+                  });
+                  break;
+              }
+              break;
+            case 2: // setter
+              if (typeof args[0] == 'string') {
+                let ups = {};
+                ref.child(args[0]).set(args[1]).then(function() { done(); });
+              }
+              break;
+          } // end of switch
+        }); // end of getFB
+        return {
+          then: function(_cb) {
+            if (typeof _cb == 'function') {
+              done = _cb;
+            }
+          }
+        }
+      }; // end of function "dataUpdate"
+
+      // To send data to other Cope users' "inbox"
+      let sendInbox = function(_email, _key, _val) {
+        let done = function() {};
+        findUser(_email, function(foundUser) {
+          getFB().then(function(_fb) {
+            // Found the matched user
+            // Send data to the user
+            try {
+              _fb.database().ref('cope_users')
+                .child(foundUser)
+                .child('inbox')
+                .child(_key)
+                .child(_user.uid)
+                .set(_val)
+                .then(function() {
+                  done();
+                })
+                .catch(function(err) {
+                  console.error(err);
+                });
+            } catch (err) { console.error(err); }
+          }); // end of getFB
+        }); // end of findUser
+        return {
+          then: function(_cb) {
+            if (typeof _cb == 'function') {
+              done = _cb;
+            }
+          }
+        };
+      }; // end of sendInbox
+
+      // To read data from other users in "inbox"
+      let readInbox = function(_key) {
+        let done = function() {};
+        getFB().then(function(_fb) {
+          _fb.database().ref('cope_users')
+            .child(_user.uid)
+            .child('inbox')
+            .child(_key)
+            .on('value', function(_snap) {
+              done(_snap.val());
+            })
+        }); // end of getFB
+        return {
+          then: function(_cb) {
+            if (typeof _cb == 'function') {
+              done = _cb;
+            }
+          }
+        };
+      }; // end of readInbox
+
+      // To write or modify data in "inbox"
+      let writeInbox = function(_key, _val) {
+        let done = function() {};
+        getFB().then(function(_fb) {
+          _fb.database().ref('cope_users')
+            .child(_user.uid)
+            .child('inbox')
+            .child(_key)
+            .set(_val)
+            .then(function() {
+              done();
+            });
+        }); // end of getFB
+        return {
+          then: function(_cb) {
+            if (typeof _cb == 'function') {
+              done = _cb;
+            }
+          }
+        };
+      }; // end of writeInbox
+
+      user.addPartner = function(_appId, _email, _toAdd) {
+        let done = function() {};
+        findUser(_email, function(_foundUser) {
+          // TBD
+          getFB().then(function(_fb) {
+            _fb.database().ref('cope_user_apps')
+            .child(_appId)
+            .child('credentials/partners/' + _foundUser)
+            .set(_toAdd) // _toAdd should be true or null
+            .then(function() {
+              user.send(_email, 'add_partner_app', _appId).then(function() {
+                done();
+              });
+            });
+          }); // end of getFB.then
+        }); // end of findUser
+        return {
+          then: function(_cb) {
+            if (typeof _cb == 'function') done = _cb;
+          }
+        };
+      }; // end of user.addPartner
+      
+      user.val = dataUpdate.bind({ dir: 'public' });
+      user.cred = dataUpdate.bind({ dir: 'credentials' });
+      
+      // Inbox APIs: send, read, write 
+      user.send = sendInbox;
+      user.read = readInbox;
+      user.write = writeInbox;
+      
+      // Set email
+      user.email = _user.email;
+      return user;
+    };// end of makeUser
+
+    // To continue as a user which may
+    // require user sign-in, or callback
+    // with User interface once signed in
+    // (This method could be used in both modes)
+    myGraph.user = function() {
+      let user = {};
+      return {
+        then: function(_cb) {
+          if (!isFunc(_cb)) return;
+          let done = _cb;
+
+          getFB().then(function(_fb) {
+            _fb.auth().onAuthStateChanged((_user) => {
+              myUser = null;
+              if (_user) {
+                myUser = makeUser(_user); // make user obj
+                debug('#user', myUser);
+                done(myUser);
+              } else {
+                debug('#user', 'Unverified user');
+              } // end of else
+            }); // end of _fb.auth()
+          }); // end of getFB()
+
+          if (myUser) {
+            return done(myUser);
+          } else {
+            Cope.useEditor(myGraph).openCopeAccount().res('try', function(pairs) {
+              // Fetch from Editor
+              let email = pairs.account,
+                  password = pairs.pwd,
+                  that = this;
+              debug('#user - signed in as', email);
+              getFB().then(_fb => {
+                _fb.auth().signInWithEmailAndPassword(email, password)
+                  .then(() => {
+                    that.val({ 'ok': true }); // talk to Editor
+                  })
+                  .catch((err) => {
+                    debug('#user', err);
+                    that.val({ 'error': err.code }); // talk to Editor
+                  }); // end of catch
+              }); // end of getFB().then
+            }); // end of useEditor
+          } // end of else (if !myUser)
+        } // end of then
+      }; // end of return
+    }; // end of myGraph.user
+
+    // # Global mode
+    if (asGlobal) {
+      myGraph.list = function() {
+        // TBD
+      };
+
+      myGraph.create = function() {
+        // TBD
+      }; 
+
+      myGraph.remove = function() {
+        // TBD
+      };
+      return myGraph;
+    };
+
+    // # App graph mode
+    // Node interface
+    myGraph.node = function(_colName, _nodeKey) {
+      let node = {}, // the object to be returned
+          snapshot = {}; // data of the node
+
+      if (notValid(_colName) || notValid(_nodeKey)) return;
+
+      node.col = _colName;
+      node.key = _nodeKey;
+
+      // To access current snapshot
+      node.snap = function(_f) {
+        if (_f && typeof _f == 'string') {
+          return snapshot[_f];
+        }
+        return snapshot;
+      }; // end of node.snap
+
+      // To access node data asynchrinously
+      node.val = function() {
+        let args = arguments,
+            //thisNode = this,
+            done = function() {};
+
+        debug('val', args);
+
+        switch (args.length) {
+          case 0: // fetch all vals
+            // Firstly, find fields
+            getFB().then(_fb => {
+              myGraphRef(_fb).child(_colName).child('__fields').once('value')
+                .then(_snap => {
+                  let vals = {}, // values to be called back
+                      fields = [], // field keys 
+                      count = 0; // async count
+
+                  if (_snap.val()) { // if field(s) exists
+                    fields = Object.keys(_snap.val());
+                    fields.forEach(_f => {
+                      myGraphRef(_fb).child(_colName).child(_f).child(_nodeKey)
+                        .once('value')
+                        .then(_val => {
+                          count++;
+                          if (_val.val()) {
+                            vals[_f] = _val.val();
+
+                            // Update snapshot
+                            snapshot[_f] = _val.val();
+                          }
+                          if (count == fields.length) {
+                            done.call(node, vals);
+                          }
+                        });
+                      });
+                  } else { // no fields
+                    snapshot = {};
+                    done.call(node, {});
+                  } // end of else
+                })// end of myGraphRef.then
+                .catch(err => {
+                  console.error(err);
+                }); // end of myGraphRef.catch
+            }); // end of getFB().then
+            break;
+
+          case 1: 
+            // 1. fetch specific value: val(<string>field)
+            if (typeof args[0] == 'string') {
+              getFB().then(_fb => {
+                myGraphRef(_fb)
+                  .child(_colName)
+                  .child(args[0]) // -> field
+                  .child(_nodeKey)
+                  .once('value')
+                  .then(function(_snap) {
+
+                  // Update snapshot
+                  snapshot[args[0]] = _snap.val();
+
+                  // Callback with the fetched value
+                  done.call(node, _snap.val()); 
+                }).catch(err => { console.error(err); });
+              }); // end of getFB
+
+            // 2. set multiple values: val(<object>values)
+            } else if (typeof args[0] == 'object') { // args[0] -> obj
+              let obj = args[0], 
+                  count = 0, 
+                  keys = Object.keys(obj);
+
+              keys.forEach(function(_key) {
+                node.val(_key, obj[_key]).then(function() {
+                  count++;
+                  if (count == keys.length) {
+                    done.call(node);
+                  }
+                });
+              });
+            }
+            break;
+
+          case 2: // set specific value: val(field, value)
+            if (typeof args[0] == 'string') {
+              // Set the field
+              getFB().then(_fb => {
+                myGraphRef(_fb).child(_colName).child('__fields')
+                  .child(args[0]).set(true);
+              
+                // Record the node in "_nodes"
+                myGraphRef(_fb).child('_nodes').child(_colName)
+                  .child(_nodeKey).set(true);
+
+                // Set the value
+                myGraphRef(_fb).child(_colName)
+                  .child(args[0]) // field
+                  .child(_nodeKey)
+                  .set(args[1]) // value
+                  .then(function() {
+
+                  // Update snapshot
+                  snapshot[args[0]] = args[1];
+                  done.call(node);  
+                }) // end of myGraphRef
+                .catch(err => { console.error(err); });
+              }); // end of getFB
+            } // end of if
+            break;
+        } // end of switch
+        
+        return { 
+          then: function(_cb) { 
+            if (typeof _cb == 'function') { done = _cb; }
+          } // end of then 
+        };
+      }; // end of myNode.val
+
+      // To delete the node
+      node.del = function(_isTrue) {
+
+        let done;
+
+        if (_isTrue === true) {
+          // Remove values
+          getFB().then(_fb => {
+            myGraphRef(_fb).child(_colName).child('__fields').once('value').then(function(_snap) {
+              
+              let count = 0, 
+                  fields = [];
+
+              if (!_snap.val()) return;
+
+              // Remove values of the node
+              fields = Object.keys(_snap.val());
+              fields.forEach(function(_f) {
+                myGraphRef(_fb).child(_colName).child(_f)
+                  .child(_nodeKey).set(null).then(function() {
+                  count++;
+                  if (count == fields.length) {
+                    
+                    // Remove the node from '_nodes'
+                    myGraphRef(_fb).child('_nodes').child(_colName)
+                      .child(_nodeKey).set(null)
+                      .then(function() {
+                      if (typeof done == 'function') {
+                        done();
+                      }
+                    });
+                  } // end of removal of the node
+                }); // end of removal of each field
+              }); // end of fields.forEach 
+            }); // end of myGraphRef
+          }); // end of getFB
+          return { then: function(_cb) { done = _cb; } };
+        } // end of if
+      }; // end of node.del
+
+      // To form a directed edge from this node to the target node
+      let toLink = function(_label, _target, _toLink) {
+        let done;
+        if (notValid(_label) 
+            || !_target
+            || !_target.col
+            || !_target.key) return;
+
+        getFB().then(_fb => {
+          if (_toLink) {
+            myGraphRef(_fb)
+              .child('_edges')
+              .child('_labels')
+              .child(_label).set(true);
+          }
+          myGraphRef(_fb)
+            .child('_edges')
+            .child(_label).child('from')
+            .child(node.col).child(node.key)
+            .child(_target.col).child(_target.key)
+            .set(_toLink)
+            .then(() => {
+              myGraphRef(_fb)
+                .child('_edges')
+                .child(_label).child('to')
+                .child(_target.col).child(_target.key)
+                .child(node.col).child(node.key)
+                .set(_toLink)
+                .then(() => {
+                  if (isFunc(done)) done();
+                }).catch(err => console.error(err)); 
+            }).catch(err => console.error(err));
+        }); // end of getFB
+        return {
+          then: function(_cb) {
+            if (isFunc(_cb)) done = _cb;
+          }
+        };
+      }; // end of toLink
+
+      node.link = function(_l, _t) {
+        return toLink(_l, _t, true);
+      };
+      node.unlink = function(_l, _t) {
+        return toLink(_l, _t, null);
+      };
+
+      return node;
+    }; // end of myGraph.node
+
+    // Collection interface
+    myGraph.col = function(_colName) {
+      if (notValid(_colName)) return;
+      let col = {};
+
+      // Node interface
+      col.node = function(_nodeKey) {
+        return myGraph.node(_colName, _nodeKey);
+      };
+
+      // TBD
+      col.getNodes = function() {};
+
+      return col;
+    }; // end of myGraph.col
+
+    // Edges interface
+    myGraph.edges = function(_label) {
+      if (notValid(_label)) return;
+      let edges = {};
+      edges.link = function() {}; // TBD
+      edges.unlink = function() {}; // TBD
+      edges.from = function() {}; // TBD
+      edges.to = function() {}; // TBD
+      return edges;
+    }; // end of myGraph.edges
+
+    // Quick accessing data
+    myGraph.val = function() {
+      // TBD
+    };
+
+    myGraph.populate = function(_node) {
+      // TBD
+    };
+
+    return myGraph;
+  }; // end of Cope.appGraph
+
+  // -----------------------------
   // Cope.useGraphDB
   // @Editor
   // @graphId
   // -----------------------------
+  
   let hasInit = false;
   Cope.useGraphDB = function() {
     let debug = Cope.Util.setDebug('graphDB', true),
@@ -1682,6 +2308,7 @@
     // send: to send data to other cope users' "inbox"
     // fetch: to retreive data in "inbox"
     let makeUser = function(_user) {
+      let user = {};
       if (!_user.uid) {
         return;
       }
@@ -1840,7 +2467,6 @@
         };
       }; // end of writeInbox
 
-      let user = {};
       user.addPartner = function(_appId, _email, _toAdd) {
         let done = function() {};
         findUser(_email, function(_foundUser) {
@@ -1863,7 +2489,6 @@
           }
         };
       }; // end of user.addPartner
-
       
       user.val = dataUpdate.bind({ dir: 'public' });
       user.cred = dataUpdate.bind({ dir: 'credentials' });
@@ -2054,643 +2679,6 @@
     }; // end of myGraph.getApp
 
     return myGraph;
-    // TBD: change "params" to "_config"
-    // let myCopeApp = this,
-    // myEditor = this.useEditor(),
-    // graphId = myCopeApp.appId,
-    // config = _config
-    // ...
-    //
-    // usage of useGraphDB: <- graphDB.call(theCopeApp, configData);
-
-    let myDB = {}, app, thenable,
-        rootRef, storeRef, nodesRef, edgesRef,
-        col, node, edge, files,
-        config = _config,
-        myCopeApp = this,
-        myEditor = this.useEditor(),
-        graphId = myCopeApp.appId,
-        //graphId = params.graphId, // eg. diplogifts-1
-        graphRoot = '/cope_user_apps/' + graphId + '/public',
-        storeRoot = '/user_apps/' + graphId,
-        //myEditor = params.Editor,
-        auth,
-        //authRequired = params.auth || false,
-        signIn = function(_done) {
-          // Auth to write
-          //let email = account; //TBD: validate account //"chopssin@gmail.com";
-          //let password = pwd;  //TBD: validate pwd     //"shmily@cope";
-          
-          debug('signIn', 'Run signIn');
-          myEditor.openCopeAccount().res('try', function(pairs) {
-            // Fetch from Editor
-            let email = pairs.account,
-                password = pairs.pwd,
-                that = this;
-            debug('signIn', pairs);
-            app.auth().signInWithEmailAndPassword(email, password)
-              .then(function() {
-                that.val({ 'ok': true });
-                if (typeof _done == 'function') {
-                  _done(app.auth().currentUser);
-                }
-              })
-              .catch(function(err) {
-                debug('signIn', err);
-                that.val({ 'error': err.code });
-              });
-          });
-        }; // end of signIn
-
-    // Config and construct firebase
-    //config = params.config;
-    try {
-      app = firebase.initializeApp(config);
-    } catch (err) {
-      return console.error(err);
-    }
-
-    myDB.user = function() {
-      let _thenable = {}, done;
-      _thenable.then = function(_cb) { done = _cb; };
-      
-      app.auth().onAuthStateChanged(function(user) {
-        if (!user) { 
-          debug('User gone.');
-          auth();
-        } else {
-          debug('User signed in.');
-          if (typeof done == 'function') done(user);
-        }
-      });
-      return _thenable;
-    }; // end of myDB.user
-
-    auth = function() { // _r: authIsRequired
-      debug('auth', 'Auth the user');
-      let user = app.auth().currentUser,
-          _thenable = {}, done;
-
-      debug(app.auth());
-      _thenable.then = function(_cb) { done = _cb; };
-
-      signIn(function(_user) {
-        debug('auth', _user);
-        if (typeof done == 'function') {
-          done(_user);
-        }
-      });
-      return _thenable;
-    }; // end of auth
-
-
-    // -----------------------------
-    debug('graphId', graphId);
-    if (!graphId) {
-      debug('No GraphId, return AppBuilder');
-      return {
-        create: function(_appId) {
-          debug('Try to create app "' + _appId + '"');
-          let _thenable = {}, done;
-          _thenable.then = function(_cb) { done = _cb; };
-
-          // Init a new app on firebase
-          app.database().ref('cope_user_apps').child(_appId).child('public').once('value')
-          .catch(function(err) {
-            console.error(err);
-          })
-          .then(function(snap) {
-            if (snap.val()) {
-              return console.error('App "' + _appId + '" already exists');
-            }
-            myDB.user().then(function(_user) {
-              if (!_user.uid) return console.error('Failed to create app "' + _appId + '"');
-              debug('Cope user', _user.uid);
-
-              let owner = {}; 
-              owner[_user.uid] = true;
-              app.database().ref('cope_user_apps')
-              .child(_appId)
-              .child('credentials')
-              .set({
-                owner: owner,
-                partners: owner
-              }).then(function() {
-                if (typeof done == 'function') { 
-                  debug('App "' + _appId + '" has been built.');
-                  done(); 
-                }
-              });
-            }); // end of myDB.user
-          }); // end of app.ref('cope_user_apps')
-          return _thenable;
-        } // end of create:
-      }; // end of return
-    } // end of if
-    // -----------------------------
-
-    rootRef = function() {
-      return app.database().ref(graphRoot);
-    };
-
-    storeRef = function() {
-      return app.storage().ref(storeRoot);
-    };
-
-    nodesRef = function() { return rootRef().child('_nodes') };
-    edgesRef = function() { return rootRef().child('_edges') };
-    
-    thenable = function(_ref) {
-      let _thenable = {}, that = this;
-      _thenable.then = function(cb) {
-        if (!_ref.then) return {};
-        _ref.then(function(snap) {
-          let __val = (snap && snap.val())
-            ? snap.val() : null;
-          return cb.call(that, __val);
-        });
-      };
-      return _thenable;
-    }; // end of thenable
-    
-    /*
-    col = function(colName) {
-      let myCol = {},
-          nodesColRef = nodesRef().child(colName),
-          colRef = rootRef().child(colName),
-          newRef;
-      if (colName.charAt(0) == '_') {
-        return console.error('Invalid colName starting with "_"');
-      }
-      // _nodes._cols.<colName>: true
-      nodesRef().child('_cols').child(colName).ref.set(true);
-
-      myCol.add = function(_idKey) {
-        if (!isNaN(_idKey)) _idKey = _idKey + '';
-        if (typeof _idKey == 'string') {
-          nodesColRef.child(_idKey).ref.set({
-            createdAt: new Date().getTime()
-          });
-          return node(colName, _idKey);
-        } else {
-          if (_idKey) { console.warn('#add(key): invalid key = ' + _idKey); }
-          newRef = nodesColRef.push();
-          newRef.set({
-            createdAt: new Date().getTime()
-          });
-          return node(colName, newRef.key);
-        }
-      }; // end of myCol.add
-      
-      // To find node by key
-      myCol.get = function(_key) { 
-        if (typeof _key != 'string') return {};
-        return node(colName, _key);
-      }; // end of myCol.get 
-
-      myCol.getNodes = function() {
-        let _thenable = {}, _ns = [];
-        _thenable.then = function(cb) {
-          cb = (typeof cb == 'function') 
-            ? cb : function() {};
-          rootRef()
-            .child('_nodes').child(colName)
-            .once('value')
-            .then(function(snap) {
-              if (snap.val()) {
-                _ns = Object.keys(snap.val())
-                  .map(function(_k) { 
-                    return node(colName, _k);
-                    //return {
-                    //  node: _node,
-                    //  data: snap.val()[_k]
-                    //}; 
-                  });
-                cb(_ns);
-              }
-            });
-        };
-        return _thenable;
-      };
-
-      myCol.ref = function() {
-        return rootRef().child(colName);
-      };
-
-      myCol.col = colName;
-
-      return myCol;
-    }; // end of col
-    */
-    
-    node = function(colName, nodeKey) {
-      if (!colName || !nodeKey) return;
-      let myNode = {},
-          thenableWithCol,
-          myNodesColRef = this.nodesRef.child(colName),
-          myColRef = this.rootRef.child(colName);
-
-      thenableFromCol = function(_colRef) {
-        let _thenable = {}, that = this;
-        _thenable.then = function(cb) {
-          if (!_colRef.then) return {};
-          _colRef.then(function(snap) {
-            let fields = snap.val(), 
-                vals = {}, count = 0;
-            if (fields) {
-              fields = Object.keys(fields)
-                .map(function(_f) {
-                  return _f;
-                });
-              fields.forEach(function(_field) {
-                that.val(_field).then(function(val) {
-                  count++;
-                  if (val) vals[_field] = val;
-                  if (count == fields.length) {
-                    if (typeof cb != 'function') return;
-                    if (Object.keys(vals).length === 0) vals = null;
-                    return cb.call(that, vals);
-                  }
-                });
-              }); // end of fields.forEach
-            } // end of if
-          }); // end of _colRef.then
-        }; // end of _thenable.then
-        return _thenable;
-      }; // end of thenableFromCol
-      myNode.val = function() {
-        let args = arguments, that = this;
-
-        switch (args.length) {
-          case 0: // get all vals
-            return thenableFromCol.call(that, myColRef.child('__fields').once('value'));
-            break;
-          case 1: 
-            if (typeof args[0] == 'string') {
-              // Get specific value by key
-              return thenable.call(that, myColRef.child(args[0]).child(nodeKey).once('value'));
-            } else if (typeof args[0] == 'object') {
-              // Set multiple fields at once
-              let _thenable = {}, saveVals;
-              saveVals = function(_cb) {
-                let _c = 0, _fs = Object.keys(args[0]);
-                if (typeof _cb != 'function') _cb = function() {};
-
-                _fs.forEach(function(_field) {
-                  let _val = args[0][_field];
-                  that.val(_field, _val).then(function() {
-                    _c++; 
-                    if (_c == _fs.length) {
-                      _cb.call(myNode);
-                    }
-                  });
-                });
-              }
-              saveVals(); // in case _thenable.then isn't called
-              _thenable.then = function(_cb) {
-                saveVals(_cb);
-              };
-              return _thenable;
-            }
-            break;
-          case 2: // set specific value by key
-            if (typeof args[0] != 'string') return;
-            myColRef.child('__fields').child(args[0]).set(true);
-            return thenable.call(that, myColRef.child(args[0]).child(nodeKey).set(args[1]));
-            break;
-        } // end of switch
-      }; // end of myNode.val
-      
-      myNode.del = function(_isTrue) {
-        let that = this;
-        if (_isTrue === true) {
-          myColRef.child('__fields').once('value').then(function(snap) {
-            Object.keys(snap.val()).forEach(function(_f) {
-              myColRef.child(_f).child(nodeKey).set(null);
-            });
-          });
-          return thenable.call(that, myNodesColRef.child(nodeKey).set(null));
-        }
-      }; // end of myNode.del
-
-      myNode.key = nodeKey;
-      myNode.col = colName;
-      return myNode;
-    }; // end of node
-
-    edge = function(edgeLabel) {
-      let myEdge = {},
-          startRef, find, add, remove;
-      
-      if (typeof edgeLabel != 'string') return null;
-      startRef = edgesRef().child(edgeLabel);
-
-      // _edges._labels.<label> : true
-      edgesRef().child('_labels').child(edgeLabel).ref.set(true);
-
-      // Set find based on 'from' or 'to'
-      find = function(direction, _n) {
-        let _thenable = {}, done;
-        if (!_n.key || !_n.col) { return null; }
-
-        _thenable.then = function(cb) {
-          if (typeof cb == 'function') done = cb;
-        };
-
-        startRef.child(direction).child(_n.col).child(_n.key)
-          .once('value')
-          .then(function(snap) {
-              // eg. <toCol>: <toKey>: true
-              if (snap.val()) {
-                let val = snap.val(),
-                    objs = [];
-
-                Object.keys(val).forEach(function(_col) {
-                  Object.keys(val[_col]).forEach(function(_key) {
-                    //objs.push({
-                    //  col: _col,
-                    //  key: _key
-                    //});
-                    objs.push(node(_col, _key));
-                  });
-                });
-                if (typeof done == 'function') {
-                  done.call(myEdge, objs);
-                }
-              } else {
-                debug('edge.find', 'Found nothing in ' + edgeLabel);
-                debug('edge.find', 'direction = ' + direction);
-                debug('edge.find', _n);
-              }
-          }) // end of then
-          .catch(function(err) {
-            console.error(err);
-          });
-        return _thenable;
-      }; // end of find
-
-      remove = function(_from, _to) {
-        if (!_from || !_from.col || !_from.key) return null;
-        if (!_to || !_to.col || !_to.key) return null;
-        let _thenable = {}, done;
-        _thenable.then = function(_cb) {
-          done = _cb;
-        };
-
-        startRef.child('from')
-          .child(_from.col).child(_from.key)
-          .child(_to.col).child(_to.key)
-          .ref.set(null)
-          .then(function() {
-            startRef.child('to')
-              .child(_to.col).child(_to.key)
-              .child(_from.col).child(_from.key)
-              .ref.set(null)
-              .then(function() {
-                if (typeof done == 'function') {
-                  done();
-                }
-              });
-          });
-        return _thenable;
-      }; // end of remove
-
-      add = function(_from, _to) {
-        if (!_from || !_from.col || !_from.key) return null;
-        if (!_to || !_to.col || !_to.key) return null;
-
-        let _thenable = {}, done;
-        _thenable.then = function(_cb) {
-          done = _cb;
-        };
-        
-        startRef.child('from')
-          .child(_from.col).child(_from.key)
-          .child(_to.col).child(_to.key)
-          .ref.set(true)
-          .then(function() {
-            startRef.child('to')
-              .child(_to.col).child(_to.key)
-              .child(_from.col).child(_from.key)
-              .ref.set(true)
-              .then(function() {
-                if (typeof done == 'function') {
-                  done();
-                }
-              });
-          });
-        return _thenable;
-      }; // end of add
-
-      myEdge.from = function(_n) {
-        return find('from', _n);
-      };
-
-      myEdge.to = function(_n) {
-        return find('to', _n);
-      };
-
-      myEdge.remove = remove;
-      myEdge.add = add;
-      return myEdge;
-    }; // end of edge
-
-    files = function() {
-      let manager = {},
-          saveCallback; // set by calling manager.save().then()
-      manager.open = function(_path) {
-        let _thenable = {}, openCallback,
-            startRef = rootRef().child('_files');
-        _thenable.then = function(cb) {
-          if (typeof cb == 'function') {
-            openCallback = cb;
-          }
-        };
-           
-        if (_path) {
-          startRef = startRef.child(_path);
-        }
-        startRef.once('value').then(function(snap) {
-          let val = snap.val();
-          debug('files.open', val);
-          openCallback(val);
-        });
-        return _thenable;
-      };
-      manager.save = function(_params) { // save a file per call
-        let _thenable = {},
-            uploadTask, saveCallback, 
-            folder = _params.folder,
-            timestamp = _params.timestamp + '',
-            filename = _params.filename,
-            file = _params.file,
-            _path = [folder, timestamp, filename],
-            path,
-            err;
-
-        _path = _path.map(function(x) {
-          if (typeof x == 'string') {
-            if (x.charAt(0) == '/') {
-              x = x.slice(1);
-            }
-            x = x.replace(/\//g, '')
-               .replace(/\s/g, '_')
-               .replace(/\/|\\/g, '_')
-               .replace(/\.|\#|\$|\[|\]/g, '_');
-          } 
-          if (!x) err = true;
-          return x;
-        });
-        path = _path.join('/');
-
-        debug('save', 'saving "' + path + '"');
-        if (err) return console.err(_path);
-        //-------------- Start the upload task
-        uploadTask = storeRef()
-          .child(_path[0]).child(_path[1]).child(_path[2])
-          .put(file);
-        uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED, // or 'state_changed'
-          function(snapshot) {
-            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-            let progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log('Upload is ' + progress + '% done');
-            switch (snapshot.state) {
-              case firebase.storage.TaskState.PAUSED: // or 'paused'
-                debug('files.save', 'Upload is paused');
-                break;
-              case firebase.storage.TaskState.RUNNING: // or 'running'
-                debug('files.save', 'Upload is running');
-                break;
-            }
-          }, function(error) {
-            switch (error.code) {
-              case 'storage/unauthorized':
-                // User doesn't have permission to access the object
-                break;
-
-              case 'storage/canceled':
-                // User canceled the upload
-                break;
-
-              //... 
-
-              case 'storage/unknown':
-                // Unknown error occurred, inspect error.serverResponse
-                break;
-            }
-          }, function() {
-            // Upload completed successfully, now we can get the download URL
-            let downloadURL = uploadTask.snapshot.downloadURL;
-        
-            // Save the downloadURL
-            rootRef().child('_files').child(path).ref.set(downloadURL)
-              .then(function() {
-                try {
-                  saveCallback({
-                    timestamp: timestamp,
-                    path: path,
-                    url: downloadURL
-                  });
-                } catch (err) {
-                  console.error(err);
-                }
-              });
-          }); // end of uploadTask.on
-        //--------------
-
-        // To set the saveCallback function
-        _thenable.then = function(cb) {
-          if (typeof cb == 'function') {
-            saveCallback = cb;
-          }
-        };
-        return _thenable;
-      }; // end of manager.save
-
-      manager.saveMany = function(paramsArr) {
-        let _thenable = {}, that = this, objs = [],
-            done;
-        if (!Array.isArray(paramsArr)) return;
-
-        debug('saveMany', 'Called.');
-        paramsArr.forEach(function(x, idx) {
-          let exec = function() {
-            that.save(x).then(function(_obj) {
-              debug('saveMany', 'idx = ' + idx);
-              debug('saveMany', _obj);
-              objs[idx] = _obj;
-              if (objs.length == paramsArr.length) {
-                debug('saveMany', 'Done.');
-                // TBD: what if some fail to upload
-                if (typeof done == 'function') {
-                  done(objs);
-                } else {
-                  debug('saveMany done', done);
-                }
-              } 
-            });
-          }(); // end of exec
-        }); // end of paramsArr.forEach
-        
-        _thenable.then = function(_done) {
-          done = _done;
-        };
-        return _thenable;
-      }; // end of manager.saveMany
-
-      manager.del = function(_path) {
-        let _thenable = {}, done;
-        _thenable.then = function(_cb) {
-          if (typeof _cb == 'function') done = _cb;
-        };
-        storeRef().child(_path).delete().then(function() {
-          rootRef().child('_files').child(_path).ref.set(null)
-            .then(function() {
-              if (typeof done == 'function') done();
-            });
-        });
-        return _thenable;
-      }; // end of manager.del
-
-      manager.delMany = function(arr) { // arr = [<string> path]
-        let _thenable = {}, done, count = 0, that = this;
-        _thenable.then = function(_cb) {
-          if (typeof _cb == 'function') done = _cb;
-        };
-        try {
-          arr.forEach(function(x) {
-            that.del(x).then(function() {
-              count++;
-              debug('delMany count', count);
-              if (count == arr.length) {
-                if (typeof done == 'function') done();
-              }
-            });
-          });
-        } catch (err) { console.error(err); }
-        return _thenable;
-      };
-      return manager;
-    }; // end of files
-
-    myDB.hasUser = function() {
-      return !!app.auth().currentUser;
-    };
-
-    myDB.col = col;
-    myDB.edge = edge;
-    myDB.files = files;
-    //myDB.removeNode = removeNode;
-    myDB.rootRef = function() {
-      console.warn('ref: deprecated use');
-      return rootRef();
-    };
-    myDB.storeRef = function() {
-      console.warn('storeRef: deprecated use');
-      return storeRef();
-    };
-    //myDB.node = node;
-    return myDB;
   }; // end of Cope.useGraphDB
 
   // -----------------------------

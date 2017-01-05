@@ -1784,12 +1784,12 @@
           label = !notValid(_label) ? _label : null;
 
       // Set the related node
-      edges.has = function(_node) {
+      edges.of = function(_node) {
         if (isNode(_node)) {
           node = _node;
         }
         return edges;
-      }; 
+      }; // end of edges.of
 
       // Serve for edges.find
       let findWithLabel = function(_label, _dir) {

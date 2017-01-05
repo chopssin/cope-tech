@@ -121,7 +121,7 @@ test(pass => {
     .then <= results`);
 
   G.edges('BetweenTests')
-    .has(G.node('TestNodes', 'testA'))
+    .of(G.node('TestNodes', 'testA'))
     .then(results => {
     debug('TestNodes - res', results);
     log(JSON.stringify(results, null, 4).replace(/\n/g, '<br>').replace(/\s/g, '&nbsp;'));

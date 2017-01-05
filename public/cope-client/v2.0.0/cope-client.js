@@ -1172,7 +1172,7 @@
   // -----------------------------
   // Cope.appGraph
   // -----------------------------
-  //let hasInitFB; // has init the default firebase
+  let hasInitFB; // has init the default firebase
   Cope.appGraph = function(_appId) {
 
     // To print debug messages
@@ -1192,7 +1192,6 @@
         myUser, // current user using this appGraph
         //api = {}, // to store and bind APIs to myGraph
         myGraph = {}, // the object to be returned
-        hasInitFB = this.hasInitFB || false,
         GRAPH_ROOT = '', STORE_ROOT = '';
 
     if (!asGlobal && !notValid(_appId)) {
@@ -1240,7 +1239,7 @@
 
           findFB = function() {
             if (!hasInitFB) {
-              return initFB();
+              return setTimeout(initFB, Math.ceil(Math.random() * 1000));
             } 
 
             try {
@@ -1773,11 +1772,111 @@
     // Edges interface
     myGraph.edges = function(_label) {
       if (notValid(_label)) return;
-      let edges = {};
-      edges.link = function() {}; // TBD
-      edges.unlink = function() {}; // TBD
-      edges.from = function() {}; // TBD
-      edges.to = function() {}; // TBD
+
+      let edges = {}, 
+          node, // the related node
+          isNode = function(_node) {
+            return typeof _node == 'object' 
+              && _node 
+              && typeof _node.col == 'string'
+              && typeof _node.key == 'string';
+          },
+          label = !notValid(_label) ? _label : null;
+
+      // Set the related node
+      edges.has = function(_node) {
+        if (isNode(_node)) {
+          node = _node;
+        }
+        return edges;
+      }; 
+
+      // Serve for edges.find
+      let findWithLabel = function(_label, _dir) {
+        if (notValid(_label)) return;
+        if (_dir != 'from' && _dir != 'to') {
+          return;
+        }
+        
+        let done, label = _label;
+
+        getFB().then(_fb => {
+          myGraphRef(_fb)
+            .child('_edges').child(label).child(_dir)
+            .child(node.col).child(node.key)
+            .once('value')
+            .then(_snap => {
+              if (isFunc(done)) done(_snap.val());
+            })
+            .catch(err => console.error(err));
+        }); // end of getFB.then
+        return {
+          then: function(_cb) { done = _cb; }
+        };
+      }; // end of findWithLabel
+
+      // To find by queries, and get results as:
+      // {
+      //   <label>: {
+      //     from: [node],
+      //     to: [node]
+      //   }
+      // }
+      edges.then = function(_cb) {
+
+        if (!isFunc(_cb)) return;
+
+        let done = _cb, 
+            results = {}, // callback results
+            count = 0, // exec count of findWithLabel
+            dirs = ['from', 'to'],
+            types = {
+              from: 'target',
+              to: 'source'
+            };
+
+        // Find nodes linking with queried nodes
+        if (label) {
+          dirs.forEach(dir => {
+            findWithLabel(label, dir).then(val => {
+              
+              let type = types[dir];
+
+              count++;
+              // Push nodes into results
+              // val should be null or <col>/<key>:true
+              if (!results[label]) {
+                results[label]  = [];
+              }
+              if (val) {
+                Object.keys(val).forEach(col => {
+                  Object.keys(val[col]).forEach(key => {
+
+                    let anEdge = {};
+                    anEdge.label = label;
+                    anEdge.type = type;
+                    anEdge.node = myGraph.node(col, key);
+                    results[label].push(anEdge);
+                  });
+                });
+              }
+              // Final stage
+              if (count == dirs.length) { 
+                if (isFunc(done)) {
+                  done(results); // callback with results
+                }
+              }
+
+            }); // end of findWithLabel
+          }); // end of dirs.forEach 
+        } else {
+          // TBD: Find all edges???
+        }
+        return {
+          then: function(_cb) { done = _cb; }
+        };
+      }; // end of edges.find
+
       return edges;
     }; // end of myGraph.edges
 

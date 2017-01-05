@@ -1,92 +1,118 @@
 (function($) {
 
-var G = Cope.useGraphDB(),
-    test = Cope.Util.setTest('test-cope');
+const G = Cope.appGraph('testApp2'),
+      test = Cope.Util.setTest('test-cope'),
+      debug = Cope.Util.setDebug('test-cope', true),
+      Views = Cope.useViews('test-cope'),
+      Log = Views.class('Log');
 
-// Test - graphDB
-test(function(pass) {
-  
-  var debug = this.debug;
-  debug('Start');
-  
-  // Test - create new app with appId = "testApp2"
-  test(function(pass) {
-    G.createApp('testApp2').then(function(_appG) {
-      if (_appG) {
-        pass('End of app creation test');
-        return;
-      } 
-      pass('End of app creation test');
+Log.dom(vu => `<h4 ${vu.ID}></h4>`);
+Log.render(vu => {
+  let msg = vu.val('msg');
+  if (msg) {
+    vu.$el().html(msg);
+  }
+});
 
-      // Test - get app by appId = "testApp2"
-      test(function(pass) {
-        G.getApp('testApp2').then(function(_appG2) {
-          if (!_appG2) {
-            debug('testApp2', 'Failed to getApp');
-            return;
-          } 
-          pass('Get app "testApp2"');
+let logCount = 0;
+const setLog = function() {
+  logCount++;
+  $('#test').append(`<div id="log-${logCount}" style="margin:30px 0; border:2px solid #999; padding: 16px"></div>`);
+  return function(logCount) {
+    let log = function(_msg, _level) {
+      if (!isNaN(_level)) {
+        let indents = '';
+        for (let i = 0; i < _level; i++) {
+          indents = indents + '&nbsp;&nbsp;&nbsp;&nbsp;';
+        }
+        _msg = indents + _msg;
+      }
+      Log.build({
+        sel: '#log-' + logCount,
+        method: 'append'
+      }).val('msg', _msg);
+    };
+    return log;
+  }(logCount);
+};
 
-          var dreams = _appG2.col('dreams'),
-              dreamers = _appG2.col('dreamers'),
-              dreamedBys = _appG2.edges('dreamedBys');
-          var daydream = dreams.node('daydream');
-          var jones = dreamers.node('jones');
+// Test - appGraph - node
+test(pass => {
+  let log = setLog();
+  log('[AppGraph Nodes]');
+  log('<br>');
+  log(`G = Cope.appGraph('testApp2')`);
+  log('<br>');
+  log(`dreamer = G.node('Dreamers', 'Jeff')`);
+  let dreamer = G.node('Dreamers', 'Jeff');
+  if (!dreamer || !dreamer.col || !dreamer.key) {
+    debug('dreamer does not have properties "col" or "key"', dreamer);
+  }
 
-          // Test - set values of nodes
-          test(function(pass) {
-            daydream.val({
-              happiness: 98
-            });
-      
-            jones.val({
-              name: 'Jones'
-            });
+  log(`dreamer.val('age', 20)`);
+  log(`dreamer.val({ 'name': 'Jeff' })`);
+  dreamer.val('age', 20);
+  dreamer.val({ 'name': 'Jeff' });
 
-            pass("Set values of nodes");
-          }); 
+  log('Test dreamer.val() <= data');
+  dreamer.val().then(data => {
+    log('<br>');
+    log(`data.name = ${data.name}`, 1);
+    log(`dreamer.snap('age') = ${dreamer.snap('age')}`, 1);
+    log('<br>');
+    log('Deleting dreamer by calling dreamer.del(true)', 1);
+    dreamer.del(true).then(() => {
+      log('<br>');
+      log('dreamer was deleted', 2);
+      log('<br>');
+      log('Passed');
+    });
+  });
+}); // end of test
 
-          // Test - set edges
-          test(function(pass) {
-            dreamedBys.add(daydream, jones);
-        
-            dreamedBys.from(daydream).then(function(_nodes) {
-              pass('Set an edge, and queried via "#from"');
-              
-              if (!Array.isArray(_nodes)) debug('testApp2', '_nodes is not an array');
+// Test - appGraph - edges
+test(pass => {
+  let log = setLog();
 
-              _nodes.forEach(function(_n) {
-                test(function(pass) {
-                  dreamedBys.del(daydream, _n).then(function() {
-                    pass('deleted the edge');
-                  });
-                });
-              });
+  log('[AppGraph Edges]');
+  log('<br>');
+  log(`G = Cope.appGraph('testApp2')`);
+  log('<br>');
+  log(`let dreamer = G.node('Dreamers', 'Chops')<br><br>
+  let Dreams = G.col('Dreams')<br>
+  let daydream = Dreams.node('daydream')<br>
+  let nightmare = Dreams.node('nightmare')<br><br>`);
 
-              test(function(pass) { 
-                _nodes[0].val().then(function(val) {
-                  if (!val) {
-                    debug('Failed to find _nodes[0]');
-                    return;
-                  }
-                  pass('Found _nodes[0]');
-                });
-              }).print();
-            }); // end of dreamedBys.from
-          }); // end of test
-        }); // end of G.getApp
-      }); // end of test
-    }); // end of G.createApp
-  }); // end of test
+  let Chops = G.node('Dreamers', 'Chops');
+  let Dreams = G.col('Dreams');
+  let daydream = Dreams.node('daydream');
+  let nightmare = Dreams.node('nightmare');
 
-  pass('Start test');
-}).done(function() {
-  console.log('Tests all passed.');
+  log(`Chops.link('hasA', daydream)<br>
+  Chops.link('hasA', nightmare)`);
+
+  Chops.link('hasA', daydream);
+  Chops.link('hasA', nightmare).then(() => {
+    log('Created two dreams', 1);
+    log(`Chops.unlink('hasA', daydream)<br>
+    Chops.unlink('hasA', nightmare)`);
+
+    Chops.unlink('hasA', daydream);
+    Chops.unlink('hasA', nightmare).then(() => {
+      log('Deleted all dreams', 1);
+      log('<br>');
+      log('Passed');
+    });
+  });
 }); // end of test
 
 // Test - use jQuery
 test(function(pass) {
   if ($) {
+    let log = setLog();
+    log('jQuery is defined.');
+    log('<br>');
+    log('Passed');
     pass('$ is defined');
   } else {
     this.debug('undefined jQuery or $');

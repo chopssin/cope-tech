@@ -112,10 +112,12 @@ test(pass => {
   let G = Cope.appGraph('testApp2');
   
   // Create an edge
-  G.node('TestNodes', 'testA')
-    .link('BetweenTests', G.node('TestNodes', 'testB'));
+  let testA = G.node('TestNodes', 'testA');
+  testA.val('name', 'testA');
+  testA.link('BetweenTests', G.node('TestNodes', 'testB'));
 
   log('testA ---TestNodes---> testB');
+  log('<br>');
   log(`G.edges('BetweenTests')
     .has(G.node('TestNodes', 'testA'))
     .then <= results`);
@@ -130,6 +132,31 @@ test(pass => {
   }); // end of G.edges
 
 }); // end of test
+
+// Test - AppGraph.populate
+test(pass => {
+  let log = setLog();
+  let G = Cope.appGraph('testApp2');
+
+  G.populate([
+    G.node('TestNodes', 'testA'),
+    G.node('FakeShits', 'fake')
+  ]).then(nodes => {
+    log(`G.populate([testA, fake]).then <= nodes`);
+    log('<br>');
+    
+    nodes.forEach(node => {
+      debug(node.key, node.snap());
+      log('[' + node.key + ']');
+      log(JSON.stringify(node.snap(), null, 4)
+          .replace(/\n/g, '<br>')
+          .replace(/\s/g, '&nbsp;'));
+      log('<br>');
+    });
+      
+    log('Passed');
+  });
+});
 
 // Test - use jQuery
 test(function(pass) {

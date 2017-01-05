@@ -1211,6 +1211,14 @@
       return typeof _cb == 'function';
     };
 
+    // To verify whether the input is a node object
+    isNode = function(_node) {
+      return typeof _node == 'object' 
+        && _node 
+        && typeof _node.col == 'string'
+        && typeof _node.key == 'string';
+    };
+
     // To get the current firebase instance
     let getFB = function() {
       return {
@@ -1548,7 +1556,6 @@
       // To access node data asynchrinously
       node.val = function() {
         let args = arguments,
-            //thisNode = this,
             done = function() {};
 
         debug('val', args);
@@ -1775,12 +1782,6 @@
 
       let edges = {}, 
           node, // the related node
-          isNode = function(_node) {
-            return typeof _node == 'object' 
-              && _node 
-              && typeof _node.col == 'string'
-              && typeof _node.key == 'string';
-          },
           label = !notValid(_label) ? _label : null;
 
       // Set the related node
@@ -1815,13 +1816,7 @@
         };
       }; // end of findWithLabel
 
-      // To find by queries, and get results as:
-      // {
-      //   <label>: {
-      //     from: [node],
-      //     to: [node]
-      //   }
-      // }
+      // To get related nodes
       edges.then = function(_cb) {
 
         if (!isFunc(_cb)) return;
@@ -1877,6 +1872,8 @@
         };
       }; // end of edges.find
 
+      // TBD: edges.ofMany ...
+
       return edges;
     }; // end of myGraph.edges
 
@@ -1885,9 +1882,39 @@
       // TBD
     };
 
-    myGraph.populate = function(_node) {
+    myGraph.populate = function(_nodes) {
       // TBD
-    };
+      let nodes = _nodes,
+          count = 0,
+          done;
+
+      if (!Array.isArray(_nodes)) {
+        nodes = [_nodes];
+      }
+
+      nodes = nodes.reduce((arr, node) => {
+        if (isNode(node)) {
+          arr.push(node);
+        }
+        return arr;
+      }, []);
+
+      // Get values of nodes
+      nodes.forEach(node => {
+        node.val().then(val => {
+          count++;
+
+          // Final stage
+          if (count == nodes.length) {
+            if (isFunc(done)) {
+              done(nodes);
+            }
+          }
+        });
+      }); // end of nodes.forEach
+
+      return { then: function(_cb) { done = _cb; } };
+    }; // end of myGraph.populate
 
     return myGraph;
   }; // end of Cope.appGraph

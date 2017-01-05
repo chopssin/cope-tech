@@ -3,6 +3,13 @@
   background-size: cover;
   background-position: 50% 50%;
 }
+.wide {
+  width: 100%;
+  max-width: 1150px;
+}
+.full {
+  width: 100%;
+}
 .squared {
   width: 140px;
   height: 140px;

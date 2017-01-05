@@ -36,7 +36,7 @@ const setLog = function() {
   }(logCount);
 };
 
-// Test - appGraph - node
+// Test - appGraph: node
 test(pass => {
   let log = setLog();
   log('[AppGraph Nodes]');
@@ -70,7 +70,7 @@ test(pass => {
   });
 }); // end of test
 
-// Test - appGraph - edges
+// Test - appGraph: edges formed by node.link
 test(pass => {
   let log = setLog();
 
@@ -104,6 +104,31 @@ test(pass => {
       log('Passed');
     });
   });
+}); // end of test
+
+// Test - AppGraph: edges
+test(pass => {
+  let log = setLog();
+  let G = Cope.appGraph('testApp2');
+  
+  // Create an edge
+  G.node('TestNodes', 'testA')
+    .link('BetweenTests', G.node('TestNodes', 'testB'));
+
+  log('testA ---TestNodes---> testB');
+  log(`G.edges('BetweenTests')
+    .has(G.node('TestNodes', 'testA'))
+    .then <= results`);
+
+  G.edges('BetweenTests')
+    .has(G.node('TestNodes', 'testA'))
+    .then(results => {
+    debug('TestNodes - res', results);
+    log(JSON.stringify(results, null, 4).replace(/\n/g, '<br>').replace(/\s/g, '&nbsp;'));
+    log('<br>');
+    log('Passed');
+  }); // end of G.edges
+
 }); // end of test
 
 // Test - use jQuery

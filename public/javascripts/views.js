@@ -121,7 +121,7 @@ ViewAppPage.render(function() {
   }
 
   if (url) {
-    this.$el('@url').html(val.url);
+    this.$el('@url').html(url);
   } else {
     this.$el('@url').html('cope.tech/' + appId);
   }

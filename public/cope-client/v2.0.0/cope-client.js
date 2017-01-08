@@ -384,6 +384,7 @@
         loaders = {}, // methods to load data
         debug, // to debug
         emit, // deliver updated data to registered Views 
+        isValidKey, // to check the input key
         myName; // optional, name of this dataSnap
   
     myName = _name 
@@ -396,6 +397,14 @@
       Object.keys(registry).forEach(function(id) {
         registry[id].load(data);
       });
+    };
+
+    isValidKey = function(_key) {
+      return (typeof _key == 'string')
+        && (_key.indexOf('.') < 0)
+        && (_key.indexOf(',') < 0)
+        && (_key.indexOf('$') < 0)
+        && (_key.indexOf('#') < 0);
     };
 
     my.enroll = function(_vu) {
@@ -421,25 +430,29 @@
             
             // Get specific value by args[0]
             case 'string': 
-              return data[args[0]];
+              if (!isValidKey(args[0])) return;
+              return data[args[0]]; // return the value
               break;
             
             // Set value(s) and emit changes
             case 'object': 
               Object.keys(args[0]).forEach(function(_key) {
+                if (!isValidKey(_key)) return;
                 data[_key] = args[0][_key];
               });
               emit();
+              return; // return nothing
               break;
           }
           break;
 
         // Set a value and emit the change
         case 2:
-          if (typeof args[0] == 'string') {
+          if (isValidKey(args[0])) {
             data[args[0]] = args[1];
             emit();
           }
+          return; // return nothing
           break;
       } // end of switch
 
@@ -1102,7 +1115,57 @@
       }; 
 
       vu.val = function() {
-        return vuDataSnap.val.apply(null, arguments);
+        let ret = vuDataSnap.val.apply(null, arguments);
+        if (ret) {
+          return ret;
+        } else {
+          return vu;
+        }
+      };
+
+      vu.use = function(_keys) {
+        if (typeof _keys != 'string') return;
+
+        let vals = vu.val(),
+            keys = _keys.split(',').map(key => key.trim()); 
+        
+        debug('vu.use: keys', keys);
+        debug('vu.use: vals', vals);
+
+        return {
+          then: function(_cb) {
+
+            let passed = true,
+                obj = {}; // stored values
+
+            if (typeof _cb != 'function') return;
+            if (Array.isArray(keys) && vals) {
+              // Check each value of the key
+              keys.forEach(key => { 
+                let names = key.split('.'), 
+                    cursor = vals;
+
+                for (let i = 0; i < names.length; i++) {
+                  if (cursor.hasOwnProperty(names[i])) {
+                    cursor = cursor[names[i]];
+                  } else {
+                    debug('vu.use: failed at [' + names[i]+ '] of cursor', cursor);
+                    passed = false;
+                    break;
+                  }
+                } 
+
+                debug('vu.use: ' + key, cursor);
+           
+              }); // end of keys.forEach
+                
+              if (passed) {
+                _cb(vals);
+              }
+
+            } // end of if
+          } // end of then
+        };
       };
 
       vu.ds = function() {
@@ -1880,10 +1943,10 @@
     // Quick accessing data
     myGraph.val = function() {
       // TBD
+      //...
     };
 
     myGraph.populate = function(_nodes) {
-      // TBD
       let nodes = _nodes,
           count = 0,
           done;

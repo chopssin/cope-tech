@@ -27,10 +27,13 @@ const setLog = function() {
         }
         _msg = indents + _msg;
       }
-      Log.build({
-        sel: '#log-' + logCount,
-        method: 'append'
-      }).val('msg', _msg);
+      if (_msg) {
+        Log.build({
+          sel: '#log-' + logCount,
+          method: 'append'
+        }).val('msg', _msg);
+      }
+      return '#log-' + logCount;
     };
     return log;
   }(logCount);
@@ -156,6 +159,63 @@ test(pass => {
       
     log('Passed');
   });
+});
+
+// Test - Cope.useViews
+test(pass => {
+  
+  let log = setLog();
+  let Post = Views.class('Post');
+
+  log('Test with a Post view with vu.use');
+  log('Post');
+  log('@title', 1);
+  log('@content', 1);
+  log('<br>');
+  log('vu.use("title, @post.content")');
+  log('<br>');
+
+  log(`
+  Post.render(vu => {<br>
+    &nbsp;&nbsp;vu.use('title, @post.content').then(v => {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;vu.$el('@title').html(v.title);<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;vu.$el('@content').html(v["@post"].content);<br>
+    &nbsp;&nbsp;});<br>
+  });<br>
+  `);
+  
+  Post.dom(vu => `<div ${vu.ID}>
+    <h3 data-component="title"></h3>
+    <p data-component="content"></p>
+  </div>`);
+  
+  Post.render(vu => {
+
+    vu.$el().css({
+      'max-width': '540px',
+      padding: '16px',
+      border: '2px solid #333'
+    });
+
+    vu.use('title, @post.content').then(v => {
+      vu.$el('@title').html(v.title);
+      vu.$el('@content').html(v["@post"].content);
+    });
+  });
+
+  Post.build({
+    sel: log(),
+    method: 'append'
+  }).val({
+    comment: [{ by: 'clinet A', msg: 'Good.' }, { by: 'BBB', msg: 'Cool.'}]
+  }).val({
+    '@post': {
+      content: 'Rendered @content with v["@post"].content.'
+    }
+  }).val('title', 'Rendered @title with v.title');
+
+  log('<br>');
+  log('Passed');
 });
 
 // Test - use jQuery

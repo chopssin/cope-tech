@@ -1,11 +1,12 @@
 const Views = Cope.useViews('Purely');
 
-let NavView, 
-    BoxView,
-    TextAreaView,
-    ImageUpLoaderView;
+let NavView = Views.class('Nav'), 
+    BoxView = Views.class('Box'),
+    TextAreaView = Views.class('TextArea'),
+    ImageUpLoaderView = Views.class('ImageUpLoader'),
+    PhotoView = Views.class('Photo'),
+    GalleryView = Views.class('Gallery');
 
-NavView = Views.class('Nav');
 NavView.dom(vu => (`
   <header ${vu.ID} class="view-nav">
 		<div data-component="logo" class="logo bg">Logo</div>
@@ -69,7 +70,7 @@ NavView.render( vu => {
 });
 
 // BoxView
-BoxView = Views.class('Box');
+
 BoxView.dom( vu => (`
 	<div ${vu.ID} data-component="box" class="box">
 	</div>
@@ -84,7 +85,6 @@ BoxView.render( vu => {
 });
 
 //TextArea
-TextAreaView = Views.class('TextArea');
 TextAreaView.dom( vu => (`
 	<textarea ${vu.ID} data-component="textArea"></textarea>
 `));
@@ -102,7 +102,6 @@ TextAreaView.render( vu => {
 });
 
 //ImageUpLoader 
-ImageUpLoaderView = Views.class('ImageUpLoader');
 ImageUpLoaderView.dom( vu => (`
 	<div ${vu.ID} data-component="imageUpLoaderView">
 		<form>
@@ -117,5 +116,86 @@ ImageUpLoaderView.render( vu => {
 		
 		vu.res('value', vu.$el());
 	});
+});
+
+//PhotoView
+PhotoView.dom(vu =>
+  `<div ${vu.ID}>
+    <a href="#">
+      <img data-component="img" class="img-responsive" src="">
+    </a>
+    <div data-component="caption">
+      <a href="#" class="text">
+      </a>
+    </div>
+  </div>`
+);
+
+PhotoView.render(vu => {
+
+  vu.use('src').then(v => {
+    vu.$el('@img').prop('src', v.src);
+  })
+
+  vu.use('caption').then(v => {
+    vu.$el('@caption').html(v.caption);
+  })
+
+  let PhotoPostCSS = vu.val('css') || {
+    width: '450px',
+    'text-align': 'center',
+    margin: '0 auto'
+  };
+
+  vu.$el().css(PhotoPostCSS);
+
+  let imgCSS = (vu.val('@img') && vu.val('@img').css) || {
+    margin: '0 auto'
+  };
+
+  vu.$el('@img').css(imgCSS);
+
+  let captionCSS = (vu.val('@caption') && vu.val('@caption').css) || {
+    width: '100%',
+    height: 'auto',
+    'background-color': '#DDD',
+    'font-family': '微軟正黑體'
+  };
+
+  vu.$el('@caption').css(captionCSS);
+
+});
+
+//GalleryView
+GalleryView.dom(vu =>
+  `<div ${vu.ID}>
+    <div class="row" data-component="gallery">
+    </div>
+  </div>`
+);
+
+GalleryView.render(vu => {
+
+  vu.use('src').then(v => {
+
+    for (let i = 0; i < v.src.length; i++) {
+      vu.$el('@gallery').append('<div class="col-xs-6 col-sm-4 col-md-3 col-lg-2" style="padding: 5px" data-component="img' + i + '"></div>');
+      PhotoView.build({
+        sel: vu.sel('@img' + i),
+        method: 'append'
+      }).val({
+        src: v.src[i],
+        css: {
+          'max-width': 'auto',
+          width: 'auto',
+        }
+      })
+    }
+  })
+
+  vu.use('css').then(v => {
+    vu.$el().css(v.css);
+  })
+
 });
 

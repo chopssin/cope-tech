@@ -1116,10 +1116,21 @@
 
       vu.val = function() {
         let ret = vuDataSnap.val.apply(null, arguments);
-        if (ret) {
-          return ret;
-        } else {
-          return vu;
+        switch (arguments.length) {
+          // Getter
+          case 0: 
+          case 1: 
+            if (typeof arguments[0] != 'string') {
+              // Setter
+              return vu; 
+            } else {
+              // Getter
+              return ret;
+            }
+            break
+          // Setter
+          case 2: 
+            return vu;
         }
       };
 
@@ -1143,7 +1154,8 @@
               // Check each value of the key
               keys.forEach(key => { 
                 let names = key.split('.'), 
-                    cursor = vals;
+                    cursor = {};
+                Object.assign(cursor, vals);
 
                 for (let i = 0; i < names.length; i++) {
                   if (cursor.hasOwnProperty(names[i])) {

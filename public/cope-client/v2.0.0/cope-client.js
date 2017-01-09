@@ -1155,7 +1155,7 @@
               keys.forEach(key => { 
                 let names = key.split('.'), 
                     cursor = {};
-                Object.assign(cursor, vals);
+                cursor = JSON.parse(JSON.stringify(vals));
 
                 for (let i = 0; i < names.length; i++) {
                   if (cursor.hasOwnProperty(names[i])) {

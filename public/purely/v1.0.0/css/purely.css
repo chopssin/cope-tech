@@ -1,0 +1,126 @@
+/* Purely - Reset */
+
+/* Purely Default Theme */
+.color-w {
+  color: #fff;
+}
+
+.color-b {
+  color: #333;
+}
+
+.color-blue {
+  color: #236eb6;
+}
+
+.bg-w {
+  background-color: #fff;
+}
+
+.bg-b {
+  background-color: #333;
+}
+
+.bg-blue {
+  background-color: #236eb6;
+}
+
+/* Purely - General */
+.bg-img {
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: 50% 50%;
+}
+
+.frozen {
+  overflow: hidden;
+}
+
+.hidden {
+  display: none;
+}
+
+.centered {
+  position: relative;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.squared {
+  width: 140px;
+  height: 140px;
+}
+
+.float-right {
+  float: right;
+}
+
+.img-full {
+  overflow: hidden;
+}
+
+.img-full img,
+.img-full canvas {
+  width: 100%;
+}
+
+.img-full.squared img,
+.img-full.squared canvas {
+  position: relative;
+  width: auto;
+  height: 100%;
+  top: 0;
+  left: 0;
+  margin: 0;
+}
+
+.center-cropped {
+  object-fit: cover; /* Do not scale the image */
+  object-position: center; /* Center the image within the element */
+  height: 100px;
+  width: 100px;
+}
+
+/* =================
+ * Purely - Pages 
+ * ================= */
+
+/* =================
+ * Purely - Views 
+ * ================= */
+
+/* Nav */
+.view-nav {
+
+}
+
+/* Box */
+.view-box {
+
+}
+
+/* Photo */
+.view-photo {
+
+}
+
+/* Gallery */
+
+/* Extra Small Devices, Phones */
+@media only screen and (min-width : 480px) {
+}
+
+/* Small Devices, Tablets */
+@media only screen and (min-width : 768px) {
+}
+
+/* Medium Devices, Desktops */
+@media only screen and (min-width : 992px) {
+  .cope-card {
+    padding: 16px;
+  }
+}
+
+/* Large Devices, Wide Screens */
+@media only screen and (min-width : 1200px) {
+}

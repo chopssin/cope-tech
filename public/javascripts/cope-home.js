@@ -1,18 +1,22 @@
-(function($) {
+(function($, Cope) {
 
-var G = Cope.graphDB(),
-    Views = Cope.views(),
+var G = Cope.useGraphDB(),
+    Views = Cope.useViews('views'),
+    Util = Cope.Util,
     dataSnap = Cope.dataSnap,
-    util = Cope.util,
     fetchDS = dataSnap(),
     renderDS = dataSnap(),
+    accountDS = dataSnap(),
     ViewAppCard = Views.class('AppCard'),
     ViewAppPage = Views.class('AppPage'),
-    nav,
-    debug = util.setDebug('cope-home', true);
+    ViewDataGraph = Views.class('DataGraph'),
+    ViewAccountCard = Views.class('AccountCard'),
+    debug = Util.setDebug('cope-home', true),
+    nav;
 
 // Navigation
 function nav(_sec) {
+  $('html, body').scrollTop(0);
   switch(_sec) {
     case 'home':
       $('#dashboard').removeClass('hidden');
@@ -28,131 +32,120 @@ $('#logo').click(function() {
   nav('home');
 });
 
+// Get my account
+accountDS.load(function() {
+  var card = ViewAccountCard.build({
+    sel: '#account'
+  }).res('signout', function() {
+    G.user().signOut();
+  });
+
+  G.user().then(function(_user) {
+    debug(_user);
+    card.val({ mail: _user.email });
+
+    // Set email
+    _user.val('email', _user.email);
+
+    // Update partner apps
+    _user.read('add_partner_app').then(function(_val) {
+      if (!_val) return;
+
+      // Update my apps from "add_partner_app", 
+      // which store <appId> sent from other user
+      let count = 0, keys = Object.keys(_val);
+      keys.forEach(function(_key) {
+        _user.val('partner_apps/' + _val[_key], true)
+          .then(function() {
+            count++;
+            if (count == keys.length) {
+
+              // Erase data in "add_partner_app"
+              _user.write('add_partner_app', null);
+            }
+          });
+      });
+    }); // end of _user.read
+    
+    // Got user
+    renderDS.val({ user: _user });
+    fetchDS.load();
+  });
+});
+
+// Start from here
+accountDS.load();
+
+// Stage of fetching data
 fetchDS.load(function() {
-  G.listMyApps().then(function(_res) {
-    var count = 0, myOwnApps = [];
-    _res.own_apps.forEach(function(_appId) {
-      G.getApp(_appId).then(function(_appG) {
+  G.listMyApps().then(function(_apps) {
+    var count = 0, apps = [];
+    _apps.forEach(function(_a) {
+      G.getApp(_a.appId).then(function(_appG) {
         count++;
-        // Push the fetched app info into the array
-        myOwnApps.push({
+        apps.push({
           appName: _appG.appName(),
-          appId: _appG.appId
+          appId: _appG.appId,
+          isOwner: _a.isOwner || false
         });
-        if (count == _res.own_apps.length) {
-          debug(myOwnApps);
-          // Update renderDS's data with "myOwnApps"
-          renderDS.update({ 'myOwnApps': myOwnApps });
+        if (count == _apps.length) {
+          debug('List my apps', apps);
+          renderDS.val('myApps', apps);
           renderDS.load();
         }
       });
-    });
-  });
-}); 
+    }); // end of _apps.forEach
+  }); // end of G.listMyApps
+}); // end of fetchDS.load
 
+// Stage of rendering views
 renderDS.load(function() {
-  var myOwnApps = this.val().myOwnApps;
+  var user = this.val('user'),
+      myApps = this.val('myApps');
   $('#my-apps').html('');
   
-  myOwnApps.forEach(function(_a) {
-    ViewAppCard.build({
+  myApps.forEach(function(_a) {
+    var appCard = ViewAppCard.build({
       sel: '#my-apps',
       method: 'append',
       data: {
-        role: 'Owner',
+        isOwner: _a.isOwner,
         appId: _a.appId,
         appName: _a.appName
       }
     }).res('touched', function(_data) {
+      // App being selected
+      // Navigate to app section
       nav('app');
-      ViewAppPage.build({
-        sel: '#app-page',
-        data: { appCard: this }
-      });
-    }); // AppCard
-  });
-});
 
-fetchDS.load();
+      // TBD: Get app info
+      // Get the initial graph
+      d3.json('d3-sample.json', function(err, graph) {
+        if (err) throw err;
 
-// Views
-ViewAppCard.dom(function() {
-  return '<div' + this._ID + ' class="cope-card touchable bg-w" style="margin-bottom:16px">'
-    + '<h3 data-component="appName"></h3>'
-    + '<p data-component="appId"></p>'
-    + '<p data-component="role"></p>'
-    + '<p data-component="stat"></p>'
-    + '</div>';
-});
-ViewAppCard.render(function() {
-  var that = this,
-      name = this.val('appName'),
-      id = this.val('appId'),
-      role = this.val('role'),
-      stat = this.val('stat') || 'Expired in 700 days (2018/12/12)';
-  if (name) this.$el('@appName').html(name);
-  if (id) this.$el('@appId').html(id);
-  if (role) this.$el('@role').html(role);
-  if (stat) this.$el('@stat').html(stat);
+        // Build app section
+        ViewAppPage.build({
+          sel: '#app-page',
+          data: { 
+            appId: _a.appId,
+            appName: _a.appName,
+            owner: _a.isOwner ? 'Me' : 'Someone else',
+            partners: ['Mr. Su'],
+            url: _a.url,
+            graph: graph
+          }
+        }).res('select-node', function(node) {
+          // TBD: Node being selected
+          // Show node's value
+          debug('select-node', node);
+        }).res('add-partner', function(_email) {
+          if (!user) return;
+          debug('add-partner', _email);
+          user.addPartner(_a.appId, _email, true);
+        });
+      }); // end of getting initial graph
+    }); // end of AppCard
+  }); // end of myOwnApps.forEach
+}); // end of renderDS.load
 
-  that.$el().off('click').on('click', function() {
-    that.res('touched', that.val());
-  });
-});
-
-ViewAppPage.dom(function() {
-  return '<div' + this._ID + 'class="row">' 
-    + '<div class="col-xs-12">' 
-      + '<h3 data-component="appName"></h3>'
-    + '</div>'
-    + '<div class="col-xs-12"><div class="cope-card bg-w"><ul>'
-      + '<li>' 
-        + '<div class="title">App Id</div>'
-        + '<div data-component="appId"></div>'
-      + '</li>'
-      + '<li>' 
-        + '<div class="title">URL</div>'
-        + '<div data-component="url"></div>'
-      + '</li>'
-      + '<li>' 
-        + '<div class="title">Owner</div>'
-        + '<div data-component="owner"></div>'
-      + '</li>'
-      + '<li>' 
-        + '<div class="title">Partners</div>'
-        + '<div data-component="partners"></div>'
-      + '</li>'
-      + '<li>' 
-        + '<div class="title">Expired at</div>'
-        + '<div data-component="expired-at"></div>'
-      + '</li>'
-    + '</ul></div></div>'
-  + '</div>';
-});
-ViewAppPage.render(function() {
-  var appCard = this.val('appCard'),
-      val = appCard.val(),
-      appName, appId, url, role, expiredAt;
-  if (!val) return;
-
-  console.log(val);
-  appName = val.appName || '';
-  appId = val.appId || '';
-  role = val.role;
-
-  this.$el('@appName').html(appName);
-  this.$el('@appId').html(appId);
-  if (role == 'Owner') this.$el('@owner').html('Me');
-  if (role == 'Partner') this.$el('@partners').html('Me');
-  if (url) {
-    this.$el('@url').html(val.url);
-  } else {
-    this.$el('@url').html('cope.tech/' + appId);
-  }
-
-  // val.owner
-  // val.partners
-  // val.expiredAt
-});
-
-})(jQuery);
+})(jQuery, Cope, undefined);

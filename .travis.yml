@@ -2,6 +2,7 @@ language: node_js
 node_js:
 - '6'
 before_install:
+- chmod +x deploy.sh
 - openssl aes-256-cbc -K $encrypted_12b470870751_key -iv $encrypted_12b470870751_iv
   -in client-secret.json.enc -out client-secret.json -d
 deploy:
@@ -10,9 +11,12 @@ deploy:
     project: cope-326d5
     skip_cleanup: true
     version: v2
+    on: 
+      branch: deploy-gae
   - provider: script
     script: deploy.sh
-    on: 
+    skip_cleanup: true
+    on:
       branch: deploy
 notifications:
   slack:

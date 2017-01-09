@@ -1,0 +1,231 @@
+/* Purely - Reset */
+
+/* Purely Default Theme */
+.color-w {
+  color: #fff;
+}
+
+.color-b {
+  color: #333;
+}
+
+.color-blue {
+  color: #236eb6;
+}
+
+.bg-w {
+  background-color: #fff;
+}
+
+.bg-b {
+  background-color: #333;
+}
+
+.bg-blue {
+  background-color: #236eb6;
+}
+
+/* Purely - General */
+.bg-img {
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: 50% 50%;
+}
+
+.frozen {
+  overflow: hidden;
+}
+
+.hidden {
+  display: none;
+}
+
+.centered {
+  position: relative;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.squared {
+  width: 140px;
+  height: 140px;
+}
+
+.float-right {
+  float: right;
+}
+
+.img-full {
+  overflow: hidden;
+}
+
+.img-full img,
+.img-full canvas {
+  width: 100%;
+}
+
+.img-full.squared img,
+.img-full.squared canvas {
+  position: relative;
+  width: auto;
+  height: 100%;
+  top: 0;
+  left: 0;
+  margin: 0;
+}
+
+.center-cropped {
+  object-fit: cover; /* Do not scale the image */
+  object-position: center; /* Center the image within the element */
+  height: 100px;
+  width: 100px;
+}
+
+/* =================
+ * Purely - Pages 
+ * ================= */
+
+/* =================
+ * Purely - Views 
+ * ================= */
+
+/* Nav */
+.view-nav {
+  
+}
+.view-nav {
+  display: block;
+  width: 100%;
+  height: 2.85em;
+  line-height:  2.85em;
+  position: relative;
+  padding: 0;
+  margin: 0;
+  top: 0;
+  left: 0;
+}
+.view-nav div,
+.view-nav nav,
+.view-nav ul,
+.view-nav li,
+.view-nav a {
+  display: block;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+.view-nav ul {
+  display: inline-block;
+  list-style: none;
+}
+.view-nav .float-right {
+  display: block;
+  position: relative;
+  float: right;
+}
+.view-nav .logo,
+.view-nav .float-right{
+  height: 100%;
+}
+.view-nav > .logo, 
+.view-nav > nav{
+  display: inline-block;
+  margin: 0px 10px;
+  padding: 0px;
+}
+.view-nav .logo {
+  font-size: 1em;
+  font-weight: 300;
+  width: 100px;
+  /*background-color: #ddd;*/
+}
+.view-nav li {
+  display: inline-block;
+  margin: 0px 10px;
+}
+.view-nav a {
+  text-decoration: none;
+  margin: 0px;
+}
+.view-nav .menu {
+  top: 10px;
+  font-size: 2em;
+  cursor: pointer;
+}
+.view-nav .user {
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    -o-appearance: none;
+    -ms-appearance: none;
+    appearance: none;
+    -moz-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    -webkit-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    -o-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    -ms-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    border: 0;
+    color: #333;
+    cursor: pointer;
+    font-weight: 300;
+    letter-spacing: 0.125em;
+    font-size: 0.9em;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    text-indent: 0.25em;
+}
+
+.view-nav .view-nav-items {
+  background-color: #111;
+  display: none;
+  height: 100vh;
+  width: 100%;
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  opacity: 0.94;
+}
+.view-nav-items li {
+  display: block;
+  height: 50px;
+  margin: 0;
+  padding: 16px;
+}
+
+.box {
+  position: relative;
+  border: 1px solid #111;
+}
+
+
+/* Box */
+.view-box {
+
+}
+
+/* Photo */
+.view-photo {
+
+}
+
+/* Gallery */
+
+/* Extra Small Devices, Phones */
+@media only screen and (min-width : 480px) {
+}
+
+/* Small Devices, Tablets */
+@media only screen and (min-width : 768px) {
+}
+
+/* Medium Devices, Desktops */
+@media only screen and (min-width : 992px) {
+  .cope-card {
+    padding: 16px;
+  }
+}
+
+/* Large Devices, Wide Screens */
+@media only screen and (min-width : 1200px) {
+}

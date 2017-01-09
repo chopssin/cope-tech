@@ -1,32 +1,31 @@
 extends layout
 
 block content
-  #page-container.purely
-    #nav.nav-top.cope
+  #page-container.purely.cope
+    #nav.nav-top
       .container
         #logo.logo.text
           | #{title}
-    #page.page-wrap.cope
+    #page.page-wrap
       #dashboard.container
         .row
           .col-xs-12.col-md-4.col-md-push-8
             h4 Account
-            #account.row
+            .row
               .col-xs-12
-                .cope-card.bg-w
-                  h3 Chopssin
-                  p chopssin@gmail.com
+                #account.cope-card.bg-w.wider
           .col-xs-12.col-md-8.col-md-pull-4
             h4 Apps
             .row
               #my-apps.col-xs-12
               .col-xs-12
-                button#btn-add-app.cope-btn(style="margin: 16px 0")
-                  h4 Add new app
+                button#btn-add-app.cope-card.as-btn.bg-blue.color-w(style="margin: 16px 0")
+                  | Add new app
       #dashboard-app.container.hidden
         .row
           #app-page.col-xs-12
              
 block javascripts
-  script( src = "javascripts/test-cope.js" )
+  script( src = "https://d3js.org/d3.v4.min.js" )
+  script( src = "javascripts/views.js" )
   script( src = "javascripts/cope-home.js" )

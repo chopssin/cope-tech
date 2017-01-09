@@ -314,46 +314,46 @@ test(pass => {
 
 // Test - @PJ
 test(pass => {
-$('#views').append('<div id="photo"></div>');
-$('#views').append('<div id="gallery"></div>');
+  $('#views').append('<div id="photo"></div>');
+  $('#views').append('<div id="gallery"></div>');
 
-let PhotoPost = PhotoView.build({
-  sel: '#photo',
-  method: 'append'
-}).val({
-  src: 'https://api.fnkr.net/testimg/450x300/00CED1/FFF/?text=img+placeholder',
-  caption: 'This is a placeholder',
-  css: {},
-  '@img': {
+  let PhotoPost = PhotoView.build({
+    sel: '#photo',
+    method: 'append'
+  }).val({
+    src: 'https://api.fnkr.net/testimg/450x300/00CED1/FFF/?text=img+placeholder',
+    caption: 'This is a placeholder',
     css: {},
-  },
-  '@caption': {
-    css: {}
-  }
-})
+    '@img': {
+      css: {},
+    },
+    '@caption': {
+      css: {}
+    }
+  })
 
-let GalleryPost = GalleryView.build({
-  sel: '#gallery',
-  method: 'append'
-}).val({
-  src: ['https://fakeimg.pl/440x320/282828/eae0d0/',
-    'https://fakeimg.pl/440x320/282828/eae0d0/',
-    'https://fakeimg.pl/440x320/282828/eae0d0/',
-    'https://fakeimg.pl/440x320/282828/eae0d0/',
-    'https://fakeimg.pl/440x320/282828/eae0d0/',
-    'https://fakeimg.pl/440x320/282828/eae0d0/',
-    'https://fakeimg.pl/440x320/282828/eae0d0/',
-    'https://fakeimg.pl/440x320/282828/eae0d0/',
-    'https://fakeimg.pl/440x320/282828/eae0d0/',
-    'https://fakeimg.pl/440x320/282828/eae0d0/',
-    'https://fakeimg.pl/440x320/282828/eae0d0/',
-    'https://fakeimg.pl/440x320/282828/eae0d0/'
-  ],
-  css: {
-    width: '100%',
-    margin: '0 auto'
-  }
-})
+  let GalleryPost = GalleryView.build({
+    sel: '#gallery',
+    method: 'append'
+  }).val({
+    src: ['https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/'
+    ],
+    css: {
+      width: '100%',
+      margin: '0 auto'
+    }
+  })
 });
 
 })(jQuery)

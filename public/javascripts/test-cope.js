@@ -231,4 +231,83 @@ test(function(pass) {
   }
 });
 
+test(pass => {
+  $('#test').append('<div id="views"></div>');
+  $('#views').append();
+
+  //Nav
+  NavView.build({
+    sel: '#nav',
+    method: 'append'
+  });
+
+  NavView.build({
+    sel: '#nav',
+    method: 'append'
+  }).val({
+    signedIn: true,
+    list: [{title:"HOME",href:"#"},{title:"About",href:"#"},{title:"FAQ",href:"#"}], // { title, href }
+    css: {
+      "height": "100px",
+      "background-color": "#aca",
+    },
+    "@logo": {
+      logoText: 'Aca',
+      css: {
+        "background-image":'url("http://blog.asiayo.com/wp-content/uploads/2016/11/%E5%8F%B0%E5%8D%97-1.jpg")'
+      }
+    }
+  });
+
+  //Box
+  let BoxA = BoxView.build({
+    sel: '#box',
+    method: 'append'
+  });
+
+  BoxA.val({
+    css:{
+      "width": "100px",
+      "height": "100px",
+      "top": "20px",
+      "left": "20px", 
+      "border": "6px solid #333",
+      "padding": "10px 6px",
+    }
+  });
+
+  let BoxB = BoxView.build({
+    sel: BoxA.sel(),
+    method: 'append'
+  }).val({
+    css:{
+      "width": "30px",
+      "height": "30px",
+      "top": "10px",
+      "left": "10px", 
+      "border": "2px solid #aca"
+    }
+  });
+
+  //console.log(BoxB);
+  //BoxB.val('test', 0).val('test', 2)
+
+  //TextArea
+  let TextArea = TextAreaView.build({
+    sel: '#textArea',
+    method: 'append'
+  }).res('value', val => {
+    console.log(val);
+  });
+
+  //ImageUpLoader 
+
+  let ImageUpLoader = ImageUpLoaderView.build({
+    sel: '#imageUpLoader',
+    method: 'append'
+  }).res('value', val => {
+    console.log(val);
+  });
+});
+
 })(jQuery)

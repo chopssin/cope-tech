@@ -384,6 +384,7 @@
         loaders = {}, // methods to load data
         debug, // to debug
         emit, // deliver updated data to registered Views 
+        isValidKey, // to check the input key
         myName; // optional, name of this dataSnap
   
     myName = _name 
@@ -396,6 +397,14 @@
       Object.keys(registry).forEach(function(id) {
         registry[id].load(data);
       });
+    };
+
+    isValidKey = function(_key) {
+      return (typeof _key == 'string')
+        && (_key.indexOf('.') < 0)
+        && (_key.indexOf(',') < 0)
+        && (_key.indexOf('$') < 0)
+        && (_key.indexOf('#') < 0);
     };
 
     my.enroll = function(_vu) {
@@ -421,25 +430,29 @@
             
             // Get specific value by args[0]
             case 'string': 
-              return data[args[0]];
+              if (!isValidKey(args[0])) return;
+              return data[args[0]]; // return the value
               break;
             
             // Set value(s) and emit changes
             case 'object': 
               Object.keys(args[0]).forEach(function(_key) {
+                if (!isValidKey(_key)) return;
                 data[_key] = args[0][_key];
               });
               emit();
+              return; // return nothing
               break;
           }
           break;
 
         // Set a value and emit the change
         case 2:
-          if (typeof args[0] == 'string') {
+          if (isValidKey(args[0])) {
             data[args[0]] = args[1];
             emit();
           }
+          return; // return nothing
           break;
       } // end of switch
 
@@ -1102,7 +1115,57 @@
       }; 
 
       vu.val = function() {
-        return vuDataSnap.val.apply(null, arguments);
+        let ret = vuDataSnap.val.apply(null, arguments);
+        if (ret) {
+          return ret;
+        } else {
+          return vu;
+        }
+      };
+
+      vu.use = function(_keys) {
+        if (typeof _keys != 'string') return;
+
+        let vals = vu.val(),
+            keys = _keys.split(',').map(key => key.trim()); 
+        
+        debug('vu.use: keys', keys);
+        debug('vu.use: vals', vals);
+
+        return {
+          then: function(_cb) {
+
+            let passed = true,
+                obj = {}; // stored values
+
+            if (typeof _cb != 'function') return;
+            if (Array.isArray(keys) && vals) {
+              // Check each value of the key
+              keys.forEach(key => { 
+                let names = key.split('.'), 
+                    cursor = vals;
+
+                for (let i = 0; i < names.length; i++) {
+                  if (cursor.hasOwnProperty(names[i])) {
+                    cursor = cursor[names[i]];
+                  } else {
+                    debug('vu.use: failed at [' + names[i]+ '] of cursor', cursor);
+                    passed = false;
+                    break;
+                  }
+                } 
+
+                debug('vu.use: ' + key, cursor);
+           
+              }); // end of keys.forEach
+                
+              if (passed) {
+                _cb(vals);
+              }
+
+            } // end of if
+          } // end of then
+        };
       };
 
       vu.ds = function() {
@@ -1172,7 +1235,7 @@
   // -----------------------------
   // Cope.appGraph
   // -----------------------------
-  //let hasInitFB; // has init the default firebase
+  let hasInitFB; // has init the default firebase
   Cope.appGraph = function(_appId) {
 
     // To print debug messages
@@ -1192,7 +1255,6 @@
         myUser, // current user using this appGraph
         //api = {}, // to store and bind APIs to myGraph
         myGraph = {}, // the object to be returned
-        hasInitFB = this.hasInitFB || false,
         GRAPH_ROOT = '', STORE_ROOT = '';
 
     if (!asGlobal && !notValid(_appId)) {
@@ -1210,6 +1272,14 @@
     // To check whether _cb is a function
     let isFunc = function(_cb) {
       return typeof _cb == 'function';
+    };
+
+    // To verify whether the input is a node object
+    isNode = function(_node) {
+      return typeof _node == 'object' 
+        && _node 
+        && typeof _node.col == 'string'
+        && typeof _node.key == 'string';
     };
 
     // To get the current firebase instance
@@ -1240,7 +1310,7 @@
 
           findFB = function() {
             if (!hasInitFB) {
-              return initFB();
+              return setTimeout(initFB, Math.ceil(Math.random() * 1000));
             } 
 
             try {
@@ -1549,7 +1619,6 @@
       // To access node data asynchrinously
       node.val = function() {
         let args = arguments,
-            //thisNode = this,
             done = function() {};
 
         debug('val', args);
@@ -1773,22 +1842,142 @@
     // Edges interface
     myGraph.edges = function(_label) {
       if (notValid(_label)) return;
-      let edges = {};
-      edges.link = function() {}; // TBD
-      edges.unlink = function() {}; // TBD
-      edges.from = function() {}; // TBD
-      edges.to = function() {}; // TBD
+
+      let edges = {}, 
+          node, // the related node
+          label = !notValid(_label) ? _label : null;
+
+      // Set the related node
+      edges.of = function(_node) {
+        if (isNode(_node)) {
+          node = _node;
+        }
+        return edges;
+      }; // end of edges.of
+
+      // Serve for edges.find
+      let findWithLabel = function(_label, _dir) {
+        if (notValid(_label)) return;
+        if (_dir != 'from' && _dir != 'to') {
+          return;
+        }
+        
+        let done, label = _label;
+
+        getFB().then(_fb => {
+          myGraphRef(_fb)
+            .child('_edges').child(label).child(_dir)
+            .child(node.col).child(node.key)
+            .once('value')
+            .then(_snap => {
+              if (isFunc(done)) done(_snap.val());
+            })
+            .catch(err => console.error(err));
+        }); // end of getFB.then
+        return {
+          then: function(_cb) { done = _cb; }
+        };
+      }; // end of findWithLabel
+
+      // To get related nodes
+      edges.then = function(_cb) {
+
+        if (!isFunc(_cb)) return;
+
+        let done = _cb, 
+            results = {}, // callback results
+            count = 0, // exec count of findWithLabel
+            dirs = ['from', 'to'],
+            types = {
+              from: 'target',
+              to: 'source'
+            };
+
+        // Find nodes linking with queried nodes
+        if (label) {
+          dirs.forEach(dir => {
+            findWithLabel(label, dir).then(val => {
+              
+              let type = types[dir];
+
+              count++;
+              // Push nodes into results
+              // val should be null or <col>/<key>:true
+              if (!results[label]) {
+                results[label]  = [];
+              }
+              if (val) {
+                Object.keys(val).forEach(col => {
+                  Object.keys(val[col]).forEach(key => {
+
+                    let anEdge = {};
+                    anEdge.label = label;
+                    anEdge.type = type;
+                    anEdge.node = myGraph.node(col, key);
+                    results[label].push(anEdge);
+                  });
+                });
+              }
+              // Final stage
+              if (count == dirs.length) { 
+                if (isFunc(done)) {
+                  done(results); // callback with results
+                }
+              }
+
+            }); // end of findWithLabel
+          }); // end of dirs.forEach 
+        } else {
+          // TBD: Find all edges???
+        }
+        return {
+          then: function(_cb) { done = _cb; }
+        };
+      }; // end of edges.find
+
+      // TBD: edges.ofMany ...
+
       return edges;
     }; // end of myGraph.edges
 
     // Quick accessing data
     myGraph.val = function() {
       // TBD
+      //...
     };
 
-    myGraph.populate = function(_node) {
-      // TBD
-    };
+    myGraph.populate = function(_nodes) {
+      let nodes = _nodes,
+          count = 0,
+          done;
+
+      if (!Array.isArray(_nodes)) {
+        nodes = [_nodes];
+      }
+
+      nodes = nodes.reduce((arr, node) => {
+        if (isNode(node)) {
+          arr.push(node);
+        }
+        return arr;
+      }, []);
+
+      // Get values of nodes
+      nodes.forEach(node => {
+        node.val().then(val => {
+          count++;
+
+          // Final stage
+          if (count == nodes.length) {
+            if (isFunc(done)) {
+              done(nodes);
+            }
+          }
+        });
+      }); // end of nodes.forEach
+
+      return { then: function(_cb) { done = _cb; } };
+    }; // end of myGraph.populate
 
     return myGraph;
   }; // end of Cope.appGraph

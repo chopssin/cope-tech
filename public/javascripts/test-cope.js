@@ -6,6 +6,8 @@ const G = Cope.appGraph('testApp2'),
       Views = Cope.useViews('test-cope'),
       Log = Views.class('Log');
 
+$('#test').append('<div id="views"></div>');
+
 Log.dom(vu => `<h4 ${vu.ID}></h4>`);
 Log.render(vu => {
   let msg = vu.val('msg');
@@ -231,9 +233,9 @@ test(function(pass) {
   }
 });
 
+// Test - @hydra
 test(pass => {
-  $('#test').append('<div id="views"></div>');
-  $('#views').append();
+  //$('#views').append('');
 
   //Nav
   NavView.build({
@@ -308,6 +310,50 @@ test(pass => {
   }).res('value', val => {
     console.log(val);
   });
+});
+
+// Test - @PJ
+test(pass => {
+  $('#views').append('<div id="photo"></div>');
+  $('#views').append('<div id="gallery"></div>');
+
+  let PhotoPost = PhotoView.build({
+    sel: '#photo',
+    method: 'append'
+  }).val({
+    src: 'https://api.fnkr.net/testimg/450x300/00CED1/FFF/?text=img+placeholder',
+    caption: 'This is a placeholder',
+    css: {},
+    '@img': {
+      css: {},
+    },
+    '@caption': {
+      css: {}
+    }
+  })
+
+  let GalleryPost = GalleryView.build({
+    sel: '#gallery',
+    method: 'append'
+  }).val({
+    src: ['https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/'
+    ],
+    css: {
+      width: '100%',
+      margin: '0 auto'
+    }
+  })
 });
 
 })(jQuery)

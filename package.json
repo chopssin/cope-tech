@@ -13,5 +13,18 @@
     "jade": "~1.9.2",
     "morgan": "~1.5.1",
     "serve-favicon": "~2.2.0"
-  }
+  },
+  "main": "app.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chopssin/cope-tech.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chopssin/cope-tech/issues"
+  },
+  "homepage": "https://github.com/chopssin/cope-tech#readme",
+  "description": ""
 }

@@ -1119,6 +1119,8 @@
         switch (arguments.length) {
           // Getter
           case 0: 
+            return ret;
+            break;
           case 1: 
             if (typeof arguments[0] != 'string') {
               // Setter

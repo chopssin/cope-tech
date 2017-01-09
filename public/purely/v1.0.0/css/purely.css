@@ -1,6 +1,6 @@
 /* Purely - Reset */
 
-/* Purely Theme */
+/* Purely Default Theme */
 .color-w {
   color: #fff;
 }
@@ -32,6 +32,14 @@
   background-position: 50% 50%;
 }
 
+.frozen {
+  overflow: hidden;
+}
+
+.hidden {
+  display: none;
+}
+
 .centered {
   position: relative;
   margin: 0 auto;
@@ -45,14 +53,6 @@
 
 .float-right {
   float: right;
-}
-
-.frozen {
-  overflow: hidden;
-}
-
-.hidden {
-  display: none;
 }
 
 .img-full {
@@ -81,190 +81,30 @@
   width: 100px;
 }
 
-/* Purely - Layouts */
-.purely {
-  display: block;
-  position: relative;
-  width: 100%;
-  min-height: 100vh;
-  left: 0;
-  top: 0;
-}
-.purely .nav-top {
-  display: block;
-  position: fixed;
-  width: 100%;
-  height: 60px;
-  margin: 0;
-  left: 0;
-  top: 0;
-  z-index: 1000;
-}
-.purely .page-wrap {
-  display: block;
-  position: absolute;
-  width: 100%;
-  min-height: 100vh;
-  left: 0;
-  top: 0;
-  margin: 0;
-}
-.nav-top .logo {
-  display: block;
-  position: absolute;
-  height: 40px;
-  width: auto;
-  top: 50%;
-  -webkit-transform: translateY(-50%);
-  -moz-transform: translateY(-50%);
-  transform: translateY(-50%);
-  cursor: pointer;
-}
-.nav-top .text.logo {
-  font-size: 2em;
-}
-
-/* Cope */
-.color-w {
-  color: #fff;
-}
-
-.color-blue {
-  color: #236eb6;
-}
-
-.color-b {
-  color: #333;
-}
-
-.bg-w {
-  background-color: #fff;
-}
-
-.bg-blue {
-  background-color: #236eb6;
-}
-
-.nav-top {
-  background: #fff;
-  -webkit-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .4);
-  -moz-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .4);
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .4);
-}
-
-.page-wrap {
-  padding-top: 100px;
-  background: #efefea;
-}
-
-.logo.text {
-  font-weight: 400;
-  letter-spacing: 4px;
-  color: #555;
-}
-
-.logo.text:hover {
-  color: #333;
-}
-
-.cope-card {
-  display: block;
-  position: relative;
-  padding: 8px;
-  border: none;
-  -webkit-box-shadow: 0px 4px 6px 0 rgba(0, 0, 0, .4);
-  -moz-box-shadow: 0px 4px 6px 0 rgba(0, 0, 0, .4);
-  box-shadow: 0px 4px 6px 0 rgba(0, 0, 0, .4);
-  width: intrinsic;           /* Safari/WebKit uses a non-standard name */
-  width: -moz-max-content;    /* Firefox/Gecko */
-  width: -webkit-max-content; /* Chrome */
-}
-
-.cope-card.wider {
-  width: 100%;
-  max-width: 500px;
-  align-items: flex-start;
-}
-
-.cope-card.touchable {
-  cursor: pointer;
-}
-
-.cope-card.as-btn {
-  min-width: 86px;
-  text-align: center;
-  font-size: 18px;
-  font-weight: 400;
-  padding: 10px 32px;
-}
-
-.cope-card.touchable:hover,
-.cope-card.as-btn:hover {
-  -webkit-box-shadow: 0px 6px 9px 0 rgba(0, 0, 0, .4);
-  -moz-box-shadow: 0px 6px 9px 0 rgba(0, 0, 0, .4);
-  box-shadow: 0px 6px 9px 0 rgba(0, 0, 0, .4);
-  cursor: pointer;
-}
-
-.cope-card.no-shadow {
-  -webkit-box-shadow: none;
-  -moz-box-shadow: none;
-  box-shadow: none;
-}
-
-.cope-card ul {
-  list-style: none;
-  text-decoration: none;
-  font-size: 1.2em;
-  color: #333;
-  padding: 0;
-  margin: 0;
-}
-
-.cope-card ul li {
-  padding: 8px;
-}
-
-.cope-card ul .title {
-  color: #aaa;
-  font-size: 0.8em;
-}
-
-/* Graph */
-.svg-wrap {
-  display: block;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
-
-.links line {
-  stroke: #999;
-  stroke-opacity: 0.6;
-}
-
-.nodes circle {
-  stroke: #fff;
-  stroke-width: 1.5px;
-}
-
-/* AppPage */
-.node-data {
-  position: fixed;
-  top: 100px;
-  right: 15px;
-  width: intrinsic;
-}
-
 /* =================
  * Purely - Pages 
  * ================= */
-
 
 /* =================
  * Purely - Views 
  * ================= */
 
+/* Nav */
+.view-nav {
+
+}
+
+/* Box */
+.view-box {
+
+}
+
+/* Photo */
+.view-photo {
+
+}
+
+/* Gallery */
 
 /* Extra Small Devices, Phones */
 @media only screen and (min-width : 480px) {

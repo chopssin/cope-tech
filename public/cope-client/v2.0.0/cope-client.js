@@ -69,7 +69,7 @@
     let tag = _tag || new Date().getTime().toString(36),
         tests = [], 
         allDone = function() {},
-        debug = Cope.Util.setDebug('TEST "' + tag + '"', true);
+        debug = Cope.Util.setDebug('TEST "' + tag + '"', false);
 
     return function(_func) {
       let func = _func,
@@ -501,7 +501,7 @@
   // -----------------------------
   Cope.useEditor = function(_graphDB) {
 
-    let debug = Cope.Util.setDebug('Cope.useEditor', true);
+    let debug = Cope.Util.setDebug('Cope.useEditor', false);
 
     let Views = Cope.useViews(),
         ModalView = Views.class('Modal'),
@@ -1053,7 +1053,7 @@
   // -----------------------------
   let usedViews = {};
   Cope.useViews = function(_namespace) { 
-    let debug = Cope.Util.setDebug('useViews', true);
+    let debug = Cope.Util.setDebug('useViews', false);
     if (typeof _namespace == 'string' 
         && usedViews[_namespace]) {
       return usedViews[_namespace];
@@ -1253,7 +1253,7 @@
   Cope.appGraph = function(_appId) {
 
     // To print debug messages
-    let debug = Cope.Util.setDebug('appGraph', true);
+    let debug = Cope.Util.setDebug('appGraph', false);
     
     // To verify whether _name is valid input string
     let notValid = function(_name) {
@@ -2004,7 +2004,7 @@
   
   let hasInit = false;
   Cope.useGraphDB = function() {
-    let debug = Cope.Util.setDebug('graphDB', true),
+    let debug = Cope.Util.setDebug('graphDB', false),
         myUser, // current cope user
         getFB, // to get the current firebase
         isValidName, // check if the input is valid for firebase #child

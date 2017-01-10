@@ -101,11 +101,15 @@ TextAreaView.render( vu => {
     });
 });
 
-//ImageUpLoader 
+// ImageUpLoader
+// @preview
+// @button 
+// @files: a file input
 ImageUpLoaderView.dom( vu => (`
-	<div ${vu.ID} data-component="imageUpLoaderView"  style="border: 1px solid #111; width: 540px;">
+	<div ${vu.ID} style="border: 1px solid #111; width: 540px; padding: 0 20px">
 		<div data-component="preview"></div>
 		<button data-component="button">上傳</button>
+		<button style="float: right">完成</button>
 		<input data-component="files" type="file" name="img[]" multiple class="hidden" >
 	</div>
 `));
@@ -114,6 +118,7 @@ ImageUpLoaderView.render( vu => {
 	let $files = vu.$el('@files');
 	let $preview = vu.$el('@preview');
 	let $button = vu.$el('@button');
+	let files = [];
 	$button.off('click').on('click', () => {
     $files.click();
 	});
@@ -123,13 +128,18 @@ ImageUpLoaderView.render( vu => {
 				let reader = new FileReader();
 				reader.onload = e => {
 					console.log(e);
-					$preview.append(`<img src="${e.target.result}" class="img-circle">`);
+					//vu.$el(`@img-${i}`).append(`<img src="${e.target.result}" class="img-responsive">`);
+					GalleryView.build({
+						sel: vu.sel(`@img-${i}`)   
+					}).val({
+						src: array//e.target.result
+					});
 				};
 				reader.readAsDataURL($files[0].files[i]);
+				$preview.append(`<div data-component="img-${i}"></div>`)
+				files.push($files[0].files[i]);
 			}
-		} else {
-			$preview.empty();
-		}		
+		} 
 	});
 });
 

@@ -237,7 +237,8 @@ test(function(pass) {
 test(pass => {
   $('#views').append('<div id="nav"></div>');
   $('#views').append('<div id="box"></div>');
-  $('#views').append('<div id="testArea"></div>');
+  $('#views').append('<div id="textArea"></div>');
+  $('#views').append('<div id="imageUpLoader"></div>')
 
   //Nav
   NavView.build({

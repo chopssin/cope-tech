@@ -102,20 +102,45 @@ TextAreaView.render( vu => {
     });
 });
 
-//ImageUpLoader 
+// ImageUpLoader
+// @preview
+// @button 
+// @files: a file input
 ImageUpLoaderView.dom( vu => (`
-	<div ${vu.ID} data-component="imageUpLoaderView">
-		<form>
-			<input data-component="files" type="file" name="img[]" multiple="multiple">
-			<input data-component="submit" type="submit">
-		</form>	
+	<div ${vu.ID} style="border: 1px solid #111; width: 540px; padding: 0 20px">
+		<div data-component="preview"></div>
+		<button data-component="button">上傳</button>
+		<button style="float: right">完成</button>
+		<input data-component="files" type="file" name="img[]" multiple class="hidden" >
 	</div>
 `));
 
 ImageUpLoaderView.render( vu => {
-	vu.$el('@files').off('change').on('change', e => {
-		
-		vu.res('value', vu.$el());
+	let $files = vu.$el('@files');
+	let $preview = vu.$el('@preview');
+	let $button = vu.$el('@button');
+	let files = [];
+	$button.off('click').on('click', () => {
+    $files.click();
+	});
+	$files.off('change').on('change', e => {
+		if ($files[0].files && $files[0].files[0]){
+			for (let i = 0; i<e.target.files.length; i++) {
+				let reader = new FileReader();
+				reader.onload = e => {
+					console.log(e);
+					//vu.$el(`@img-${i}`).append(`<img src="${e.target.result}" class="img-responsive">`);
+					GalleryView.build({
+						sel: vu.sel(`@img-${i}`)   
+					}).val({
+						src: array//e.target.result
+					});
+				};
+				reader.readAsDataURL($files[0].files[i]);
+				$preview.append(`<div data-component="img-${i}"></div>`)
+				files.push($files[0].files[i]);
+			}
+		} 
 	});
 });
 

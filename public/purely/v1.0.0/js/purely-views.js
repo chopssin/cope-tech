@@ -126,18 +126,19 @@ ImageUpLoaderView.render( vu => {
 		if ($files[0].files && $files[0].files[0]){
 			for (let i = 0; i<e.target.files.length; i++) {
 				let reader = new FileReader();
+				reader.readAsDataURL($files[0].files[i]);
 				reader.onload = e => {
-					console.log(e);
+					console.log(files);
+					files.push(e.target.result);
 					//vu.$el(`@img-${i}`).append(`<img src="${e.target.result}" class="img-responsive">`);
 					GalleryView.build({
-						sel: vu.sel(`@img-${i}`)   
+						sel: vu.sel(`@img-${i}`),   
 					}).val({
-						src: array//e.target.result
+						src: files//e.target.result
 					});
 				};
-				reader.readAsDataURL($files[0].files[i]);
+			
 				$preview.append(`<div data-component="img-${i}"></div>`)
-				files.push($files[0].files[i]);
 			}
 		} 
 	});

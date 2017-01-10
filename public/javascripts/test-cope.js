@@ -47,7 +47,43 @@ const G = Cope.appGraph('testApp2'),
       test = Cope.Util.setTest('test-cope'),
       debug = Cope.Util.setDebug('test-cope', true),
       Views = Cope.useViews('test-cope'),
-      TestBlock = Views.class('TestBlock');
+      TestBlock = Views.class('TestBlock'),
+      TestBar = Views.class('TestBar');
+
+TestBar.dom(vu => `
+  <div ${vu.ID}>
+    <div id='test-status' style="color:green;font-size:18px;font-weight:bold">
+      <img src="img/green.jpg" width="25" height="25">
+      <span data-component="passed">0</span>
+    </div>
+    <br>
+    <div id='test-status' style="color:green;font-size:18px;font-weight:bold">
+      <img src="img/red.jpg" width="25" height="25">
+      <span data-component="failed">${ vu.val('total') }</span>
+    </div>
+  </div>
+`);
+TestBar.render(vu => {
+  vu.$el('@passed').html(vu.val('passed'));
+  vu.$el('@failed').html(vu.val('total') - vu.val('passed'));
+});
+
+let passed = 0;
+let testBar = TestBar.build({
+  sel: '#test-status',
+  data: { total: 6 }
+});
+function pass() {
+  passed++;
+  testBar.val('passed', passed);
+  // $('#test-status').html(`<div><img src="img/green.jpg" width="25" height="25">&nbsp;&nbsp;${passed}</div>`)
+  // .css({
+  //   'font-size': '18px',
+  //   'font-weight': 'bold',
+  //   'color': 'green'
+  // })
+      
+};
 
 TestBlock.dom(vu => `
     <div ${vu.ID} style="margin:30px 0; border:2px solid #999; padding: 16px">
@@ -74,7 +110,7 @@ TestBlock.render(vu => {
 });
 
 // Test - appGraph: node
-test(pass => {
+test(() => {
   let block = TestBlock.build({
     sel: '#test',
     method: 'append'
@@ -110,12 +146,13 @@ test(pass => {
       $log.append('dreamer was deleted', 2);
       $log.append('<br>');
       block.val({ light: 'green' });
+      pass();
     });
   });
 }); // end of test
 
 // Test - appGraph: edges formed by node.link
-test(pass => {
+test(() => {
   let block = TestBlock.build({
     sel: '#test',
     method: 'append'
@@ -152,12 +189,13 @@ test(pass => {
       $log.append('Deleted all dreams', 1);
       $log.append('<br>');
       block.val({ light: 'green' }); 
+      pass();
     });
   });
 }); // end of test
 
 // Test - AppGraph: edges
-test(pass => {
+test(() => {
   let block = TestBlock.build({
     sel: '#test',
     method: 'append'
@@ -185,12 +223,13 @@ test(pass => {
     $log.append(JSON.stringify(results, null, 4).replace(/\n/g, '<br>').replace(/\s/g, '&nbsp;'));
     $log.append('<br>');
     block.val({ light: 'green' });
+    pass();
   }); // end of G.edges
 
 }); // end of test
 
 // Test - AppGraph.populate
-test(pass => {
+test(() => {
 
   let block = TestBlock.build({
     sel: '#test',
@@ -198,6 +237,7 @@ test(pass => {
   });
   let $log = block.$el('@log');
   block.val({ light: 'green' });
+  pass();
   $log.append(`G.populate([testA, fake]).then <= nodes<br>
               <br>
               [testA]<br>
@@ -242,7 +282,7 @@ test(pass => {
 });
 
 // Test - Cope.useViews
-test(pass => {
+test(() => {
 
   let block = TestBlock.build({
     sel: '#test',
@@ -250,6 +290,7 @@ test(pass => {
   });
   let $log = block.$el('@log');
   block.val({ light: 'green' });
+  pass();
   $log.append(`Test with a Post view with vu.use<br>
           Post<br>
           @tittle<br>
@@ -305,7 +346,7 @@ test(pass => {
 });
 
 // Test - use jQuery
-test(function(pass) {
+test(function() {
   let block = TestBlock.build({
     sel: '#test',
     method: 'append'
@@ -313,6 +354,7 @@ test(function(pass) {
 
   let $log = block.$el('@log');
   block.val({ light: 'green' });
+  pass();
 
   if ($) {
     $log.append(`jQuery is defined<br>
@@ -324,7 +366,7 @@ test(function(pass) {
 });
 
 // Test - @hydra
-test(pass => {
+test(() => {
   $('#views').append('<div id="nav"></div>');
   $('#views').append('<div style="margin: 40px 0; border-bottom: 2px solid #333; border-top: 2px solid #333; padding: 40px 0;"id="box"></div>');
   $('#views').append('<div id="textArea"></div>');
@@ -406,7 +448,7 @@ test(pass => {
 });
 
 // Test - @PJ
-test(pass => {
+test(() => {
   $('#views').append('<div id="photo"></div>');
   $('#views').append('<div id="gallery"></div>');
 
@@ -450,7 +492,7 @@ test(pass => {
 });
 
 // Test - Purely
-test(pass => {
+test(() => {
 
 });
 

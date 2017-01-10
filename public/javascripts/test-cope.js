@@ -8,30 +8,15 @@ const G = Cope.appGraph('testApp2'),
 
 const setTest = function() {
   let okCount = 0,
-      tests = [],
+      testCount = 0,
       test = {};
 
   let testBar = TestBar.build({
     sel: '#app-graph-status'
   });
 
-  test.add = function(_fn) {
+  test.go = function(_fn) {
     if (typeof _fn == 'function') {
-      tests.push(_fn);
-    }
-  }; // end of test.add
-
-  test.run = function() {
-
-    // Update total amount of tests
-    testBar.val({
-      'total': tests.length,
-      'passed': 0
-    });
-
-    // Run tests one by one
-    tests.forEach(fn => {
-      
       let block = TestBlock.build({
         sel: '#app-graph',
         method: 'append'
@@ -57,11 +42,14 @@ const setTest = function() {
       log.title = function(_title) {
         block.val('title', _title);
       };
+    
+      testCount++;
+      testBar.val({ total: testCount });
 
       // Run test function
-      fn(log);
-    }); // end of tests.forEach
-  }; // end of test.run
+      _fn(log);
+    }
+  }; // end of test.go
 
   return test;
 }; // end of setTest
@@ -154,13 +142,33 @@ Show(); // TBD: Show is redundancy, extract the program plz
 // Set Tests
 const Test = setTest();
 
-Test.add(log => {
+// Simplest test
+Test.go(log => {
   log('Hello world');
   log.ok();
 });
+  
+// Tests with setTimeout
+setTimeout(function() {
+  Test.go(log => {
+    log.title('Run test#1 after 1s');
+    setTimeout(function() {
+      log('OK after 4s');
+      log.ok();
+
+      Test.go(log => {
+        log.title('Run test#2 after test#1 completed');
+        setTimeout(function() {
+          log('Completed');
+          log.ok();
+        }, 2000);
+      });
+    }, 4000);
+  });
+}, 1000);
 
 // Test - appGraph: node
-Test.add(log => {
+Test.go(log => {
 
   log.title('AppGraph Nodes');
 
@@ -198,7 +206,7 @@ Test.add(log => {
 }); // end of test
 
 // Test - @PJ
-Test.add(log => {
+Test.go(log => {
   log.title('@PJ');
 
   $('#views').append('<div id="photo"></div>');
@@ -246,7 +254,7 @@ Test.add(log => {
 }); // end of test
 
 // Test - Purely
-Test.add(log => {
+Test.go(log => {
   log.title('Purely');
 
   // Set viewport of Purely
@@ -325,12 +333,9 @@ Test.add(log => {
     }
   });
 
-
   log.ok();
 });
 
-// Run all tests
-Test.run();
 return console.log('Rewrite the following thanks!');
 
 

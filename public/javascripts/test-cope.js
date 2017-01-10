@@ -1,12 +1,53 @@
 (function($) {
 
+//show & hide
+function Show(){  
+  $('#toggle')
+    .append(`<a id="toggle-purely">Purely</a>`)
+    .append(`<a id="toggle-test">Test</a>`)
+    .append(`<a id="toggle-views">Views</a>`)
+    .css({
+      'display': 'block',
+      'positoin': 'relative',
+      'margin': '50px auto',
+      'text-align': 'center',
+      'font-size': '24px',
+      'font-weight': 'bold'
+    });
+
+
+  $('#toggle a')
+    .css({
+      padding: '16px'
+    })
+    .click(function() {
+      $('#purely, #test, #views').addClass('hidden');
+      switch ($(this).prop('id')) {
+        case 'toggle-purely':
+          $('#purely').removeClass('hidden');
+          break;
+        case 'toggle-test':
+          $('#test').removeClass('hidden');
+          break;
+        case 'toggle-views':
+          $('#views').removeClass('hidden');
+          break;
+
+      }
+      
+    });
+}
+
+Show();
+
+
+//------------------
+
 const G = Cope.appGraph('testApp2'),
       test = Cope.Util.setTest('test-cope'),
       debug = Cope.Util.setDebug('test-cope', true),
       Views = Cope.useViews('test-cope'),
       TestBlock = Views.class('TestBlock');
-
-$('#test').append('<div id="views"></div>');
 
 TestBlock.dom(vu => `
     <div ${vu.ID} style="margin:30px 0; border:2px solid #999; padding: 16px">
@@ -68,6 +109,7 @@ test(pass => {
       $log.append('<br>');
       $log.append('dreamer was deleted', 2);
       $log.append('<br>');
+      block.val({ light: 'green' });
     });
   });
 }); // end of test
@@ -109,6 +151,7 @@ test(pass => {
     Chops.unlink('hasA', nightmare).then(() => {
       $log.append('Deleted all dreams', 1);
       $log.append('<br>');
+      block.val({ light: 'green' }); 
     });
   });
 }); // end of test
@@ -119,8 +162,7 @@ test(pass => {
     sel: '#test',
     method: 'append'
   });
-  let $log = block.$el('@log');
-  block.val({ light: 'green' });  
+  let $log = block.$el('@log'); 
 
   //let log = setLog();
   let G = Cope.appGraph('testApp2');
@@ -142,7 +184,7 @@ test(pass => {
     debug('TestNodes - res', results);
     $log.append(JSON.stringify(results, null, 4).replace(/\n/g, '<br>').replace(/\s/g, '&nbsp;'));
     $log.append('<br>');
-    $log.append('<b>Passed</b>');
+    block.val({ light: 'green' });
   }); // end of G.edges
 
 }); // end of test
@@ -155,6 +197,7 @@ test(pass => {
     method: 'append'
   });
   let $log = block.$el('@log');
+  block.val({ light: 'green' });
   $log.append(`G.populate([testA, fake]).then <= nodes<br>
               <br>
               [testA]<br>
@@ -165,8 +208,7 @@ test(pass => {
               <br>
               [fake]<br>
               {}<br>
-              <br>
-              <b>Passed</b>`);
+              <br>`);
 
 
   //let log = setLog();
@@ -257,8 +299,6 @@ test(pass => {
   }).val('title', 'Rendered @title with v.title');
 
   //let logQQ = block.$el('@logs')
-  $log.append('<br>');
-  $log.append('<b>Passed</b>')
 
   //log('<br>');
   //log('Passed');
@@ -288,7 +328,7 @@ test(pass => {
   $('#views').append('<div id="nav"></div>');
   $('#views').append('<div style="margin: 40px 0; border-bottom: 2px solid #333; border-top: 2px solid #333; padding: 40px 0;"id="box"></div>');
   $('#views').append('<div id="textArea"></div>');
-  $('#views').append('<div id="imageUpLoader"></div>')
+  $('#views').append('<div id="imageUpLoader"></div>');
 
   //Nav
   NavView.build({
@@ -368,13 +408,12 @@ test(pass => {
 // Test - @PJ
 test(pass => {
   $('#views').append('<div id="photo"></div>');
-  $('#views').append('<div id="grid"></div>');
+  $('#views').append('<div id="gallery"></div>');
 
   let PhotoPost = PhotoView.build({
-    sel: '#views',
+    sel: '#photo',
     method: 'append'
   }).val({
-    link: 'https://www.google.com.tw',
     src: 'https://api.fnkr.net/testimg/450x300/00CED1/FFF/?text=img+placeholder',
     caption: 'This is a placeholder',
     css: {},
@@ -387,34 +426,9 @@ test(pass => {
   })
 
   let GridPost = GridView.build({
-    sel: '#views',
+    sel: '#gallery',
     method: 'append'
   }).val({
-    data: [{
-      src: 'https://fakeimg.pl/440x320/282828/eae0d0/?text=World1',
-      caption: 'This is a placeholder',
-      link: 'https://www.google.com.tw/?q=1'
-    }, {
-      src: 'https://fakeimg.pl/440x320/282828/eae0d0/?text=World2',
-      caption: 'This is a placeholder',
-      link: 'https://www.google.com.tw/?q=2'
-    }, {
-      src: 'https://fakeimg.pl/440x320/282828/eae0d0/?text=World3',
-      caption: 'This is a placeholder',
-      link: 'https://www.google.com.tw/?q=3'
-    }, {
-      src: 'https://fakeimg.pl/440x320/282828/eae0d0/?text=World4',
-      caption: 'This is a placeholder',
-      link: 'https://www.google.com.tw/?q=4'
-    }, {
-      src: 'https://fakeimg.pl/440x320/282828/eae0d0/?text=World5',
-      caption: 'This is a placeholder',
-      link: 'https://www.google.com.tw/?q=5'
-    }, {
-      src: 'https://fakeimg.pl/440x320/282828/eae0d0/?text=World6',
-      caption: 'This is a placeholder',
-      link: 'https://www.google.com.tw/?q=6'
-    }],
     src: ['https://fakeimg.pl/440x320/282828/eae0d0/',
       'https://fakeimg.pl/440x320/282828/eae0d0/',
       'https://fakeimg.pl/440x320/282828/eae0d0/',
@@ -433,6 +447,11 @@ test(pass => {
       margin: '0 auto'
     }
   })
+});
+
+// Test - Purely
+test(pass => {
+
 });
 
 })(jQuery)

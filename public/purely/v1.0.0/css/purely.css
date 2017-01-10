@@ -193,15 +193,13 @@
   padding: 16px;
 }
 
-.box {
-  position: relative;
-  border: 1px solid #111;
-}
+
 
 
 /* Box */
 .view-box {
-
+  position: relative;
+  border: 1px solid #111;
 }
 
 /* Photo */

@@ -132,14 +132,14 @@ ImageUpLoaderView.render( vu => {
 					console.log(files);
 					files.push(e.target.result);
 					//vu.$el(`@img-${i}`).append(`<img src="${e.target.result}" class="img-responsive">`);
-					GalleryView.build({
-						sel: vu.sel(`@img-${i}`),   
+					GridView.build({
+						sel: vu.sel(`@preview`)   
 					}).val({
 						src: files//e.target.result
 					});
 				};
 			
-				$preview.append(`<div data-component="img-${i}"></div>`)
+				//$preview.append(`<div data-component="img-${i}"></div>`)
 			}
 		} 
 	});
@@ -225,6 +225,24 @@ GridView.render(vu => {
       })
     }
   });
+
+  if(!vu.val('data')){
+   vu.use('src').then(v => {
+     for (let i = 0; i < v.src.length; i++) {
+       vu.$el('@grid').append('<div class="col-xs-6 col-sm-4 col-md-3 col-lg-2" style="padding: 5px" data-component="img' + i + '"></div>');
+       PhotoView.build({
+         sel: vu.sel('@img' + i),
+         method: 'append'
+       }).val({
+         src: v.src[i],
+         css: {
+           'max-width': 'auto',
+           width: 'auto',
+         }
+       })
+     }
+   })
+ }
 
   vu.use('css').then(v => {
     vu.$el().css(v.css);

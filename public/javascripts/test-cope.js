@@ -286,7 +286,7 @@ test(function(pass) {
 // Test - @hydra
 test(pass => {
   $('#views').append('<div id="nav"></div>');
-  $('#views').append('<div id="box"></div>');
+  $('#views').append('<div style="margin: 40px 0; border-bottom: 2px solid #333; border-top: 2px solid #333; padding: 40px 0;"id="box"></div>');
   $('#views').append('<div id="textArea"></div>');
   $('#views').append('<div id="imageUpLoader"></div>')
 

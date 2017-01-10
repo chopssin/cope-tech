@@ -123,22 +123,28 @@ TextAreaView.render( vu => {
 // @preview
 // @button 
 // @files: a file input
+// done <- files: array, an array of files 
 ImageUpLoaderView.dom( vu => (`
 	<div ${vu.ID} style="border: 1px solid #111; width: 540px; padding: 0 20px">
 		<div data-component="preview"></div>
 		<button data-component="button">上傳</button>
-		<button style="float: right">完成</button>
+		<button data-component="done" style="float: right">完成</button>
 		<input data-component="files" type="file" name="img[]" multiple class="hidden" >
 	</div>
 `));
 
 ImageUpLoaderView.render( vu => {
 	let $files = vu.$el('@files');
-	let $preview = vu.$el('@preview');
-	let $button = vu.$el('@button');
-	let files = [];
+			$preview = vu.$el('@preview'),
+			$button = vu.$el('@button'),
+			$done = vu.$el('@done'),
+			files = [];
 	$button.off('click').on('click', () => {
     $files.click();
+	});
+
+	$done.off('click').on('click', e => {
+		vu.res('done', files);	
 	});
 	$files.off('change').on('change', e => {
 		if ($files[0].files && $files[0].files[0]){
@@ -158,8 +164,8 @@ ImageUpLoaderView.render( vu => {
 			
 				//$preview.append(`<div data-component="img-${i}"></div>`)
 			}
-		} 
-	});
+		} // end of if
+	});// end of change-event
 });
 
 //PhotoView

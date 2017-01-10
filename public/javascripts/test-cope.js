@@ -117,7 +117,7 @@ TestBlock.render(vu => {
 function Show(){  
   $('#toggle')
     .append(`<a id="toggle-purely">Purely</a>`)
-    .append(`<a id="toggle-app-graph">App Graph</a>`)
+    .append(`<a id="toggle-app-graph">Tests</a>`)
     .append(`<a id="toggle-views">Views</a>`)
     .css({
       'display': 'block',
@@ -145,9 +145,7 @@ function Show(){
         case 'toggle-views':
           $('#views').removeClass('hidden');
           break;
-
       }
-      
     });
 }
 
@@ -201,6 +199,8 @@ Test.add(log => {
 
 // Test - @PJ
 Test.add(log => {
+  log.title('@PJ');
+
   $('#views').append('<div id="photo"></div>');
   $('#views').append('<div id="grid"></div>');
 
@@ -244,6 +244,90 @@ Test.add(log => {
 
   log.ok();
 }); // end of test
+
+// Test - Purely
+Test.add(log => {
+  log.title('Purely');
+
+  // Set viewport of Purely
+  $('#purely').css({
+    'border': '3px solid #333',
+    'height': '80vh',
+    'margin-bottom': '100px',
+    'padding': '0',
+    'overflow': 'scroll'
+  });
+
+  // Sample Settings
+  let settings = [];
+  settings.push({
+    logo: {
+      text: 'Lily'
+    },
+    colors: {
+      p1: '#9FC3A1',
+      p2: '#B3CDA8',
+      h: '#AEB69E',
+      s1: '#CDCDA8',
+      s2: '#C3BF9F'
+    }
+  });
+
+  settings.push({
+    logo: {
+      text: 'Billy'
+    },
+    colors: {
+      p1: '#2D3436',
+      p2: '#283236',
+      h: '#AEBDC2',
+      s1: '#97ADB6',
+      s2: '#6D7D83'
+    }
+  });
+
+  // Randomly choose a settings
+  let mySet = settings[Math.floor(Math.random() * settings.length)];
+  // TBD: use Cope.App.usePage
+
+  // Build Navbar
+  NavView.build({
+    sel: '#purely',
+    data: {
+      '@logo': {
+        logoText: mySet.logo.text,
+      }
+    }
+  });
+
+  // Build some sections
+  let secCover = BoxView.build({
+    sel: '#purely',
+    method: 'append',
+    data: {
+      css: {
+        width: '100%',
+        height: '100%',
+        'background-color': mySet.colors.s1
+      }  
+    }
+  });
+
+  let secCol = BoxView.build({
+    sel: '#purely',
+    method: 'append',
+    data: {
+      css: {
+        width: '100%',
+        height: '100%',
+        'background-color': mySet.colors.s2
+      }  
+    }
+  });
+
+
+  log.ok();
+});
 
 // Run all tests
 Test.run();

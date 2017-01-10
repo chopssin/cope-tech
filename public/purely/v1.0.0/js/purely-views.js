@@ -93,7 +93,10 @@ TextAreaView.dom( vu => (`
 TextAreaView.render( vu => {
 	let $this = vu.$el();
   $this
-    .prop('style', 'height:' + ($this.height()) + 'px;overflow-y:hidden;')
+    .css({
+      height: $this.height() + 'px',
+      'overflow-y': 'hidden'
+    })
     .off('keyup')
     .on('keyup', () => {
       $this.css('height', 'auto');

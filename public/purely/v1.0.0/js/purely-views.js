@@ -1,12 +1,12 @@
 const Views = Cope.useViews('Purely');
 
-let NavView = Views.class('Nav'), 
-    BoxView = Views.class('Box'),
-    TextAreaView = Views.class('TextArea'),
-    ImageUpLoaderView = Views.class('ImageUpLoader'),
-    PhotoView = Views.class('Photo'),
-    GridView = Views.class('Grid'),
-    SlideView = Views.class('Slide');
+let NavView = Views.class('Nav'),
+  BoxView = Views.class('Box'),
+  TextAreaView = Views.class('TextArea'),
+  ImageUpLoaderView = Views.class('ImageUpLoader'),
+  PhotoView = Views.class('Photo'),
+  GridView = Views.class('Grid'),
+  SlideView = Views.class('Slide');
 
 // NavView
 // @logo
@@ -22,64 +22,63 @@ let NavView = Views.class('Nav'),
 // -@logo object,  @logo object
 NavView.dom(vu => (`
   <header ${vu.ID} class="view-nav">
-		<div data-component="logo" class="logo bg">Logo</div>
-		<div class="float-right">
-	    <nav>
-				<ul data-component="signIn">
-					<li><a href="#" class="user">Sign up</a></li>
-					<li><a href="#" class="user">Sign in</a></li>
-				</ul>
-				<ul data-component="user">
-				  <li><a href="" class="user">User Name</a></li>
-				</ul>
-				<ul data-component="menu">
-				  <li class="menu glyphicon glyphicon-menu-hamburger"></li>
-				</ul>
-			</nav>
-		</div>
-		<div class="view-nav-items user bg-w" data-component="nav-items" >
-			<div class="glyphicon glyphicon-remove float-right menu" data-component="remove"></div>
-			<nav>
-				<ul data-component="item">
-				</ul>
-			</nav>
-		</div>
-	</header>`)
-);
+    <div data-component="logo" class="logo bg">Logo</div>
+    <div class="float-right">
+      <nav>
+        <ul data-component="signIn">
+          <li><a href="#" class="user">Sign up</a></li>
+          <li><a href="#" class="user">Sign in</a></li>
+        </ul>
+        <ul data-component="user">
+          <li><a href="" class="user">User Name</a></li>
+        </ul>
+        <ul data-component="menu">
+          <li class="menu glyphicon glyphicon-menu-hamburger"></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="view-nav-items user bg-w" data-component="nav-items" >
+      <div class="glyphicon glyphicon-remove float-right menu" data-component="remove"></div>
+      <nav>
+        <ul data-component="item">
+        </ul>
+      </nav>
+    </div>
+  </header>`));
 
-NavView.render( vu => {
+NavView.render(vu => {
 
-	vu.use('list, signedIn, css, @logo').then( v => {
-		//list
-		v.list.forEach( obj => {
-			vu.$el('@item').append(`<li><a href=${obj.href}>${obj.title}</a></li>`);
-		});
-		//signedIn
-		if(v.signedIn) {
-			vu.$el('@signIn').hide();
-			vu.$el('@user').show();
-		} else {
-			vu.$el('@signIn').show();
-			vu.$el('@user').hide();
-		}
-		//css
-		vu.$el().css(v.css);
-		if(v.css.height) {
-			vu.$el().css('line-height', v.css.height);
-		}
-		//@logo
-		vu.$el('@logo').css(v['@logo'].css);
-		vu.$el('@logo').html(v['@logo'].logoText);
-		
-	});
+  vu.use('list, signedIn, css, @logo').then(v => {
+    //list
+    v.list.forEach(obj => {
+      vu.$el('@item').append(`<li><a href=${obj.href}>${obj.title}</a></li>`);
+    });
+    //signedIn
+    if (v.signedIn) {
+      vu.$el('@signIn').hide();
+      vu.$el('@user').show();
+    } else {
+      vu.$el('@signIn').show();
+      vu.$el('@user').hide();
+    }
+    //css
+    vu.$el().css(v.css);
+    if (v.css.height) {
+      vu.$el().css('line-height', v.css.height);
+    }
+    //@logo
+    vu.$el('@logo').css(v['@logo'].css);
+    vu.$el('@logo').html(v['@logo'].logoText);
 
-	//animate
-	vu.$el('@menu').off('click').on('click', () => {
-			vu.$el('@nav-items').fadeIn(500);
-		});
-		vu.$el('@remove').off('click').on('click', () => {
-			vu.$el('@nav-items').fadeOut(500);
-		});
+  });
+
+  //animate
+  vu.$el('@menu').off('click').on('click', () => {
+    vu.$el('@nav-items').fadeIn(500);
+  });
+  vu.$el('@remove').off('click').on('click', () => {
+    vu.$el('@nav-items').fadeOut(500);
+  });
 });
 
 // BoxView
@@ -90,11 +89,11 @@ BoxView.dom( vu => (`
 	</div>
 `));
 
-BoxView.render( vu => {
-	
-	vu.use('css').then( v => {
-		vu.$el('@box').css(v.css);
-	});
+BoxView.render(vu => {
+
+  vu.use('css').then(v => {
+    vu.$el('@box').css(v.css);
+  });
 
 });
 
@@ -104,8 +103,8 @@ TextAreaView.dom( vu => (`
 	<textarea ${vu.ID} data-component="textArea"></textarea>
 `));
 
-TextAreaView.render( vu => {
-	let $this = vu.$el();
+TextAreaView.render(vu => {
+  let $this = vu.$el();
   $this
     .css({
       height: $this.height() + 'px',
@@ -168,7 +167,15 @@ ImageUpLoaderView.render( vu => {
 	});// end of change-event
 });
 
-//PhotoView
+// PhotoView
+// @img: for image src
+// @caption: for image caption
+// -link: an url for href
+// -src: an image url
+// -caption: a caption for the photo
+// -css: an object for decoration the outer div
+// -css['@img']: an object for decoration the img
+// -css['@caption']: an object for decoration the caption
 PhotoView.dom(vu =>
   `<div ${vu.ID}>
     <a href="#">
@@ -221,7 +228,15 @@ PhotoView.render(vu => {
 });
 
 
-//GridView
+// GridView
+// @grid: a div contain grid
+// -data: an array of object with attribute 'src', 'caption','link' such as {
+//   src: 'https://fakeimg.pl/440x320/282828/eae0d0/?text=World1',
+//   caption: 'This is a placeholder',
+//   link: 'https://www.google.com.tw/?q=1'
+// }
+// -src: an array with url as value, loading this if no data import
+// -css: an object
 GridView.dom(vu =>
   `<div ${vu.ID}>
     <div class="row" data-component="grid">
@@ -249,7 +264,7 @@ GridView.render(vu => {
     }
   });
 
-  if(!vu.val('data')){
+  if (!vu.val('data')) {
     vu.use('src').then(v => {
       for (let i = 0; i < v.src.length; i++) {
         vu.$el('@grid').append('<div class="col-xs-6 col-sm-4 col-md-3 col-lg-2" style="padding: 5px" data-component="img' + i + '"></div>');
@@ -271,4 +286,3 @@ GridView.render(vu => {
   })
 
 });
-

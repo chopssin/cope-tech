@@ -8,6 +8,18 @@ let NavView = Views.class('Nav'),
     GridView = Views.class('Grid'),
     SlideView = Views.class('Slide');
 
+// NavView
+// @logo
+// @signIn
+// @user
+// @menu
+// @nav-items
+// @remove
+// @item
+// -signedIn: bool, check user signed
+// -list: array, input for @item
+// -css: object, NavView's style
+// -@logo object,  @logo object
 NavView.dom(vu => (`
   <header ${vu.ID} class="view-nav">
 		<div data-component="logo" class="logo bg">Logo</div>
@@ -71,7 +83,8 @@ NavView.render( vu => {
 });
 
 // BoxView
-
+// @box
+// -css: object, @box's style
 BoxView.dom( vu => (`
 	<div ${vu.ID} data-component="box" class="box">
 	</div>
@@ -85,7 +98,8 @@ BoxView.render( vu => {
 
 });
 
-//TextArea
+// TextArea
+// @textArea
 TextAreaView.dom( vu => (`
 	<textarea ${vu.ID} data-component="textArea"></textarea>
 `));

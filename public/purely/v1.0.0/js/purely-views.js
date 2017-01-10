@@ -48,6 +48,11 @@ NavView.dom(vu => (`
 
 NavView.render(vu => {
 
+  // Just with logoText
+  vu.use('@logo.logoText').then(v => {
+    vu.$el('@logo').html(v['@logo'].logoText);
+  });
+
   vu.use('list, signedIn, css, @logo').then(v => {
     //list
     v.list.forEach(obj => {
@@ -69,7 +74,6 @@ NavView.render(vu => {
     //@logo
     vu.$el('@logo').css(v['@logo'].css);
     vu.$el('@logo').html(v['@logo'].logoText);
-
   });
 
   //animate
@@ -90,11 +94,9 @@ BoxView.dom( vu => (`
 `));
 
 BoxView.render(vu => {
-
   vu.use('css').then(v => {
     vu.$el('@box').css(v.css);
   });
-
 });
 
 // TextArea

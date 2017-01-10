@@ -318,9 +318,10 @@ test(pass => {
   $('#views').append('<div id="gallery"></div>');
 
   let PhotoPost = PhotoView.build({
-    sel: '#photo',
+    sel: '#views',
     method: 'append'
   }).val({
+    link: 'https://www.google.com.tw',
     src: 'https://api.fnkr.net/testimg/450x300/00CED1/FFF/?text=img+placeholder',
     caption: 'This is a placeholder',
     css: {},
@@ -333,9 +334,34 @@ test(pass => {
   })
 
   let GalleryPost = GalleryView.build({
-    sel: '#gallery',
+    sel: '#views',
     method: 'append'
   }).val({
+    data: [{
+      src: 'https://fakeimg.pl/440x320/282828/eae0d0/?text=World1',
+      caption: 'This is a placeholder',
+      link: 'https://www.google.com.tw/?q=1'
+    }, {
+      src: 'https://fakeimg.pl/440x320/282828/eae0d0/?text=World2',
+      caption: 'This is a placeholder',
+      link: 'https://www.google.com.tw/?q=2'
+    }, {
+      src: 'https://fakeimg.pl/440x320/282828/eae0d0/?text=World3',
+      caption: 'This is a placeholder',
+      link: 'https://www.google.com.tw/?q=3'
+    }, {
+      src: 'https://fakeimg.pl/440x320/282828/eae0d0/?text=World4',
+      caption: 'This is a placeholder',
+      link: 'https://www.google.com.tw/?q=4'
+    }, {
+      src: 'https://fakeimg.pl/440x320/282828/eae0d0/?text=World5',
+      caption: 'This is a placeholder',
+      link: 'https://www.google.com.tw/?q=5'
+    }, {
+      src: 'https://fakeimg.pl/440x320/282828/eae0d0/?text=World6',
+      caption: 'This is a placeholder',
+      link: 'https://www.google.com.tw/?q=6'
+    }],
     src: ['https://fakeimg.pl/440x320/282828/eae0d0/',
       'https://fakeimg.pl/440x320/282828/eae0d0/',
       'https://fakeimg.pl/440x320/282828/eae0d0/',

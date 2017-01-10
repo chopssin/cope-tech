@@ -82,17 +82,14 @@
 }
 
 /* =================
- * Purely - Pages 
+ * Purely - Pages
  * ================= */
 
 /* =================
- * Purely - Views 
+ * Purely - Views
  * ================= */
 
 /* Nav */
-.view-nav {
-  
-}
 .view-nav {
   display: block;
   width: 100%;
@@ -127,7 +124,7 @@
 .view-nav .float-right{
   height: 100%;
 }
-.view-nav > .logo, 
+.view-nav > .logo,
 .view-nav > nav{
   display: inline-block;
   margin: 0px 10px;
@@ -207,7 +204,15 @@
 
 }
 
-/* Gallery */
+/* Grid */
+.view-grid {
+
+}
+
+/* Slide */
+.view-slide {
+
+}
 
 /* Extra Small Devices, Phones */
 @media only screen and (min-width : 480px) {

@@ -1,10 +1,123 @@
 (function($) {
+const G = Cope.appGraph('testApp2'),
+      test = Cope.Util.setTest('test-cope'),
+      debug = Cope.Util.setDebug('test-cope', true),
+      Views = Cope.useViews('test-cope'),
+      TestBlock = Views.class('TestBlock'),
+      TestBar = Views.class('TestBar');
+
+const setTest = function() {
+  let okCount = 0,
+      tests = [],
+      test = {};
+
+  let testBar = TestBar.build({
+    sel: '#app-graph-status'
+  });
+
+  test.add = function(_fn) {
+    if (typeof _fn == 'function') {
+      tests.push(_fn);
+    }
+  }; // end of test.add
+
+  test.run = function() {
+
+    // Update total amount of tests
+    testBar.val({
+      'total': tests.length,
+      'passed': 0
+    });
+
+    // Run tests one by one
+    tests.forEach(fn => {
+      
+      let block = TestBlock.build({
+        sel: '#app-graph',
+        method: 'append'
+      });
+
+      let log = function(_str) {
+        if (typeof _str == 'string') {
+          block.$el('@log').append(_str + '<br>');
+        }
+        return block.sel('@log');
+      };
+
+      log.ok = function() {
+        block.val({ light: 'green' });
+        okCount++;
+        testBar.val('passed', okCount);
+      };
+
+      log.sel = function() {
+        return block.sel('@log');
+      };
+
+      log.title = function(_title) {
+        block.val('title', _title);
+      };
+
+      // Run test function
+      fn(log);
+    }); // end of tests.forEach
+  }; // end of test.run
+
+  return test;
+}; // end of setTest
+
+// TestBar
+TestBar.dom(vu => `
+  <div ${vu.ID}>
+    <div style="color:green;font-size:18px;font-weight:bold">
+      <img src="img/green.jpg" width="25" height="25">
+      <span data-component="passed"></span>
+    </div>
+    <br>
+    <div style="color:green;font-size:18px;font-weight:bold">
+      <img src="img/red.jpg" width="25" height="25">
+      <span data-component="failed">${ vu.val('total') }</span>
+    </div>
+  </div>
+`);
+
+TestBar.render(vu => {
+  vu.$el('@passed').html(vu.val('passed'));
+  vu.$el('@failed').html(vu.val('total') - vu.val('passed'));
+});
+
+// TestBlock
+TestBlock.dom(vu => `
+  <div ${vu.ID} style="margin:30px 0; border:2px solid #999; padding: 16px">
+    <div data-component="status">
+      <img data-component="light" src="img/red.jpg" width="20" height="20">
+      <h3 data-component="title"></h3>
+    </div>
+    <div data-component="log">
+    </div>
+  </div>
+`);
+
+TestBlock.render(vu => {
+  switch (vu.val('light')) {
+    case 'green':
+      vu.$el('@light').prop('src', 'img/green.jpg');
+      break;
+    default:
+      vu.$el('@light').prop('src', 'img/red.jpg');
+      break;
+  }
+
+  vu.use('title').then(v => {
+    vu.$el('@title').text(v.title);
+  });
+});
 
 //show & hide
 function Show(){  
   $('#toggle')
     .append(`<a id="toggle-purely">Purely</a>`)
-    .append(`<a id="toggle-test">Test</a>`)
+    .append(`<a id="toggle-app-graph">App Graph</a>`)
     .append(`<a id="toggle-views">Views</a>`)
     .css({
       'display': 'block',
@@ -21,13 +134,13 @@ function Show(){
       padding: '16px'
     })
     .click(function() {
-      $('#purely, #test, #views').addClass('hidden');
+      $('#purely, #app-graph, #views').addClass('hidden');
       switch ($(this).prop('id')) {
         case 'toggle-purely':
           $('#purely').removeClass('hidden');
           break;
-        case 'toggle-test':
-          $('#test').removeClass('hidden');
+        case 'toggle-app-graph':
+          $('#app-graph').removeClass('hidden');
           break;
         case 'toggle-views':
           $('#views').removeClass('hidden');
@@ -38,123 +151,133 @@ function Show(){
     });
 }
 
-Show();
+Show(); // TBD: Show is redundancy, extract the program plz
 
+// Set Tests
+const Test = setTest();
 
-//------------------
-
-const G = Cope.appGraph('testApp2'),
-      test = Cope.Util.setTest('test-cope'),
-      debug = Cope.Util.setDebug('test-cope', true),
-      Views = Cope.useViews('test-cope'),
-      TestBlock = Views.class('TestBlock'),
-      TestBar = Views.class('TestBar');
-
-TestBar.dom(vu => `
-  <div ${vu.ID}>
-    <div id='test-status' style="color:green;font-size:18px;font-weight:bold">
-      <img src="img/green.jpg" width="25" height="25">
-      <span data-component="passed">0</span>
-    </div>
-    <br>
-    <div id='test-status' style="color:green;font-size:18px;font-weight:bold">
-      <img src="img/red.jpg" width="25" height="25">
-      <span data-component="failed">${ vu.val('total') }</span>
-    </div>
-  </div>
-`);
-TestBar.render(vu => {
-  vu.$el('@passed').html(vu.val('passed'));
-  vu.$el('@failed').html(vu.val('total') - vu.val('passed'));
-});
-
-let passed = 0;
-let testBar = TestBar.build({
-  sel: '#test-status',
-  data: { total: 6 }
-});
-function pass() {
-  passed++;
-  testBar.val('passed', passed);
-  // $('#test-status').html(`<div><img src="img/green.jpg" width="25" height="25">&nbsp;&nbsp;${passed}</div>`)
-  // .css({
-  //   'font-size': '18px',
-  //   'font-weight': 'bold',
-  //   'color': 'green'
-  // })
-      
-};
-
-TestBlock.dom(vu => `
-    <div ${vu.ID} style="margin:30px 0; border:2px solid #999; padding: 16px">
-      <div data-component="status">
-        <img data-component="light" src="img/red.jpg" width="20" height="20">
-      </div>
-      <div data-component="log">
-      </div>
-    </div>
-`);
-TestBlock.render(vu => {
-  switch (vu.val('light')) {
-    case 'green':
-      vu.$el('@light').prop('src', 'img/green.jpg');
-      break;
-    default:
-      vu.$el('@light').prop('src', 'img/red.jpg');
-      break;
-  }
-
-  vu.use('logs').then(v => {
-      vu.$el('@logs').html(v.logs);
-  });
+Test.add(log => {
+  log('Hello world');
+  log.ok();
 });
 
 // Test - appGraph: node
-test(() => {
-  let block = TestBlock.build({
-    sel: '#test',
-    method: 'append'
-  });
-  let $log = block.$el('@log');
+Test.add(log => {
 
-  //let log = setLog();
+  log.title('AppGraph Nodes');
 
-  $log.append('[AppGraph Nodes]');
-  $log.append('<br>');
-  $log.append(`G = Cope.appGraph('testApp2')`);
-  $log.append('<br>');
-  $log.append(`dreamer = G.node('Dreamers', 'Jeff')`);
+  log('<br>');
+  log(`G = Cope.appGraph('testApp2')`);
+  log('<br>');
+  log(`dreamer = G.node('Dreamers', 'Jeff')`);
+  
   let dreamer = G.node('Dreamers', 'Jeff');
   if (!dreamer || !dreamer.col || !dreamer.key) {
     debug('dreamer does not have properties "col" or "key"', dreamer);
   }
 
-  $log.append(`dreamer.val('age', 20)`);
-  $log.append(`dreamer.val({ 'name': 'Jeff' })`);
+  log(`dreamer.val('age', 20)`);
+  log(`dreamer.val({ 'name': 'Jeff' })`);
+
   dreamer.val('age', 20);
   dreamer.val({ 'name': 'Jeff' });
 
-  $log.append('Test dreamer.val() <= data');
+  log('Test dreamer.val() <= data');
   dreamer.val().then(data => {
-    $log.append('<br>');
-    $log.append(`data.name = ${data.name}`, 1);
-    $log.append(`dreamer.snap('age') = ${dreamer.snap('age')}`, 1);
-    $log.append('<br>');
-    $log.append('Deleting dreamer by calling dreamer.del(true)', 1);
+    log('<br>');
+    log(`data.name = ${data.name}`, 1);
+    log(`dreamer.snap('age') = ${dreamer.snap('age')}`, 1);
+    log('<br>');
+    log('Deleting dreamer by calling dreamer.del(true)', 1);
     dreamer.del(true).then(() => {
-      $log.append('<br>');
-      $log.append('dreamer was deleted', 2);
-      $log.append('<br>');
-      block.val({ light: 'green' });
-      pass();
+      log('<br>');
+      log('dreamer was deleted', 2);
+      log('<br>');
+
+      log.ok();
     });
   });
 }); // end of test
 
+// Test - @PJ
+Test.add(log => {
+  $('#views').append('<div id="photo"></div>');
+  $('#views').append('<div id="grid"></div>');
+
+  PhotoView.build({
+    sel: '#photo',
+    method: 'append'
+  }).val({
+    src: 'https://api.fnkr.net/testimg/450x300/00CED1/FFF/?text=img+placeholder',
+    caption: 'This is a placeholder',
+    css: {},
+    '@img': {
+      css: {},
+    },
+    '@caption': {
+      css: {}
+    }
+  })
+
+  GridView.build({
+    sel: '#grid',
+    method: 'append'
+  }).val({
+    src: ['https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/'
+    ],
+    css: {
+      width: '100%',
+      margin: '0 auto'
+    }
+  }); 
+
+  log.ok();
+}); // end of test
+
+// Run all tests
+Test.run();
+return console.log('Rewrite the following thanks!');
+
+
+
+
+
+
+
+
+
+// Rewrite!!!!
+
+
+
+
+
+
+
+
+
+
+let passed = 0;
+function pass() {
+  passed++;
+};
+
+
 // Test - appGraph: edges formed by node.link
 test(() => {
   let block = TestBlock.build({
-    sel: '#test',
+    sel: '#app-graph',
     method: 'append'
   });
   let $log = block.$el('@log');
@@ -197,7 +320,7 @@ test(() => {
 // Test - AppGraph: edges
 test(() => {
   let block = TestBlock.build({
-    sel: '#test',
+    sel: '#app-graph',
     method: 'append'
   });
   let $log = block.$el('@log'); 
@@ -232,7 +355,7 @@ test(() => {
 test(() => {
 
   let block = TestBlock.build({
-    sel: '#test',
+    sel: '#app-graph',
     method: 'append'
   });
   let $log = block.$el('@log');
@@ -285,7 +408,7 @@ test(() => {
 test(() => {
 
   let block = TestBlock.build({
-    sel: '#test',
+    sel: '#app-graph',
     method: 'append'
   });
   let $log = block.$el('@log');
@@ -348,7 +471,7 @@ test(() => {
 // Test - use jQuery
 test(function() {
   let block = TestBlock.build({
-    sel: '#test',
+    sel: '#app-graph',
     method: 'append'
   });
 
@@ -445,50 +568,6 @@ test(() => {
   }).res('value', val => {
     console.log(val);
   });
-});
-
-// Test - @PJ
-test(() => {
-  $('#views').append('<div id="photo"></div>');
-  $('#views').append('<div id="gallery"></div>');
-
-  let PhotoPost = PhotoView.build({
-    sel: '#photo',
-    method: 'append'
-  }).val({
-    src: 'https://api.fnkr.net/testimg/450x300/00CED1/FFF/?text=img+placeholder',
-    caption: 'This is a placeholder',
-    css: {},
-    '@img': {
-      css: {},
-    },
-    '@caption': {
-      css: {}
-    }
-  })
-
-  let GridPost = GridView.build({
-    sel: '#gallery',
-    method: 'append'
-  }).val({
-    src: ['https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/'
-    ],
-    css: {
-      width: '100%',
-      margin: '0 auto'
-    }
-  })
 });
 
 // Test - Purely

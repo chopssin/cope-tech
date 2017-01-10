@@ -365,7 +365,7 @@ test(pass => {
 // Test - @PJ
 test(pass => {
   $('#views').append('<div id="photo"></div>');
-  $('#views').append('<div id="gallery"></div>');
+  $('#views').append('<div id="grid"></div>');
 
   let PhotoPost = PhotoView.build({
     sel: '#views',
@@ -383,7 +383,7 @@ test(pass => {
     }
   })
 
-  let GalleryPost = GalleryView.build({
+  let GridPost = GridView.build({
     sel: '#views',
     method: 'append'
   }).val({

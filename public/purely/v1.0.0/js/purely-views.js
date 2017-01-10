@@ -5,7 +5,8 @@ let NavView = Views.class('Nav'),
     TextAreaView = Views.class('TextArea'),
     ImageUpLoaderView = Views.class('ImageUpLoader'),
     PhotoView = Views.class('Photo'),
-    GalleryView = Views.class('Gallery');
+    GridView = Views.class('Grid'),
+    SlideView = Views.class('Slide');
 
 NavView.dom(vu => (`
   <header ${vu.ID} class="view-nav">
@@ -159,6 +160,10 @@ PhotoView.dom(vu =>
 
 PhotoView.render(vu => {
 
+  vu.use('link').then(v => {
+    vu.$el('a').prop('href', v.link);
+  })
+
   vu.use('src').then(v => {
     vu.$el('@img').prop('src', v.src);
   })
@@ -192,32 +197,34 @@ PhotoView.render(vu => {
 
 });
 
-//GalleryView
-GalleryView.dom(vu =>
+
+//GridView
+GridView.dom(vu =>
   `<div ${vu.ID}>
-    <div class="row" data-component="gallery">
+    <div class="row" data-component="grid">
     </div>
   </div>`
 );
 
-GalleryView.render(vu => {
+GridView.render(vu => {
 
-  vu.use('src').then(v => {
-
-    for (let i = 0; i < v.src.length; i++) {
-      vu.$el('@gallery').append('<div class="col-xs-6 col-sm-4 col-md-3 col-lg-2" style="padding: 5px" data-component="img' + i + '"></div>');
-      PhotoView.build({
-        sel: vu.sel('@img' + i),
-        method: 'append'
-      }).val({
-        src: v.src[i],
-        css: {
-          'max-width': 'auto',
-          width: 'auto',
-        }
+  vu.use('data').then(v => {
+    if (Array.isArray(v.data)) {
+      v.data.forEach((item, index) => {
+        vu.$el('@grid').append('<div class="col-xs-6 col-sm-4 col-md-3 col-lg-2" style="padding: 5px" data-component="img' + index + '"></div>');
+        PhotoView.build({
+          sel: vu.sel('@img' + index),
+          method: 'append',
+          data: item
+        }).val({
+          css: {
+            'max-width': 'auto',
+            width: 'auto'
+          }
+        })
       })
     }
-  })
+  });
 
   vu.use('css').then(v => {
     vu.$el().css(v.css);

@@ -417,11 +417,29 @@
       }
     };
 
-    my.val = function() {
+    my.set = function() {
       let args = arguments;
       switch (args.length) {
-        
-        // Get all values
+        case 1:
+          switch (typeof args[0]) {
+            case 'object': 
+              Object.keys(args[0]).forEach(function(_key) {
+                if (!isValidKey(_key)) return;
+                data[_key] = args[0][_key];
+              });
+              break;
+          }
+          break;
+        case 2:
+          if (isValidKey(args[0])) {
+            data[args[0]] = args[1];
+          }
+      } // end of switch
+    }; // end of my.set
+
+    my.get = function() {
+      let args = arguments;
+      switch (args.length) {
         case 0:
           return data;
           break;
@@ -433,13 +451,38 @@
               if (!isValidKey(args[0])) return;
               return data[args[0]]; // return the value
               break;
+          }
+          break;
+      } // end of outer switch
+    }; // end of my.get
+
+    my.val = function() {
+
+      let args = arguments;
+      switch (args.length) {
+        
+        // Get all values
+        case 0:
+          //return data;
+          return my.get.apply(my, args);
+          break;
+        case 1:
+          switch (typeof args[0]) {
+            
+            // Get specific value by args[0]
+            case 'string': 
+              //if (!isValidKey(args[0])) return;
+              //return data[args[0]]; // return the value
+              return my.get.apply(my, args);
+              break;
             
             // Set value(s) and emit changes
             case 'object': 
-              Object.keys(args[0]).forEach(function(_key) {
-                if (!isValidKey(_key)) return;
-                data[_key] = args[0][_key];
-              });
+              //Object.keys(args[0]).forEach(function(_key) {
+              //  if (!isValidKey(_key)) return;
+              //  data[_key] = args[0][_key];
+              //});
+              my.set.apply(my, args);
               emit();
               return; // return nothing
               break;
@@ -448,10 +491,12 @@
 
         // Set a value and emit the change
         case 2:
-          if (isValidKey(args[0])) {
-            data[args[0]] = args[1];
-            emit();
-          }
+          //if (isValidKey(args[0])) {
+          //  data[args[0]] = args[1];
+          //  emit();
+          //}
+          my.set.apply(my, args);
+          emit();
           return; // return nothing
           break;
       } // end of switch
@@ -1134,7 +1179,16 @@
           case 2: 
             return vu;
         }
-      };
+      }; // end of vu.val
+
+      vu.set = function() {
+        vuDataSnap.set.apply(vu, arguments);
+        return vu;
+      }; // end of vu.set
+
+      vu.get = function() {
+        return vuDataSnap.get.apply(vu, arguments);
+      }; // end of vu.set
 
       vu.use = function(_keys) {
         if (typeof _keys != 'string') return;

@@ -6,7 +6,8 @@ let NavView = Views.class('Nav'),
   ImageUpLoaderView = Views.class('ImageUpLoader'),
   PhotoView = Views.class('Photo'),
   GridView = Views.class('Grid'),
-  SlideView = Views.class('Slide');
+  SlideView = Views.class('Slide'),
+  SelectView = Views.class('Select');
 
 // NavView
 // @logo
@@ -345,5 +346,37 @@ GridView.render(vu => {
   vu.use('css').then(v => {
     vu.$el().css(v.css);
   })
+});
 
+// Select
+// @select
+// @options-[i]
+// -options: array, an array of option object
+//   -value: number or string
+//   -payload: string, the content of the option
+// "value" <- string, number or boolean, the value of the selected option 
+SelectView.dom(vu => 
+  `<div ${vu.ID} class="view-select">
+    <select data-component="select">
+    </select>
+  </div>`
+);
+
+SelectView.render(vu => {
+  vu.use('options').then(v => {
+    if(Array.isArray(v.options)){
+      v.options.forEach((o, i) =>{
+        vu.$el('@select').append(`<option data-component="option-${i}" value="${o.value}">${o.payload}</option>`);
+      })
+
+              // Add click listener
+      vu.$el(`@select`).off('change').on('change', function() {
+        let o = {};
+        o.value = vu.$el(`@select`).val();
+        o.payload = vu.$el(`@select`).find(`option:selected`).text();        
+
+        vu.res('value', o);
+      })
+    } 
+  })  
 });

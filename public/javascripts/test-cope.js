@@ -299,15 +299,24 @@ Test.go(log => {
   // TBD: use Cope.App.usePage
 
   // Build Navbar
-  NavView.build({
+  let nav = NavView.build({
     sel: '#purely',
     data: {
       signedIn: false,
+      'user-items':[{title:"Account", href:"#"},{title:"Sign Out", comp:'signOut'}],
       '@logo': {
         logoText: mySet.logo.text,
       }
     }
-  });
+  }).res('signIn', () => {
+    nav.val({
+      signedIn: true
+    });
+  }).res('signOut', () => {
+    nav.val({
+      signedIn: false
+    });
+  })
 
   // Build some sections
   let secCover = BoxView.build({

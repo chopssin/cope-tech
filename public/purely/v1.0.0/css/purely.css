@@ -145,11 +145,19 @@
   text-decoration: none;
   margin: 0px;
 }
-.view-nav .menu {
+.view-nav .menu-icon {
   top: 6px;
   font-size: 1.5em;
   cursor: pointer;
 }
+.view-nav .remove-icon {
+  top: 8px;
+  right: 8px;
+  font-size: 2em;
+  cursor: pointer;
+  color: #fff;
+}
+
 .view-nav .user {
     -moz-appearance: none;
     -webkit-appearance: none;

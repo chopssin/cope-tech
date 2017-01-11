@@ -10,46 +10,59 @@ let NavView = Views.class('Nav'),
 
 // NavView
 // @logo
-// @signIn
-// @user
+// @main-items: nav
+// @signIn: ul
+// @user: ul
 // @menu
-// @nav-items
-// @remove
-// @item
+// @nav-items: ul
+// @close-button: close-icon
+// @items: ul
+// @user-menu
+// @user-items: ul
 // -signedIn: bool, check user signed
 // -list: array, input for @item
+// -user-items: array, input for @user-items
 // -css: object, NavView's style
-// -@logo object,  @logo object
+// -@logo: object
+//   -logoText: string
+//   -css: object
+// "signIn" <- null
+// "signOut" <- null
 NavView.dom(vu => (`
   <header ${vu.ID} class="view-nav">
     <div data-component="logo" class="logo bg">Logo</div>
     <div class="float-right">
-      <nav>
+      <nav data-component="main-items">
         <ul data-component="signIn" class="hidden-xs">
-          <li><a href="#" class="user">Sign up</a></li>
-          <li><a href="#" class="user">Sign in</a></li>
+          <li><a class="user">Sign in</a></li>
         </ul>
         <ul data-component="user" class="hidden-xs">
-          <li><a href="" class="user">User Name</a></li>
+          <li><a class="user">User Name</a></li>
         </ul>
-        <ul data-component="menu">
-          <li class="menu glyphicon glyphicon-menu-hamburger"></li>
+        <ul>
+          <li data-component="menu-button" class="menu-icon glyphicon glyphicon-menu-hamburger"></li>
         </ul>
       </nav>
     </div>
-    <div class="view-nav-items user bg-w" data-component="nav-items" >
-      <div class="glyphicon glyphicon-remove float-right menu" data-component="remove"></div>
+    <div class="view-nav-items user bg-w" data-component="menu" >
+      <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
       <nav>
-        <ul data-component="item">
+        <ul data-component="nav-items">
         </ul>
       </nav>
+    </div>
+    <div style="z-index: 2;" class="view-nav-items user bg-w" data-component="user-menu">
+      <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
+    	<nav>
+				<ul data-component="user-items" id="user-items" ></ul>
+    	</nav>
     </div>
   </header>`));
 
 NavView.render(vu => {
 
   // Just with logoText
-  vu.use('@logo.logoText, signedIn').then(v => {
+  vu.use('@logo.logoText, signedIn, user-items').then(v => {
     vu.$el('@logo').html(v['@logo'].logoText);
     if (v.signedIn) {
       vu.$el('@signIn').hide();
@@ -58,20 +71,27 @@ NavView.render(vu => {
       vu.$el('@signIn').show();
       vu.$el('@user').hide();
     }
+    if($('#user-items li').length === 0){
+	    v["user-items"].forEach(obj => {
+	    	if(obj.href){
+	    		vu.$el("@user-items").append(`<li style="display:block"><a href=${obj.href}>${obj.title}</a></li>`)
+	    	} else {
+	    		vu.$el("@user-items").append(`<li style="display:block"><a data-component=${obj.comp}>${obj.title}</a></li>`)
+	    	}
+	    });
+	  }
   });
 
-  vu.use('list, signedIn, css, @logo.css, $logo.logoText').then(v => {
+  vu.use('navItems, signedIn, css, @logo.css, $logo.logoText').then(v => {
     //list
-    v.list.forEach(obj => {
-      vu.$el('@item').append(`<li><a href=${obj.href}>${obj.title}</a></li>`);
+    v.navItems.forEach(obj => {
+      vu.$el('@nav-items').append(`<li><a href=${obj.href}>${obj.title}</a></li>`);
     });
     //signedIn
     if (v.signedIn) {
-    	console.log("true");
       vu.$el('@signIn').hide();
       vu.$el('@user').show();
     } else {
-    	console.log("false");
       vu.$el('@signIn').show();
       vu.$el('@user').hide();
     }
@@ -85,12 +105,30 @@ NavView.render(vu => {
     vu.$el('@logo').html(v['@logo'].logoText);
   });
 
-  //animate
-  vu.$el('@menu').off('click').on('click', () => {
-    vu.$el('@nav-items').fadeIn(500);
+  //animate include @menu && @user-menu
+  vu.$el('@menu-button').off('click').on('click', () => {
+    vu.$el('@menu').fadeIn(300);
+    $(".logo float-right").hide();
   });
-  vu.$el('@remove').off('click').on('click', () => {
-    vu.$el('@nav-items').fadeOut(500);
+  vu.$el('@close-button').off('click').on('click', () => {
+    vu.$el('@menu').fadeOut(300);
+    vu.$el('@user-menu').fadeOut(300);
+    $(".logo float-right").show();
+  });
+  vu.$el('@user').off('click').on('click', () => {
+    vu.$el('@user-menu').fadeIn(300);
+    $(".logo .float-right").hide();
+  });
+ 
+  // Set @signIn click event
+  vu.$el('@signIn').off('click').on('click', () => {
+    vu.res('signIn');
+  });
+  // Set @signOut click event
+  vu.$el('@signOut').off('click').on('click', () => {
+    vu.res('signOut');
+    vu.$el('@user-menu').fadeOut(300);
+    $(".logo .float-right").hide();
   });
 });
 

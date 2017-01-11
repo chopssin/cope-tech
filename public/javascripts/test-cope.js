@@ -17,6 +17,7 @@ const setTest = function() {
 
   test.go = function(_fn) {
     if (typeof _fn == 'function') {
+
       let block = TestBlock.build({
         sel: '#app-graph',
         method: 'append'
@@ -29,10 +30,11 @@ const setTest = function() {
         return block.sel('@log');
       };
 
+      log.id = testCount;
+
       log.ok = function() {
         block.val({ light: 'green' });
-        okCount++;
-        testBar.val('passed', okCount);
+        testBar.val('ok', log.id);
       };
 
       log.sel = function() {
@@ -92,8 +94,18 @@ TestBar.dom(vu => `
 `);
 
 TestBar.render(vu => {
-  vu.$el('@passed').html(vu.val('passed'));
-  vu.$el('@failed').html(vu.val('total') - vu.val('passed'));
+  if (!vu.get('passed')) {
+    vu.set('passed', {});
+  }
+  let passed = vu.get('passed');
+
+  vu.use('ok').then(v => {
+    passed[v] = true;
+  });
+
+  let passedCount = Object.keys(passed).length;
+  vu.$el('@passed').html(passedCount);
+  vu.$el('@failed').html(vu.val('total') - passedCount);
 });
 
 // TestBlock
@@ -193,7 +205,6 @@ setTimeout(function() {
 Test.go(log => {
 
   log.title('AppGraph Nodes');
-
   log('<br>');
   log(`G = Cope.appGraph('testApp2')`);
   log('<br>');
@@ -230,11 +241,10 @@ Test.go(log => {
 // Test - @PJ
 Test.go(log => {
   log.title('@PJ');
+
   Vbox.append('photo');
   Vbox.append('grid');
 
-  // $('#views').append('<div id="photo"></div>');
-  // $('#views').append('<div id="grid"></div>');
 
   PhotoView.build({
     sel: '#photo',
@@ -302,7 +312,17 @@ Test.go(log => {
       h: '#AEB69E',
       s1: '#CDCDA8',
       s2: '#C3BF9F'
-    }
+    },
+    navItems: [
+      {
+        title: 'Home',
+        href: '#'
+      },
+      {
+        title: 'Google',
+        href: 'http://www.google.com'
+      }
+    ]
   });
 
   settings.push({
@@ -315,7 +335,17 @@ Test.go(log => {
       h: '#AEBDC2',
       s1: '#97ADB6',
       s2: '#6D7D83'
-    }
+    },
+    navItems: [
+      {
+        title: 'Home',
+        href: '#'
+      },
+      {
+        title: 'Aca',
+        href: 'http://acatw.com'
+      }
+    ]
   });
 
   // Randomly choose a settings
@@ -323,13 +353,24 @@ Test.go(log => {
   // TBD: use Cope.App.usePage
 
   // Build Navbar
-  NavView.build({
+  let nav = NavView.build({
     sel: '#purely',
     data: {
+      signedIn: false,
+      'user-items':[{title:"Account", href:"#"},{title:"Sign Out", comp:'signOut'}],
       '@logo': {
         logoText: mySet.logo.text,
-      }
+      },
+      navItems: mySet.navItems
     }
+  }).res('signIn', () => {
+    nav.val({
+      signedIn: true
+    });
+  }).res('signOut', () => {
+    nav.val({
+      signedIn: false
+    });
   });
 
   // Build some sections
@@ -357,17 +398,47 @@ Test.go(log => {
     }
   });
 
+  let secAbout = BoxView.build({
+    sel: '#purely',
+    method: 'append',
+    data: {
+      css: {
+        width: '100%',
+        height: '100%',
+        'background-color': mySet.colors.h
+      }  
+    }
+  });
+
+  let secContact = BoxView.build({
+    sel: '#purely',
+    method: 'append',
+    data: {
+      css: {
+        width: '100%',
+        height: '100%',
+        'background-color': mySet.colors.p1
+      }  
+    }
+  });
+
+  let secFooter = BoxView.build({
+    sel: '#purely',
+    method: 'append',
+    data: {
+      css: {
+        width: '100%',
+        height: '100%',
+        'background-color': mySet.colors.p2
+      }  
+    }
+  });
+
   log.ok();
 });
 
 // Test - appGraph: edges formed by node.link
 Test.go(log => {
-  let block = TestBlock.build({
-    sel: '#app-graph',
-    method: 'append'
-  });
-  let $log = block.$el('@log');
-
   //let log = setLog();
 
   log('[AppGraph Edges]');
@@ -397,7 +468,6 @@ Test.go(log => {
     Chops.unlink('hasA', nightmare).then(() => {
       log('Deleted all dreams', 1);
       log('<br>');
-      block.val({ light: 'green' }); 
       log.ok();
     });
   });
@@ -439,14 +509,13 @@ Test.go(log => {
 
 // Test - AppGraph.populate
 Test.go(log => {
-
   let block = TestBlock.build({
     sel: '#app-graph',
     method: 'append'
   });
   let $log = block.$el('@log');
   block.val({ light: 'green' });
-  log.ok();
+
   log(`G.populate([testA, fake]).then <= nodes<br>
               <br>
               [testA]<br>
@@ -458,7 +527,6 @@ Test.go(log => {
               [fake]<br>
               {}<br>
               <br>`);
-
 
   //let log = setLog();
   let G = Cope.appGraph('testApp2');
@@ -486,20 +554,14 @@ Test.go(log => {
           .replace(/\n/g, '<br>')
           .replace(/\s/g, '&nbsp;'));
       log('<br>');
+
+      log.ok();
     });
   });
 });
 
 // Test - Cope.useViews
 Test.go(log => {
-
-  let block = TestBlock.build({
-    sel: '#app-graph',
-    method: 'append'
-  });
-  let $log = block.$el('@log');
-  block.val({ light: 'green' });
-  log.ok();
   log(`Test with a Post view with vu.use<br>
           Post<br>
           @tittle<br>
@@ -538,7 +600,7 @@ Test.go(log => {
   });
 
   Post.build({
-    sel: block.sel('@log'),
+    sel: log.sel(),
     method: 'append'
   }).val({
     comment: [{ by: 'clinet A', msg: 'Good.' }, { by: 'BBB', msg: 'Cool.'}]
@@ -552,18 +614,18 @@ Test.go(log => {
 
   //log('<br>');
   //log('Passed');
+  log.ok();
 });
 
 // Test - use jQuery
 Test.go(log => {
   log.title('use jQuery');
-
   if ($) {
     log.ok();
     log(`jQuery is defined`);
 
   } else {
-    this.debug('undefined jQuery or $');
+    log('undefined jQuery or $');
   }
 });
 
@@ -574,10 +636,6 @@ Test.go(log => {
   Vbox.append('box');
   Vbox.append('textArea');
   Vbox.append('imageUpLoader');
-  // $('#views').append('<div id="nav"></div>');
-  // $('#views').append('<div style="margin: 40px 0; border-bottom: 2px solid #333; border-top: 2px solid #333; padding: 40px 0;"id="box"></div>');
-  // $('#views').append('<div id="textArea"></div>');
-  // $('#views').append('<div id="imageUpLoader"></div>');
 
   //Nav
   NavView.build({
@@ -652,7 +710,6 @@ Test.go(log => {
   }).res('value', val => {
     console.log(val);
   });
-
   log.ok();
 });
 
@@ -694,6 +751,8 @@ Test.go(log =>{
   }).res('value', o=> {
     console.log(o);
     log(JSON.stringify(o, null, 2));
+
+    log.ok();
   })
 });
 

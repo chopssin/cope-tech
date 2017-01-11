@@ -82,17 +82,14 @@
 }
 
 /* =================
- * Purely - Pages 
+ * Purely - Pages
  * ================= */
 
 /* =================
- * Purely - Views 
+ * Purely - Views
  * ================= */
 
 /* Nav */
-.view-nav {
-  
-}
 .view-nav {
   display: block;
   width: 100%;
@@ -127,16 +124,17 @@
 .view-nav .float-right{
   height: 100%;
 }
-.view-nav > .logo, 
+.view-nav > .logo,
 .view-nav > nav{
   display: inline-block;
   margin: 0px 10px;
   padding: 0px;
 }
 .view-nav .logo {
-  font-size: 1em;
+  font-size: 1.2em;
   font-weight: 300;
   width: 100px;
+  letter-spacing: 0.125em
   /*background-color: #ddd;*/
 }
 .view-nav li {
@@ -147,11 +145,19 @@
   text-decoration: none;
   margin: 0px;
 }
-.view-nav .menu {
-  top: 10px;
-  font-size: 2em;
+.view-nav .menu-icon {
+  top: 6px;
+  font-size: 1.5em;
   cursor: pointer;
 }
+.view-nav .remove-icon {
+  top: 8px;
+  right: 8px;
+  font-size: 2em;
+  cursor: pointer;
+  color: #fff;
+}
+
 .view-nav .user {
     -moz-appearance: none;
     -webkit-appearance: none;
@@ -165,7 +171,6 @@
     transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
     border: 0;
     color: #333;
-    cursor: pointer;
     font-weight: 300;
     letter-spacing: 0.125em;
     font-size: 0.9em;
@@ -173,6 +178,7 @@
     text-decoration: none;
     white-space: nowrap;
     text-indent: 0.25em;
+    cursor: pointer;
 }
 
 .view-nav .view-nav-items {
@@ -193,15 +199,13 @@
   padding: 16px;
 }
 
-.box {
-  position: relative;
-  border: 1px solid #111;
-}
+
 
 
 /* Box */
 .view-box {
-
+  position: relative;
+  border: 1px solid #111;
 }
 
 /* Photo */
@@ -209,7 +213,15 @@
 
 }
 
-/* Gallery */
+/* Grid */
+.view-grid {
+
+}
+
+/* Slide */
+.view-slide {
+
+}
 
 /* Extra Small Devices, Phones */
 @media only screen and (min-width : 480px) {

@@ -44,16 +44,16 @@ NavView.dom(vu => (`
         </ul>
       </nav>
     </div>
-    <div class="view-nav-items user bg-w" data-component="menu" >
+    <div class="view-nav-items bg-w" data-component="menu" >
       <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
-      <nav>
-        <ul data-component="nav-items">
+      <nav style="text-align: center;">
+        <ul data-component="nav-items" id="nav-items">
         </ul>
       </nav>
     </div>
-    <div style="z-index: 2;" class="view-nav-items user bg-w" data-component="user-menu">
+    <div style="z-index: 2;" class="view-nav-items  bg-w" data-component="user-menu">
       <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
-    	<nav>
+    	<nav style="text-align: center;">
 				<ul data-component="user-items" id="user-items" ></ul>
     	</nav>
     </div>
@@ -62,9 +62,12 @@ NavView.dom(vu => (`
 NavView.render(vu => {
 
   // Just with logoText
-  vu.use('@logo.logoText, signedIn, user-items').then(v => {
+  vu.use('@logo.logoText').then(v => {
     vu.$el('@logo').html(v['@logo'].logoText);
-    if (v.signedIn) {
+  });
+
+  vu.use('signedIn, user-items').then(v => {
+  	if (v.signedIn) {
       vu.$el('@signIn').hide();
       vu.$el('@user').show();
     } else {
@@ -74,10 +77,19 @@ NavView.render(vu => {
     if($('#user-items li').length === 0){
 	    v["user-items"].forEach(obj => {
 	    	if(obj.href){
-	    		vu.$el("@user-items").append(`<li><a href=${obj.href}>${obj.title}</a></li>`)
+	    		vu.$el("@user-items").append(`<li class="user"><a href=${obj.href}>${obj.title}</a></li>`)
 	    	} else {
-	    		vu.$el("@user-items").append(`<li><a data-component=${obj.comp}>${obj.title}</a></li>`)
+	    		vu.$el("@user-items").append(`<li class="user"><a data-component=${obj.comp}>${obj.title}</a></li>`)
 	    	}
+	    });
+	  }
+  });
+
+  vu.use('navItems').then(v => {
+  	console.log("hello");
+  	if($('#nav-items li').length === 0){
+	  	v.navItems.forEach(obj => {
+	      vu.$el('@nav-items').append(`<li class="user"><a href=${obj.href}>${obj.title}</a></li>`);
 	    });
 	  }
   });

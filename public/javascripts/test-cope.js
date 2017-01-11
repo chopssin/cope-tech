@@ -326,7 +326,8 @@ Test.go(log => {
       'user-items':[{title:"Account", href:"#"},{title:"Sign Out", comp:'signOut'}],
       '@logo': {
         logoText: mySet.logo.text,
-      }
+      },
+      navItems: mySet.navItems
     }
   }).res('signIn', () => {
     nav.val({

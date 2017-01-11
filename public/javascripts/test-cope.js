@@ -9,11 +9,16 @@ const G = Cope.appGraph('testApp2'),
 const setTest = function() {
   let okCount = 0,
       testCount = 0,
+      blocks = [],
       test = {};
 
   let testBar = TestBar.build({
     sel: '#app-graph-status'
-  });
+  }).res('findPassed', () => {
+    test.toggle('passed');
+  }).res('findFailed', () => {
+    test.toggle('failed');
+  })
 
   test.go = function(_fn) {
     if (typeof _fn == 'function') {
@@ -23,6 +28,9 @@ const setTest = function() {
         method: 'append'
       });
 
+      // Store blocks
+      blocks.push(block);
+
       let log = function(_str) {
         if (typeof _str == 'string') {
           block.$el('@log').append(_str + '<br>');
@@ -31,10 +39,11 @@ const setTest = function() {
       };
 
       log.id = testCount;
+      testCount++;
 
       log.ok = function() {
-        block.val({ light: 'green' });
-        testBar.val('ok', log.id);
+        block.val({ ok: true });
+        testBar.val({ ok: log.id });
       };
 
       log.sel = function() {
@@ -44,14 +53,31 @@ const setTest = function() {
       log.title = function(_title) {
         block.val('title', _title);
       };
-    
-      testCount++;
-      testBar.val({ total: testCount });
+
+      testBar.val({ addTest: log.id });
 
       // Run test function
       _fn(log);
     }
   }; // end of test.go
+
+  // To toggle on/off passed or failed or all tests
+  test.toggle = function(_filter) {
+    if (_filter == 'passed' || _filter == 'failed') {
+      // Show only passed or failed
+      blocks.forEach(block => {
+        block.val({ 
+          hide: !block.get('ok') == (_filter == 'passed')
+        });
+      });
+    
+    } else {
+      // Show all
+      blocks.forEach(block => {
+        block.val({ hide: false });
+      });
+    }
+  };
 
   return test;
 }; // end of setTest
@@ -94,18 +120,39 @@ TestBar.dom(vu => `
 `);
 
 TestBar.render(vu => {
+  
+  if (!vu.get('tests')) {
+    vu.set('tests', {});
+  }
+
   if (!vu.get('passed')) {
     vu.set('passed', {});
   }
-  let passed = vu.get('passed');
+  
+  let tests = vu.get('tests'),
+      passed = vu.get('passed');
 
-  vu.use('ok').then(v => {
-    passed[v] = true;
+  vu.use('addTest').then(v => {
+    tests[v.addTest] = true;
   });
 
-  let passedCount = Object.keys(passed).length;
+  vu.use('ok').then(v => {
+    passed[v.ok] = true;
+  });
+    
+  let testsCount = Object.keys(tests).length,
+      passedCount = Object.keys(passed).length;
+
   vu.$el('@passed').html(passedCount);
-  vu.$el('@failed').html(vu.val('total') - passedCount);
+  vu.$el('@failed').html(testsCount - passedCount);
+
+  vu.$el('@passed').off('click').on('click', () => {
+    vu.res('findPassed');
+  });
+
+  vu.$el('@failed').off('click').on('click', () => {
+    vu.res('findFailed');
+  });
 });
 
 // TestBlock
@@ -121,13 +168,17 @@ TestBlock.dom(vu => `
 `);
 
 TestBlock.render(vu => {
-  switch (vu.val('light')) {
-    case 'green':
-      vu.$el('@light').prop('src', 'img/green.jpg');
-      break;
-    default:
-      vu.$el('@light').prop('src', 'img/red.jpg');
-      break;
+
+  if (vu.get('ok')) {
+    vu.$el('@light').prop('src', 'img/green.jpg');
+  } else {
+    vu.$el('@light').prop('src', 'img/red.jpg');
+  }
+
+  if (!vu.get('hide')) {
+    vu.$el().show();
+  } else {
+    vu.$el().hide();
   }
 
   vu.use('title').then(v => {
@@ -178,6 +229,7 @@ const Test = setTest();
 
 // Simplest test
 Test.go(log => {
+  log.title('Hello');
   log('Hello world');
   log.ok();
 });
@@ -203,9 +255,8 @@ setTimeout(function() {
 
 // Test - appGraph: node
 Test.go(log => {
-
   log.title('AppGraph Nodes');
-  log('<br>');
+
   log(`G = Cope.appGraph('testApp2')`);
   log('<br>');
   log(`dreamer = G.node('Dreamers', 'Jeff')`);
@@ -236,55 +287,6 @@ Test.go(log => {
       log.ok();
     });
   });
-}); // end of test
-
-// Test - @PJ
-Test.go(log => {
-  log.title('@PJ');
-
-  Vbox.append('photo');
-  Vbox.append('grid');
-
-
-  PhotoView.build({
-    sel: '#photo',
-    method: 'append'
-  }).val({
-    src: 'https://api.fnkr.net/testimg/450x300/00CED1/FFF/?text=img+placeholder',
-    caption: 'This is a placeholder',
-    css: {},
-    '@img': {
-      css: {},
-    },
-    '@caption': {
-      css: {}
-    }
-  })
-
-  GridView.build({
-    sel: '#grid',
-    method: 'append'
-  }).val({
-    src: ['https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/',
-      'https://fakeimg.pl/440x320/282828/eae0d0/'
-    ],
-    css: {
-      width: '100%',
-      margin: '0 auto'
-    }
-  }); 
-
-  log.ok();
 }); // end of test
 
 // Test - Purely
@@ -441,8 +443,7 @@ Test.go(log => {
 Test.go(log => {
   //let log = setLog();
 
-  log('[AppGraph Edges]');
-  log('<br>');
+  log.title('AppGraph Edges: using node.link');
   log(`G = Cope.appGraph('testApp2')`);
   log('<br>');
   log(`let dreamer = G.node('Dreamers', 'Chops')<br><br>
@@ -473,13 +474,9 @@ Test.go(log => {
   });
 }); // end of test
 
-// Test - AppGraph: edges
+// Test - AppGraph edges
 Test.go(log => {
-  let block = TestBlock.build({
-    sel: '#app-graph',
-    method: 'append'
-  });
-  let $log = block.$el('@log'); 
+  log.title('AppGraph edges');
 
   //let log = setLog();
   let G = Cope.appGraph('testApp2');
@@ -492,16 +489,14 @@ Test.go(log => {
   log('testA ---TestNodes---> testB');
   log('<br>');
   log(`G.edges('BetweenTests')
-    .has(G.node('TestNodes', 'testA'))
+    .of(G.node('TestNodes', 'testA'))
     .then <= results`);
 
   G.edges('BetweenTests')
     .of(G.node('TestNodes', 'testA'))
     .then(results => {
-    debug('TestNodes - res', results);
     log(JSON.stringify(results, null, 4).replace(/\n/g, '<br>').replace(/\s/g, '&nbsp;'));
     log('<br>');
-    block.val({ light: 'green' });
     log.ok();
   }); // end of G.edges
 
@@ -509,26 +504,8 @@ Test.go(log => {
 
 // Test - AppGraph.populate
 Test.go(log => {
-  let block = TestBlock.build({
-    sel: '#app-graph',
-    method: 'append'
-  });
-  let $log = block.$el('@log');
-  block.val({ light: 'green' });
+  log.title('AppGraph.populate');
 
-  log(`G.populate([testA, fake]).then <= nodes<br>
-              <br>
-              [testA]<br>
-              {<br>
-              &nbsp;&nbsp;"name": "testA"<br>
-              }<br>
-              <br>
-              <br>
-              [fake]<br>
-              {}<br>
-              <br>`);
-
-  //let log = setLog();
   let G = Cope.appGraph('testApp2');
 
   G.populate([
@@ -549,10 +526,10 @@ Test.go(log => {
       //     .replace(/\s/g, '&nbsp;'));
       // log('<br>');
 
-      log('[',node.key,']');
+      log('[' + node.key + ']');
       log(JSON.stringify(node.snap(), null, 4)
-          .replace(/\n/g, '<br>')
-          .replace(/\s/g, '&nbsp;'));
+        .replace(/\n/g, '<br>')
+        .replace(/\s/g, '&nbsp;'));
       log('<br>');
 
       log.ok();
@@ -562,21 +539,21 @@ Test.go(log => {
 
 // Test - Cope.useViews
 Test.go(log => {
+  log.title('Cope.useViews');
   log(`Test with a Post view with vu.use<br>
-          Post<br>
-          @tittle<br>
-          @content<br>
-          <br>
-          vu.use("title, @post.content")<br>
-          <br>
-          <br>
-          Post.render(vu => {<br>
-          &nbsp;vu.use('title, @post.content').then(v => {<br>
-          &nbsp;&nbsp;vu.$el('@title').html(v.title);<br>
-          &nbsp;&nbsp;vu.$el('@content').html(v["@post"].content);<br>
-          &nbsp;});<br>
-          });<br>
-          <br>`);
+    <h4>Post</h4><br>
+    @title<br>
+    @content<br>
+    <br>
+    vu.use("title, @post.content")<br>
+    <br>
+    Post.render(vu => {<br>
+    &nbsp;&nbsp;vu.use('title, @post.content').then(v => {<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;vu.$el('@title').html(v.title);<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;vu.$el('@content').html(v["@post"].content);<br>
+    &nbsp;&nbsp;});<br>
+    });<br>
+    <br>`);
   
   let Post = Views.class('Post');
 
@@ -631,7 +608,7 @@ Test.go(log => {
 
 // Test - @hydra
 Test.go(log => {
-  log.title('@hydra');
+  log.title('@hydra: Views - Nav, Box, TextArea, ImageUploader');
   Vbox.append('nav');
   Vbox.append('box');
   Vbox.append('textArea');
@@ -715,7 +692,8 @@ Test.go(log => {
 
 // Test - @Assface
 Test.go(log =>{
-  log.title('@Assface');
+  log.title('@Assface: Views - Select');
+  log('Randomly select an option of Select to get the green light.');
 
   //$('#views').append(`<div id="view-select" style="margin-bottom: 200px"></div>`);
 
@@ -755,5 +733,54 @@ Test.go(log =>{
     log.ok();
   })
 });
+
+// Test - @PJ
+Test.go(log => {
+  log.title('@PJ: Views - Photo, Grid');
+
+  Vbox.append('photo');
+  Vbox.append('grid');
+
+
+  PhotoView.build({
+    sel: '#photo',
+    method: 'append'
+  }).val({
+    src: 'https://api.fnkr.net/testimg/450x300/00CED1/FFF/?text=img+placeholder',
+    caption: 'This is a placeholder',
+    css: {},
+    '@img': {
+      css: {},
+    },
+    '@caption': {
+      css: {}
+    }
+  })
+
+  GridView.build({
+    sel: '#grid',
+    method: 'append'
+  }).val({
+    src: ['https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/',
+      'https://fakeimg.pl/440x320/282828/eae0d0/'
+    ],
+    css: {
+      width: '100%',
+      margin: '0 auto'
+    }
+  }); 
+
+  log.ok();
+}); // end of test
 
 })(jQuery)

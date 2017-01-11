@@ -616,6 +616,13 @@ Test.go(log => {
   }
 });
 
+// Test - Purely iframe 
+Test.go(log => {
+  log.title('Purely iframe');
+  $(log.sel()).append(`<iframe src="/purely" width="80%"></iframe>`);
+  log.ok();
+});
+
 // Test - @hydra
 Test.go(log => {
   log.title('@hydra: Views - Nav, Box, TextArea, ImageUploader');

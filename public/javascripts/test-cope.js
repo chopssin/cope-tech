@@ -13,7 +13,7 @@ const setTest = function() {
       test = {};
 
   let testBar = TestBar.build({
-    sel: '#app-graph-status'
+    sel: '#test-bar'
   }).res('findPassed', () => {
     test.toggle('passed');
   }).res('findFailed', () => {
@@ -24,7 +24,7 @@ const setTest = function() {
     if (typeof _fn == 'function') {
 
       let block = TestBlock.build({
-        sel: '#app-graph',
+        sel: '#tests',
         method: 'append'
       });
 
@@ -106,13 +106,12 @@ const Vbox = setVbox();
 
 // TestBar
 TestBar.dom(vu => `
-  <div ${vu.ID}>
-    <div style="color:green;font-size:18px;font-weight:bold">
+  <div ${vu.ID} style="text-align: center">
+    <div class="green light">
       <img src="img/green.jpg" width="25" height="25">
       <span data-component="passed"></span>
     </div>
-    <br>
-    <div style="color:green;font-size:18px;font-weight:bold">
+    <div class="red light">
       <img src="img/red.jpg" width="25" height="25">
       <span data-component="failed">${ vu.val('total') }</span>
     </div>
@@ -121,6 +120,15 @@ TestBar.dom(vu => `
 
 TestBar.render(vu => {
   
+  // Set CSS
+  vu.$el('.light').css({
+    'display': 'inline-block',
+    'width': '100px',
+    'font-size': '18px',
+    'font-weight': 'bold',
+    'padding': '6px'
+  });
+
   if (!vu.get('tests')) {
     vu.set('tests', {});
   }
@@ -188,10 +196,10 @@ TestBlock.render(vu => {
 
 //show & hide
 function Show(){  
-  $('#toggle')
-    .append(`<a id="toggle-purely">Purely</a>`)
-    .append(`<a id="toggle-app-graph">Tests</a>`)
-    .append(`<a id="toggle-views">Views</a>`)
+  $('#toggle, #tests-status')
+    //.append(`<a id="toggle-purely">Purely</a>`)
+    //.append(`<a id="toggle-app-graph">Tests</a>`)
+    //.append(`<a id="toggle-views">Views</a>`)
     .css({
       'display': 'block',
       'positoin': 'relative',
@@ -202,18 +210,20 @@ function Show(){
     });
 
 
-  $('#toggle a')
+  $('#toggle a, #toggle-tests')
     .css({
       padding: '16px'
-    })
+    });
+
+  $('#toggle-purely, #toggle-views, #toggle-tests')
     .click(function() {
-      $('#purely, #app-graph, #views').addClass('hidden');
+      $('#purely, #tests, #views').addClass('hidden');
       switch ($(this).prop('id')) {
         case 'toggle-purely':
           $('#purely').removeClass('hidden');
           break;
-        case 'toggle-app-graph':
-          $('#app-graph').removeClass('hidden');
+        case 'toggle-tests':
+          $('#tests').removeClass('hidden');
           break;
         case 'toggle-views':
           $('#views').removeClass('hidden');

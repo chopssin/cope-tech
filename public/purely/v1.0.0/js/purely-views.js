@@ -74,9 +74,9 @@ NavView.render(vu => {
     if($('#user-items li').length === 0){
 	    v["user-items"].forEach(obj => {
 	    	if(obj.href){
-	    		vu.$el("@user-items").append(`<li style="display:block"><a href=${obj.href}>${obj.title}</a></li>`)
+	    		vu.$el("@user-items").append(`<li><a href=${obj.href}>${obj.title}</a></li>`)
 	    	} else {
-	    		vu.$el("@user-items").append(`<li style="display:block"><a data-component=${obj.comp}>${obj.title}</a></li>`)
+	    		vu.$el("@user-items").append(`<li><a data-component=${obj.comp}>${obj.title}</a></li>`)
 	    	}
 	    });
 	  }

@@ -278,7 +278,17 @@ Test.go(log => {
       h: '#AEB69E',
       s1: '#CDCDA8',
       s2: '#C3BF9F'
-    }
+    },
+    navItems: [
+      {
+        title: 'Home',
+        href: '#'
+      },
+      {
+        title: 'Google',
+        href: 'http://www.google.com'
+      }
+    ]
   });
 
   settings.push({
@@ -291,7 +301,17 @@ Test.go(log => {
       h: '#AEBDC2',
       s1: '#97ADB6',
       s2: '#6D7D83'
-    }
+    },
+    navItems: [
+      {
+        title: 'Home',
+        href: '#'
+      },
+      {
+        title: 'Aca',
+        href: 'http://acatw.com'
+      }
+    ]
   });
 
   // Randomly choose a settings

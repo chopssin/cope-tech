@@ -131,9 +131,10 @@
   padding: 0px;
 }
 .view-nav .logo {
-  font-size: 1em;
+  font-size: 1.2em;
   font-weight: 300;
   width: 100px;
+  letter-spacing: 0.125em
   /*background-color: #ddd;*/
 }
 .view-nav li {
@@ -145,8 +146,8 @@
   margin: 0px;
 }
 .view-nav .menu {
-  top: 10px;
-  font-size: 2em;
+  top: 6px;
+  font-size: 1.5em;
   cursor: pointer;
 }
 .view-nav .user {

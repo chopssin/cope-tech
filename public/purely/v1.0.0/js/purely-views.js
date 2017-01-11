@@ -25,11 +25,11 @@ NavView.dom(vu => (`
     <div data-component="logo" class="logo bg">Logo</div>
     <div class="float-right">
       <nav>
-        <ul data-component="signIn">
+        <ul data-component="signIn" class="hidden-xs">
           <li><a href="#" class="user">Sign up</a></li>
           <li><a href="#" class="user">Sign in</a></li>
         </ul>
-        <ul data-component="user">
+        <ul data-component="user" class="hidden-xs">
           <li><a href="" class="user">User Name</a></li>
         </ul>
         <ul data-component="menu">
@@ -49,20 +49,29 @@ NavView.dom(vu => (`
 NavView.render(vu => {
 
   // Just with logoText
-  vu.use('@logo.logoText').then(v => {
+  vu.use('@logo.logoText, signedIn').then(v => {
     vu.$el('@logo').html(v['@logo'].logoText);
+    if (v.signedIn) {
+      vu.$el('@signIn').hide();
+      vu.$el('@user').show();
+    } else {
+      vu.$el('@signIn').show();
+      vu.$el('@user').hide();
+    }
   });
 
-  vu.use('list, signedIn, css, @logo').then(v => {
+  vu.use('list, signedIn, css, @logo.css, $logo.logoText').then(v => {
     //list
     v.list.forEach(obj => {
       vu.$el('@item').append(`<li><a href=${obj.href}>${obj.title}</a></li>`);
     });
     //signedIn
     if (v.signedIn) {
+    	console.log("true");
       vu.$el('@signIn').hide();
       vu.$el('@user').show();
     } else {
+    	console.log("false");
       vu.$el('@signIn').show();
       vu.$el('@user').hide();
     }

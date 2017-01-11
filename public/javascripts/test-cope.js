@@ -302,6 +302,7 @@ Test.go(log => {
   NavView.build({
     sel: '#purely',
     data: {
+      signedIn: false,
       '@logo': {
         logoText: mySet.logo.text,
       }
@@ -329,6 +330,42 @@ Test.go(log => {
         width: '100%',
         height: '100%',
         'background-color': mySet.colors.s2
+      }  
+    }
+  });
+
+  let secAbout = BoxView.build({
+    sel: '#purely',
+    method: 'append',
+    data: {
+      css: {
+        width: '100%',
+        height: '100%',
+        'background-color': mySet.colors.h
+      }  
+    }
+  });
+
+  let secContact = BoxView.build({
+    sel: '#purely',
+    method: 'append',
+    data: {
+      css: {
+        width: '100%',
+        height: '100%',
+        'background-color': mySet.colors.p1
+      }  
+    }
+  });
+
+  let secFooter = BoxView.build({
+    sel: '#purely',
+    method: 'append',
+    data: {
+      css: {
+        width: '100%',
+        height: '100%',
+        'background-color': mySet.colors.p2
       }  
     }
   });

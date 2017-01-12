@@ -12,6 +12,11 @@ router.get('/', function(req, res, next) {
   res.render('mypage', { title: 'Cope' });
 });
 
+// GET purely page
+router.get('/purely', function(req, res, next) {
+  res.render('purely', { title: 'Cope Purely' });
+});
+
 // GET firebase config
 router.get('/cope-config', function(req, res, next) {
   var config = {

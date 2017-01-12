@@ -217,11 +217,99 @@
 .view-grid {
 
 }
+.view-grid .clear-margin {
+  margin-left: 0;
+  margin-right: 0;
+}
 
 /* Slide */
 .view-slide {
-
+  margin: 0 auto;
 }
+.view-slide .slide{
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+.view-slide .slideButton {
+  position: absolute;
+  top: 50%;
+  font-size: 36px;
+  cursor: pointer;
+  padding: 10px;
+  color: #CACACA;
+  transform: translateY(-50%);
+  z-index: 999;
+}
+.view-slide .slideButton.slideButtonRight {
+  right: 0;
+}
+.view-slide .slideButton.slideButtonLeft {
+  left: 0;
+}
+.view-slide .banner {
+  /*width: 2340px;
+  height: 390px;*/
+  position: relative;
+}
+.view-slide .banner .slideItem {
+  float: left;
+/*  width: 780px;
+  height: 390px;*/
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center center;
+}
+
+/*.view-slide .banner .slideItem.item1 {
+  background-image: url("https://fakeimg.pl/600x300/282828/eae0d0/?text=Slide1");
+}
+.view-slide .banner .slideItem.item2 {
+  background-image: url("https://fakeimg.pl/1300x390/282828/eae0d0/?text=Slide2");
+}
+.view-slide .banner .slideItem.item3 {
+  background-image: url("https://fakeimg.pl/980x390/282828/eae0d0/?text=Slide3");
+}*/
+
+.view-slide .caption {
+  box-sizing: border-box;
+  /*width: 2340px;*/
+}
+
+.view-slide .caption ul {
+  /*width: 2340px;*/
+  list-style: none;
+  position: absolute;
+  bottom: 10px;
+  margin: 0;
+  padding: 0;
+}
+.view-slide .caption ul li {
+  float: left;
+  padding: 10px;
+  font-size: 20px;
+  /*width: 780px;*/
+  color: #DADADA;
+}
+.view-slide .slideNav {
+  position: absolute;
+  right: 10px;
+  bottom: 0;
+}
+.view-slide .slideNav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.view-slide .slideNav ul li {
+  display: inline-block;
+  color: #DADADA;
+}
+.view-slide .slideNav .active {
+  color: #f9de57;
+}
+
 
 /* Extra Small Devices, Phones */
 @media only screen and (min-width : 480px) {

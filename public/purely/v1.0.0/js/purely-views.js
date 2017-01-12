@@ -3,7 +3,7 @@ const Views = Cope.useViews('Purely');
 let NavView = Views.class('Nav'),
   BoxView = Views.class('Box'),
   TextAreaView = Views.class('TextArea'),
-  ImageUpLoaderView = Views.class('ImageUpLoader'),
+  ImageUploaderView = Views.class('ImageUploader'),
   PhotoView = Views.class('Photo'),
   GridView = Views.class('Grid'),
   SlideView = Views.class('Slide'),
@@ -162,7 +162,7 @@ BoxView.render(vu => {
 // TextArea
 // @textArea
 TextAreaView.dom( vu => (`
-	<textarea ${vu.ID} data-component="textArea"></textarea>
+	<textarea ${vu.ID} class="view-textarea" data-component="textArea"></textarea>
 `));
 
 TextAreaView.render(vu => {
@@ -180,13 +180,13 @@ TextAreaView.render(vu => {
     });
 });
 
-// ImageUpLoader
+// ImageUploader
 // @preview
 // @button 
 // @files: a file input
 // done <- files: array, an array of files 
-ImageUpLoaderView.dom( vu => (`
-	<div ${vu.ID} style="border: 1px solid #111; width: 540px; padding: 0 20px">
+ImageUploaderView.dom( vu => (`
+	<div ${vu.ID} class="view-image-uploader">
 		<div data-component="preview"></div>
 		<button data-component="button">上傳</button>
 		<button data-component="done" style="float: right">完成</button>
@@ -194,7 +194,7 @@ ImageUpLoaderView.dom( vu => (`
 	</div>
 `));
 
-ImageUpLoaderView.render( vu => {
+ImageUploaderView.render( vu => {
 	let $files = vu.$el('@files');
 			$preview = vu.$el('@preview'),
 			$button = vu.$el('@button'),

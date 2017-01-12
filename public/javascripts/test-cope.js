@@ -622,7 +622,7 @@ Test.go(log => {
   Vbox.append('nav');
   Vbox.append('box');
   Vbox.append('textArea');
-  Vbox.append('imageUpLoader');
+  Vbox.append('imageUploader');
 
   //Nav
   NavView.build({
@@ -689,10 +689,10 @@ Test.go(log => {
     console.log(val);
   });
 
-  //ImageUpLoader 
+  //ImageUploader 
 
-  let ImageUpLoader = ImageUpLoaderView.build({
-    sel: '#imageUpLoader',
+  let ImageUploader = ImageUploaderView.build({
+    sel: '#imageUploader',
     method: 'append'
   }).res('value', val => {
     console.log(val);

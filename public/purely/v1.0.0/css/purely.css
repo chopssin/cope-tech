@@ -208,6 +208,23 @@
   border: 1px solid #111;
 }
 
+/* TextArea */
+.view-textarea {
+  height: 54px;
+  width: 540px;
+  max-width: 100%;
+  padding: 3px;
+  resize: none;
+}
+
+/* ImageUploader*/
+.view-image-uploader {
+  width: 540px;
+  max-width: 100%;
+  border: 1px solid #111;
+  padding: 0 20px;
+}
+
 /* Photo */
 .view-photo {
 

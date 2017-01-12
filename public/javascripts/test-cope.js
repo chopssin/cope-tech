@@ -767,10 +767,11 @@ Test.go(log =>{
 
 // Test - @PJ
 Test.go(log => {
-  log.title('@PJ: Views - Photo, Grid');
+  log.title('@PJ: Views - Photo, Grid, Slide');
 
   Vbox.append('photo');
   Vbox.append('grid');
+  Vbox.append('slide');
 
 
   PhotoView.build({
@@ -810,6 +811,29 @@ Test.go(log => {
       margin: '0 auto'
     }
   }); 
+
+  SlideView.build({
+    sel: '#slide',
+    method: 'append'
+  }).val({
+    data: [{
+      src: 'https://fakeimg.pl/980x390/282828/eae0d0/?text=Slide1',
+      link: 'https://www.google.com.tw/?q=1',
+      caption: 'This is placeholder 1'
+    }, {
+      src: 'https://fakeimg.pl/980x390/282828/eae0d0/?text=Slide2',
+      link: 'https://www.google.com.tw/?q=2',
+      caption: 'This is placeholder 2'
+    }, {
+      src: 'https://fakeimg.pl/980x390/282828/eae0d0/?text=Slide3',
+      link: 'https://www.google.com.tw/?q=3',
+      caption: 'This is placeholder 3'
+    }],
+    container: {
+      width: '680px',
+      height: '400px'
+    }
+  })
 
   log.ok();
 }); // end of test

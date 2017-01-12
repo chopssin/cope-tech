@@ -287,8 +287,8 @@ PhotoView.render(vu => {
 // -src: an array with url as value, loading this if no data import
 // -css: an object
 GridView.dom(vu =>
-  `<div ${vu.ID}>
-    <div class="row" data-component="grid">
+  `<div class='view-grid' ${vu.ID}>
+      <div class='row clear-margin' data-component="grid"></div>
     </div>
   </div>`
 );
@@ -334,6 +334,111 @@ GridView.render(vu => {
     vu.$el().css(v.css);
   })
 });
+
+// Slide
+// @slideItem
+// @slideCaption
+// @slideNav
+SlideView.dom(vu =>
+  `<div class="view-slide" ${vu.ID}>
+    <div class="slide">
+      <i class="slideButton slideButtonLeft glyphicon glyphicon-chevron-left"></i>
+      <i class="slideButton slideButtonRight glyphicon glyphicon-chevron-right"></i>
+      <div class="banner" data-component="slideItem">
+      </div>
+      <div class="caption">
+        <ul data-component="slideCaption">
+        </ul>
+      </div>
+      <div class="slideNav">
+        <ul data-component="slideNav">          
+        </ul>
+      </div>
+    </div>
+  </div>`
+);
+SlideView.render(vu => {
+
+  let slideWidth = parseInt($(".view-slide").css('width'));
+  let slideHeight = parseInt($("view-slide").css('height'));
+
+  //  setting CSS to adjust slide
+  vu.use('data').then(v => {
+
+
+    if(Array.isArray(v.data)){
+      let currentNumber = 0;
+      let totalSlideNumber = v.data.length - 1;
+
+      //  DOM setting
+      v.data.forEach((item, index) => {
+        vu.$el('@slideItem').append('<a href='+ item.link +'><div class="slideItem item' + index +'"></a>');
+        vu.$el('@slideCaption').append('<li>'+ item.caption +'<li>');
+        vu.$el('@slideNav').append('<li><i class="glyphicon glyphicon-stop"></i></li>');
+      })
+
+      //  CSS Setting
+      $('.view-slide').css({
+        'width': v.container.width,
+        'height': v.container.height
+      });
+      $('.banner').css({
+        'width': slideWidth*(totalSlideNumber+1),
+        'height': slideHeight
+      });
+      $('.slideItem').css({
+        'width': slideWidth,
+        'height': slideHeight
+      });
+      $('.caption').css('width', slideWidth);
+      $('.caption').find('ul').css('width', slideWidth*3);
+      $('.caption').find('li').css('width', slideWidth);
+      v.data.forEach((item, index) => {
+        $('.item'+ index).css('background-image', item.src);
+      })
+
+
+      let checkSlideNumber = (slideNumber, totalSlide) => {
+        if (slideNumber < 0) {
+            return totalSlide;
+        } else if (slideNumber > totalSlide) {
+            return 0;
+        } else {
+            return slideNumber;
+        }
+      };
+
+      $('.slideButtonRight').on('click', function() {
+        currentNumber++;
+        currentNumber = checkSlideNumber(currentNumber, totalSlideNumber);
+        $('.banner').animate({
+            'left': -slideWidth * currentNumber
+        }, 400);
+        $('.caption ul').animate({
+            'left': -slideWidth * currentNumber
+        }, 400);
+        $('.slideNav li').removeClass('active');
+        $('.slideNav li:eq(' + currentNumber + ')').addClass('active');
+      });
+
+      $('.slideButtonLeft').on('click', function() {
+        currentNumber--;
+        currentNumber = checkSlideNumber(currentNumber, totalSlideNumber);
+        $('.banner').animate({
+            'left': -slideWidth * currentNumber
+        }, 400);
+
+        $('.caption ul').animate({
+            'left': -slideWidth * currentNumber
+        }, 400);
+
+        $('.slideNav li').removeClass('active');
+        $('.slideNav li:eq(' + currentNumber + ')').addClass('active');
+       });
+    }
+  })
+})
+
 
 // Select
 // @select

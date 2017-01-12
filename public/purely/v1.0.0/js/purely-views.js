@@ -7,7 +7,8 @@ let NavView = Views.class('Nav'),
   PhotoView = Views.class('Photo'),
   GridView = Views.class('Grid'),
   SlideView = Views.class('Slide'),
-  SelectView = Views.class('Select');
+  SelectView = Views.class('Select'),
+  UListView = Views.class('Ulist');
 
 // NavView
 // @logo
@@ -61,13 +62,15 @@ NavView.dom(vu => (`
   </header>`));
 
 NavView.render(vu => {
-
   // Just with logoText
   vu.use('@logo.logoText').then(v => {
     vu.$el('@logo').html(v['@logo'].logoText);
   });
+  //userItems, signedIn, member 
   vu.use('signedIn, user-items').then(v => {
+    console.log(v.member);
     vu.$el('@signIn').removeClass('hidden');
+    vu.$el('@user').removeClass('hidden');
   	if (v.signedIn) {
       vu.$el('@signIn').hide();
       vu.$el('@user').show();
@@ -84,6 +87,20 @@ NavView.render(vu => {
     	}
     });
   });
+  //mainItems
+  vu.use('mainItems').then(v=> {
+    //vu.$el('@main-items').append(`<ul data-component="user-defined-items"><ul>`);
+    UListView.build({
+      sel: vu.sel('@main-items'),
+      data: {
+        comp: "user-defined-items",
+        items: v.mainItems
+      }
+    }).res('comp', comp => {
+      console.log(comp);
+    });
+  });  
+
   //navItems
   vu.use('navItems').then(v => {
     vu.$el('@menu-button').parent().removeClass('hidden');
@@ -130,8 +147,39 @@ NavView.render(vu => {
     vu.$el('@user-menu').fadeOut(300);
     $(".logo .float-right").hide();
   });
-});
 
+});
+//UList
+//-comp: str, set element data-component
+//-items: array, input for list
+UListView.dom(vu => (`
+  <div ${vu.ID}>
+    <ul></ul>
+  </div>
+`));
+UListView.render(vu => {
+  vu.use('items').then(v =>{
+    v.items.forEach( obj =>{ 
+      if(obj.comp && obj.href ){
+        vu.$el('ul').append(`<li class="user" data-component=${obj.comp}><a href=${obj.href}>${obj.title}</a></li>`);
+      } else if(obj.comp) {
+        vu.$el('ul').append(`<li class="user" data-component=${obj.comp}><a>${obj.title}</a></li>`);
+      } else if(obj.href) {
+        vu.$el('ul').append(`<li class="user"><a href=${obj.href}>${obj.title}</a></li>`);
+      } else {
+        vu.$el('ul').append(`<li class="user"><a>${obj.title}</a></li>`);
+      }
+
+      if (obj.comp) {
+        let $li = vu.$el(`@${obj.comp}`)
+        $li.off('click').on('click', ()=> {
+          vu.res('$comp', $li);
+          vu.res('comp', obj.comp);
+        });
+      }  
+    });  
+  });
+})
 // BoxView
 // @box
 // -css: object, @box's style

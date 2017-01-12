@@ -644,14 +644,16 @@ Test.go(log => {
   Vbox.append('textArea');
   Vbox.append('imageUploader');
 
-  Vbox('nav').log('Heil Hydra!');
+  Vbox('nav').log('no data');
 
-  NavView.build({
+  let navA = NavView.build({
     sel: '#nav',
     method: 'append'
   });
-  $('#nav').append('signIn, navItems, css, @logo');
-  NavView.build({
+
+  Vbox('nav').log('signIn, navItems, css, @logo');
+  
+  let navB = NavView.build({
     sel: '#nav',
     method: 'append'
   }).val({
@@ -669,13 +671,44 @@ Test.go(log => {
     }
   });
 
+  Vbox('nav').log('signIn, member, user-items')
+
+  let navC = NavView.build({
+    sel: '#nav',
+    method: 'append',
+    data: {
+      member: true,
+      signedIn: false,
+      "user-items": [{title:"Account", href:"#"},{title:"Sign Out", comp:'signOut'}]
+    }
+  }).res('signIn', () => {
+    navC.val({
+      signedIn: true
+    });
+  }).res('signOut', () => {
+    navC.val({
+      signedIn: false
+    });
+  });;
+
+  Vbox('nav').log('mainItem');
+
+  let navD = NavView.build({
+    sel: '#nav',
+    method: 'append',
+    data: {
+      mainItems:[{title:"About",comp:"About",href:"#"},{title:"FAQ",comp:"FAQ"}]
+    }
+  });
+
+
   //Box
-  let BoxA = BoxView.build({
+  let boxA = BoxView.build({
     sel: '#box',
     method: 'append'
   });
 
-  BoxA.val({
+  boxA.val({
     css:{
       "width": "100px",
       "height": "100px",
@@ -686,8 +719,8 @@ Test.go(log => {
     }
   });
 
-  let BoxB = BoxView.build({
-    sel: BoxA.sel(),
+  let boxB = BoxView.build({
+    sel: boxA.sel(),
     method: 'append'
   }).val({
     css:{

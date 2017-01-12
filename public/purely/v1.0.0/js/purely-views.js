@@ -21,7 +21,7 @@ let NavView = Views.class('Nav'),
 // @user-menu
 // @user-items: ul
 // -signedIn: bool, check user signed
-// -list: array, input for @item
+// -navItems: array, input for @item
 // -user-items: array, input for @user-items
 // -css: object, NavView's style
 // -@logo: object
@@ -34,13 +34,13 @@ NavView.dom(vu => (`
     <div data-component="logo" class="logo bg">Logo</div>
     <div class="float-right">
       <nav data-component="main-items">
-        <ul data-component="signIn" class="hidden-xs">
+        <ul data-component="signIn" class="hidden-xs hidden">
           <li><a class="user">Sign in</a></li>
         </ul>
-        <ul data-component="user" class="hidden-xs">
+        <ul data-component="user" class="hidden-xs hidden">
           <li><a class="user">User Name</a></li>
         </ul>
-        <ul>
+        <ul class="hidden">
           <li data-component="menu-button" class="menu-icon glyphicon glyphicon-menu-hamburger"></li>
         </ul>
       </nav>
@@ -48,14 +48,14 @@ NavView.dom(vu => (`
     <div class="view-nav-items bg-w" data-component="menu" >
       <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
       <nav style="text-align: center;">
-        <ul data-component="nav-items" id="nav-items">
+        <ul data-component="nav-items" >
         </ul>
       </nav>
     </div>
     <div style="z-index: 2;" class="view-nav-items  bg-w" data-component="user-menu">
       <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
     	<nav style="text-align: center;">
-				<ul data-component="user-items" id="user-items" ></ul>
+				<ul data-component="user-items"></ul>
     	</nav>
     </div>
   </header>`));
@@ -66,8 +66,8 @@ NavView.render(vu => {
   vu.use('@logo.logoText').then(v => {
     vu.$el('@logo').html(v['@logo'].logoText);
   });
-
   vu.use('signedIn, user-items').then(v => {
+    vu.$el('@signIn').removeClass('hidden');
   	if (v.signedIn) {
       vu.$el('@signIn').hide();
       vu.$el('@user').show();
@@ -75,45 +75,32 @@ NavView.render(vu => {
       vu.$el('@signIn').show();
       vu.$el('@user').hide();
     }
-    if($('#user-items li').length === 0){
-	    v["user-items"].forEach(obj => {
-	    	if(obj.href){
-	    		vu.$el("@user-items").append(`<li class="user"><a href=${obj.href}>${obj.title}</a></li>`)
-	    	} else {
-	    		vu.$el("@user-items").append(`<li class="user"><a data-component=${obj.comp}>${obj.title}</a></li>`)
-	    	}
-	    });
-	  }
-  });
-
-  vu.use('navItems').then(v => {
-  	console.log("hello");
-  	if($('#nav-items li').length === 0){
-	  	v.navItems.forEach(obj => {
-	      vu.$el('@nav-items').append(`<li class="user"><a href=${obj.href}>${obj.title}</a></li>`);
-	    });
-	  }
-  });
-
-  vu.use('navItems, signedIn, css, @logo.css, $logo.logoText').then(v => {
-    //list
-    v.navItems.forEach(obj => {
-      vu.$el('@nav-items').append(`<li><a href=${obj.href}>${obj.title}</a></li>`);
+    vu.$el('@user-items').html('');
+    v["user-items"].forEach(obj => {
+    	if(obj.href){
+    		vu.$el("@user-items").append(`<li class="user"><a href=${obj.href}>${obj.title}</a></li>`)
+    	} else {
+    		vu.$el("@user-items").append(`<li class="user"><a data-component=${obj.comp}>${obj.title}</a></li>`)
+    	}
     });
-    //signedIn
-    if (v.signedIn) {
-      vu.$el('@signIn').hide();
-      vu.$el('@user').show();
-    } else {
-      vu.$el('@signIn').show();
-      vu.$el('@user').hide();
-    }
-    //css
+  });
+  //navItems
+  vu.use('navItems').then(v => {
+    vu.$el('@menu-button').parent().removeClass('hidden');
+  	vu.$el('@nav-items').html('');
+    v.navItems.forEach(obj => {
+      vu.$el('@nav-items').append(`<li class="user"><a href=${obj.href}>${obj.title}</a></li>`);
+    });
+  });
+  //css
+  vu.use('css').then(v=> {
     vu.$el().css(v.css);
     if (v.css.height) {
       vu.$el().css('line-height', v.css.height);
     }
-    //@logo
+  });
+  //@logo
+  vu.use('@logo.css').then(v => {
     vu.$el('@logo').css(v['@logo'].css);
     vu.$el('@logo').html(v['@logo'].logoText);
   });

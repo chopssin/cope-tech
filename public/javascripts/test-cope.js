@@ -84,7 +84,20 @@ const setTest = function() {
 
 // Vbox 
 const setVbox = function() {
-  let vbox = {};
+  let $selector;
+
+  let vbox = function(_id) {
+    $selector = $('#' + _id);
+    return vbox;
+  };
+
+  vbox.log = function(_msg) {
+    $selector.append(`<div style="
+      font-size: 1.5em;
+      padding: 16px;
+      color: #987;
+    ">${_msg}</div>`);  
+  };
 
   vbox.append = function(_str) {
     if (typeof _str == 'string') {
@@ -631,18 +644,19 @@ Test.go(log => {
   Vbox.append('textArea');
   Vbox.append('imageUploader');
 
-  //Nav
+  Vbox('nav').log('Heil Hydra!');
+
   NavView.build({
     sel: '#nav',
     method: 'append'
   });
-
+  $('#nav').append('signIn, navItems, css, @logo');
   NavView.build({
     sel: '#nav',
     method: 'append'
   }).val({
     signedIn: true,
-    list: [{title:"HOME",href:"#"},{title:"About",href:"#"},{title:"FAQ",href:"#"}], // { title, href }
+    navItems: [{title:"HOME",href:"#"},{title:"About",href:"#"},{title:"FAQ",href:"#"}], // { title, href }
     css: {
       "height": "100px",
       "background-color": "#aca",

@@ -197,12 +197,14 @@ BoxView.render(vu => {
 // Textarea
 // @textarea
 TextareaView.dom( vu => {
-	return `<div ${vu.ID} class="view-textarea" contenteditable="true"></div>`
+	return `<div ${vu.ID} class="view-textarea">
+      <textarea rows="1"></textarea>
+    </div>`;
 });
 
 TextareaView.render(vu => {
   let height, 
-      $this = vu.$el(),
+      $this = vu.$el('textarea'),
       value = vu.get('value'),
       content;
 
@@ -214,19 +216,18 @@ TextareaView.render(vu => {
 
   let autosize = function(e) {
 
-     console.log('inner', this.innerHTML);
+     console.log('inner', this.value);
 
     // Update the value
-    let updatedValue = this.innerHTML
-      .replace(/<div>/g, '')
-      .replace(/<\/div>|<br>/g, '\n')
+    let updatedValue = this.value
+      .replace(/<div[^\>]*>|<br>/g, '\n')
+      .replace(/<[^<>]+>/g, '')
       .replace(/\&nbsp\;/g, ' ')
-      .replace(/&gt;/g,'')
-      .replace(/&lt;/g,'')
+      .replace(/&gt;/g,'>')
+      .replace(/&lt;/g,'<')
       .trim() || '';
-  
+    
     vu.set('value', updatedValue);
-
     vu.res('value', updatedValue);
 
     this.style.height = 'auto';
@@ -239,8 +240,9 @@ TextareaView.render(vu => {
       .replace(/\n/g, '<br>')
       .replace(/\s/g, '&nbsp;')
     : '';
-    console.log(content);
-  $this[0].innerHTML = content;
+    console.log(value);
+  //$this[0].innerHTML = content;
+  $this.text(value);
 
   $this.each(function () {
     this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow:hidden;');

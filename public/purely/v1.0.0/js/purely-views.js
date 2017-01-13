@@ -218,18 +218,12 @@ TextareaView.render(vu => {
 
     // Update the value
     let updatedValue = this.innerHTML
-      .replace(/\<br\>/g, '\n')
+      .replace(/<div>/g, '')
+      .replace(/<\/div>|<br>/g, '\n')
       .replace(/\&nbsp\;/g, ' ')
-      .replace(/\<.+\>/g, '')
-      .replace(/\&gt\;/g,'')
-      .replace(/\&lt\;/g,'')
+      .replace(/&gt;/g,'')
+      .replace(/&lt;/g,'')
       .trim() || '';
-
-    let test = this.innerHTML;
-
-    // TBD
-    let matches = test.match(/\<div\>^[\<\>]+\<\\>/g);
-    console.log(matches);
   
     vu.set('value', updatedValue);
 

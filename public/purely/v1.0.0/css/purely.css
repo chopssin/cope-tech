@@ -209,7 +209,7 @@
 }
 
 /* Textarea */
-.view-textarea {
+/*.view-textarea {
   display: block;
   width: 100%;
   max-width: 540px;
@@ -220,11 +220,12 @@
   overflow: hidden;
   background-color: #fff;
   padding: 0;
-}
-.view-textarea textarea {
+}*/
+.view-textarea {
   height: auto;
-  min-height: 28px;
+  min-height: 30px;
   width: 100%;
+  max-width: 540px;
   padding-left: 6px;
   overflow: hidden;
   margin: 0;
@@ -232,6 +233,10 @@
   border: none;
   outline: none;
   background-color: #fff;
+  font-size: 25px;
+  font-weight: 300;
+  letter-spacing: 0;
+  line-height: 28px;
 }
 
 /* ImageUploader*/

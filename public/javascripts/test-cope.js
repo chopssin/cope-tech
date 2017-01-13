@@ -580,12 +580,14 @@ Test.go(log => {
   
   let Post = Views.class('Post');
 
-  Post.dom(vu => `<div ${vu.ID}>
-    <h3 data-component="title"></h3>
+  Post.dom(vu => `<div ${vu.ID} class="_Post">
+    <h3 data-component="title" class="_post-h3"></h3>
     <p data-component="content"></p>
   </div>`);
   
   Post.render(vu => {
+
+    log('Inside Post.render' + `vu.$el('._Post').length = ${ vu.$el('._Post').length }`);
 
     vu.$el().css({
       'max-width': '540px',

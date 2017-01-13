@@ -2,7 +2,7 @@ const Views = Cope.useViews('Purely');
 
 let NavView = Views.class('Nav'),
   BoxView = Views.class('Box'),
-  TextAreaView = Views.class('TextArea'),
+  TextareaView = Views.class('Textarea'),
   ImageUploaderView = Views.class('ImageUploader'),
   PhotoView = Views.class('Photo'),
   GridView = Views.class('Grid'),
@@ -194,13 +194,13 @@ BoxView.render(vu => {
   });
 });
 
-// TextArea
-// @textArea
-TextAreaView.dom( vu => (`
-	<textarea ${vu.ID} class="view-textarea" data-component="textArea"></textarea>
+// Textarea
+// @textarea
+TextareaView.dom( vu => (`
+	<textarea ${vu.ID} class="view-textarea" data-component="textarea"></textarea>
 `));
 
-TextAreaView.render(vu => {
+TextareaView.render(vu => {
   let $this = vu.$el();
   $this
     .css({

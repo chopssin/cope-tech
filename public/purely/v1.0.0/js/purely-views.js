@@ -197,12 +197,13 @@ BoxView.render(vu => {
 // Textarea
 // @textarea
 TextareaView.dom( vu => {
-	return `<div ${vu.ID} class="view-textarea" contenteditable="true"></div>`
+	return `<textarea rows="1" ${vu.ID} class="view-textarea">
+    </textarea>`;
 });
 
 TextareaView.render(vu => {
   let height, 
-      $this = vu.$el(),
+      $this = vu.$el('textarea'),
       value = vu.get('value'),
       content;
 
@@ -214,19 +215,18 @@ TextareaView.render(vu => {
 
   let autosize = function(e) {
 
-     console.log('inner', this.innerHTML);
+    console.log('resize', this.scrollHeight);
 
     // Update the value
-    let updatedValue = this.innerHTML
-      .replace(/<div>/g, '')
-      .replace(/<\/div>|<br>/g, '\n')
-      .replace(/\&nbsp\;/g, ' ')
-      .replace(/&gt;/g,'')
-      .replace(/&lt;/g,'')
-      .trim() || '';
-  
+    let updatedValue = this.value.trim();
+      //.replace(/<div[^\>]*>|<br>/g, '\n')
+      //.replace(/<[^<>]+>/g, '')
+      //.replace(/\&nbsp\;/g, ' ')
+      //.replace(/&gt;/g,'>')
+      //.replace(/&lt;/g,'<')
+      //.trim() || '';
+    
     vu.set('value', updatedValue);
-
     vu.res('value', updatedValue);
 
     this.style.height = 'auto';
@@ -234,21 +234,28 @@ TextareaView.render(vu => {
   };
   
   // Insert the value
-  content = value 
-    ? value.trim()
-      .replace(/\n/g, '<br>')
-      .replace(/\s/g, '&nbsp;')
-    : '';
-    console.log(content);
-  $this[0].innerHTML = content;
+  $this.val(value);
 
   $this.each(function () {
-    this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow:hidden;');
+    console.log('value', value);
+    let lineH = 28,
+        initH = lineH + 6;
+
+    // Calculate initial scroll height via the value
+    if (value && value.length) {
+      initH += lineH * (value.match(/\n/g) || []).length;
+    }
+    this.style.height = 'auto';
+    this.setAttribute('style', 'height:' + (this.scrollHeight || initH) + 'px;overflow:hidden;');
   })
   .off('keyup')
-  .off('click')
-  .on('keyup', autosize)
-  .on('click', autosize);
+  .off('focus')
+  .on('focus', autosize)
+  .on('keyup', autosize);
+
+  setTimeout(function() {
+    $this.click();
+  }, 1000);
 });
 
 // ImageUploader

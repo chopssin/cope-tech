@@ -208,22 +208,35 @@
   border: 1px solid #111;
 }
 
-/* TextArea */
-.view-textarea {
-  height: auto;
-  min-height: 28px;
+/* Textarea */
+/*.view-textarea {
+  display: block;
   width: 100%;
   max-width: 540px;
-  padding-left: 6px;
   font-size: 25px;
   font-weight: 300;
   letter-spacing: 0;
   line-height: 28px;
   overflow: hidden;
+  background-color: #fff;
+  padding: 0;
+}*/
+.view-textarea {
+  height: auto;
+  min-height: 30px;
+  width: 100%;
+  max-width: 540px;
+  padding-left: 6px;
+  overflow: hidden;
+  margin: 0;
   resize: none;
   border: none;
   outline: none;
   background-color: #fff;
+  font-size: 25px;
+  font-weight: 300;
+  letter-spacing: 0;
+  line-height: 28px;
 }
 
 /* ImageUploader*/

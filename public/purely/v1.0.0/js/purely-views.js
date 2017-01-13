@@ -196,23 +196,65 @@ BoxView.render(vu => {
 
 // Textarea
 // @textarea
-TextareaView.dom( vu => (`
-	<textarea ${vu.ID} class="view-textarea" data-component="textarea"></textarea>
-`));
+TextareaView.dom( vu => {
+	return `<div ${vu.ID} class="view-textarea" contenteditable="true"></div>`
+});
 
 TextareaView.render(vu => {
-  let $this = vu.$el();
-  $this
-    .css({
-      height: $this.height() + 'px',
-      'overflow-y': 'hidden'
-    })
-    .off('keyup')
-    .on('keyup', () => {
-      $this.css('height', 'auto');
-      $this.css('height', `${$this[0].scrollHeight}px`);
-      vu.res('value', $this.val().trim());
-    });
+  let height, 
+      $this = vu.$el(),
+      value = vu.get('value'),
+      content;
+
+  // Replace html entities:
+  // "<" -> "&lt;"
+  // ">" -> "&gt;"
+  // " " -> "&nbsp;"
+  // "\n" -> "<br>"
+
+  let autosize = function(e) {
+
+     console.log('inner', this.innerHTML);
+
+    // Update the value
+    let updatedValue = this.innerHTML
+      .replace(/\<br\>/g, '\n')
+      .replace(/\&nbsp\;/g, ' ')
+      .replace(/\<.+\>/g, '')
+      .replace(/\&gt\;/g,'')
+      .replace(/\&lt\;/g,'')
+      .trim() || '';
+
+    let test = this.innerHTML;
+
+    // TBD
+    let matches = test.match(/\<div\>^[\<\>]+\<\\>/g);
+    console.log(matches);
+  
+    vu.set('value', updatedValue);
+
+    vu.res('value', updatedValue);
+
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+  };
+  
+  // Insert the value
+  content = value 
+    ? value.trim()
+      .replace(/\n/g, '<br>')
+      .replace(/\s/g, '&nbsp;')
+    : '';
+    console.log(content);
+  $this[0].innerHTML = content;
+
+  $this.each(function () {
+    this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow:hidden;');
+  })
+  .off('keyup')
+  .off('click')
+  .on('keyup', autosize)
+  .on('click', autosize);
 });
 
 // ImageUploader

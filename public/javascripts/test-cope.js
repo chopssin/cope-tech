@@ -736,17 +736,19 @@ Test.go(log => {
   //BoxB.val('test', 0).val('test', 2)
 
   //Textarea
-  let Textarea = TextareaView.build({
+  let textarea = TextareaView.build({
     sel: '#textarea',
     method: 'append',
     data: {
-      value: ""
+      value: "11\nHello\nworld"
     }
-  }).res('value', val => {
-    console.log(val);
-    Textarea.val({
-      "value": val
-    });
+  }).res('value', value => {
+    console.log(value);
+  })
+
+  let textarea2 = TextareaView.build({
+    sel: '#textarea',
+    method: 'append'
   });
 
   //ImageUploader 

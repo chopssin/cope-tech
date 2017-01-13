@@ -210,11 +210,20 @@
 
 /* TextArea */
 .view-textarea {
-  height: 54px;
-  width: 540px;
-  max-width: 100%;
-  padding: 3px;
+  height: auto;
+  min-height: 28px;
+  width: 100%;
+  max-width: 540px;
+  padding-left: 6px;
+  font-size: 25px;
+  font-weight: 300;
+  letter-spacing: 0;
+  line-height: 28px;
+  overflow: hidden;
   resize: none;
+  border: none;
+  outline: none;
+  background-color: #fff;
 }
 
 /* ImageUploader*/

@@ -2,7 +2,7 @@ const Views = Cope.useViews('Purely');
 
 let NavView = Views.class('Nav'),
   BoxView = Views.class('Box'),
-  TextAreaView = Views.class('TextArea'),
+  TextareaView = Views.class('Textarea'),
   ImageUploaderView = Views.class('ImageUploader'),
   PhotoView = Views.class('Photo'),
   GridView = Views.class('Grid'),
@@ -194,25 +194,61 @@ BoxView.render(vu => {
   });
 });
 
-// TextArea
-// @textArea
-TextAreaView.dom( vu => (`
-	<textarea ${vu.ID} class="view-textarea" data-component="textArea"></textarea>
-`));
+// Textarea
+// @textarea
+TextareaView.dom( vu => {
+	return `<div ${vu.ID} class="view-textarea" contenteditable="true"></div>`
+});
 
-TextAreaView.render(vu => {
-  let $this = vu.$el();
-  $this
-    .css({
-      height: $this.height() + 'px',
-      'overflow-y': 'hidden'
-    })
-    .off('keyup')
-    .on('keyup', () => {
-      $this.css('height', 'auto');
-      $this.css('height', `${$this[0].scrollHeight}px`);
-      vu.res('value', $this.val().trim());
-    });
+TextareaView.render(vu => {
+  let height, 
+      $this = vu.$el(),
+      value = vu.get('value'),
+      content;
+
+  // Replace html entities:
+  // "<" -> "&lt;"
+  // ">" -> "&gt;"
+  // " " -> "&nbsp;"
+  // "\n" -> "<br>"
+
+  let autosize = function(e) {
+
+     console.log('inner', this.innerHTML);
+
+    // Update the value
+    let updatedValue = this.innerHTML
+      .replace(/<div>/g, '')
+      .replace(/<\/div>|<br>/g, '\n')
+      .replace(/\&nbsp\;/g, ' ')
+      .replace(/&gt;/g,'')
+      .replace(/&lt;/g,'')
+      .trim() || '';
+  
+    vu.set('value', updatedValue);
+
+    vu.res('value', updatedValue);
+
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+  };
+  
+  // Insert the value
+  content = value 
+    ? value.trim()
+      .replace(/\n/g, '<br>')
+      .replace(/\s/g, '&nbsp;')
+    : '';
+    console.log(content);
+  $this[0].innerHTML = content;
+
+  $this.each(function () {
+    this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow:hidden;');
+  })
+  .off('keyup')
+  .off('click')
+  .on('keyup', autosize)
+  .on('click', autosize);
 });
 
 // ImageUploader

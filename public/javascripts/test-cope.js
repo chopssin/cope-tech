@@ -640,10 +640,10 @@ Test.go(log => {
 
 // Test - @hydra
 Test.go(log => {
-  log.title('@hydra: Views - Nav, Box, TextArea, ImageUploader');
+  log.title('@hydra: Views - Nav, Box, Textarea, ImageUploader');
   Vbox.append('nav');
   Vbox.append('box');
-  Vbox.append('textArea');
+  Vbox.append('textarea');
   Vbox.append('imageUploader');
 
   Vbox('nav').log('no data');
@@ -737,12 +737,20 @@ Test.go(log => {
   //console.log(BoxB);
   //BoxB.val('test', 0).val('test', 2)
 
-  //TextArea
-  let TextArea = TextAreaView.build({
-    sel: '#textArea',
+  //Textarea
+  let textarea = TextareaView.build({
+    sel: '#textarea',
+    method: 'append',
+    data: {
+      value: "11\nHello\nworld"
+    }
+  }).res('value', value => {
+    console.log(value);
+  })
+
+  let textarea2 = TextareaView.build({
+    sel: '#textarea',
     method: 'append'
-  }).res('value', val => {
-    console.log(val);
   });
 
   //ImageUploader 

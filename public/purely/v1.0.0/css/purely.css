@@ -93,7 +93,7 @@
 .view-nav {
   display: block;
   width: 100%;
-  height: 2.85em;
+  min-height: 2.85em;
   line-height:  2.85em;
   position: relative;
   padding: 0;

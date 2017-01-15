@@ -112,9 +112,9 @@ NavView.render(vu => {
   //css
   vu.use('css').then(v=> {
     vu.$el().css(v.css);
-    if (v.css.height) {
-      vu.$el().css('line-height', v.css.height);
-    }
+    //if (v.css.height) {
+    //  vu.$el().css('line-height', v.css.height);
+    //}
   });
   //@logo
   vu.use('@logo.css').then(v => {

@@ -2,7 +2,7 @@
 var debug = Cope.Util.setDebug('views.js', true),
     Editor = Cope.useEditor(),
     
-    Views = Cope.useViews('views'), // global views
+    Views = Cope.useViews('Cope'), // global views
     ViewAppCard = Views.class('AppCard'),
     ViewAppPage = Views.class('AppPage'),
     ViewDataGraph = Views.class('DataGraph'),

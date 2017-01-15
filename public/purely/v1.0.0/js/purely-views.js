@@ -250,7 +250,7 @@ ImageUploaderView.render( vu => {
 				reader.onload = e => {
 					console.log(files);
 					files.push(e.target.result);
-					//vu.$el(`@img-${i}`).append(`<img src="${e.target.result}" class="img-responsive">`);
+					//vu.$el(`@img-${i}`).append(`<img src="$e.target.result}" class="img-responsive">`);
 					GridView.build({
 						sel: vu.sel(`@preview`)   
 					}).val({
@@ -265,14 +265,14 @@ ImageUploaderView.render( vu => {
 });
 
 // PhotoView
-// @img: for image src
-// @caption: for image caption
-// -link: an url for href
-// -src: an image url
-// -caption: a caption for the photo
-// -css: an object for decoration the outer div
-// -css['@img']: an object for decoration the img
-// -css['@caption']: an object for decoration the caption
+// @img: for photo src
+// @caption: for photo caption
+// -link: string, the url for the photo
+// -src: string, the photo url
+// -caption: string, a caption for the photo
+// -css: object, css for decoration the outer div
+// -css['@img']: object, css for decoration the img
+// -css['@caption']: object, css for decoration the caption
 PhotoView.dom(vu =>
   `<div ${vu.ID}>
     <a href="#">
@@ -327,13 +327,13 @@ PhotoView.render(vu => {
 
 // GridView
 // @grid: a div contain grid
-// -data: an array of object with attribute 'src', 'caption','link' such as {
+// -data: array of object, an array of object with attribute 'src', 'caption','link' such as {
 //   src: 'https://fakeimg.pl/440x320/282828/eae0d0/?text=World1',
 //   caption: 'This is a placeholder',
 //   link: 'https://www.google.com.tw/?q=1'
 // }
-// -src: an array with url as value, loading this if no data import
-// -css: an object
+// -src: array, contain url as value, loading [src] if no [data] import
+// -css: object, decoration for the grid
 GridView.dom(vu =>
   `<div class='view-grid' ${vu.ID}>
       <div class='row clear-margin' data-component="grid"></div>
@@ -384,9 +384,17 @@ GridView.render(vu => {
 });
 
 // Slide
-// @slideItem
-// @slideCaption
-// @slideNav
+// @slideItem: div to show slide image
+// @slideCaption: li to show slide caption
+// @slideNav: li to show slide nav
+// -data: array of object, with attribute 'src', 'caption','link' such as {
+//   src: 'https://fakeimg.pl/440x320/282828/eae0d0/?text=World1',
+//   caption: 'This is a placeholder',
+//   link: 'https://www.google.com.tw/?q=1'
+// }
+// -container: object, set attribute for width and heigh with default value: 980*390
+// -autoSlide: boolean, set auto change slide with default value: true
+// -changeTime: numnber, set the time for slide auto-changing
 SlideView.dom(vu =>
   `<div class="view-slide" ${vu.ID}>
     <div class="slide">
@@ -407,45 +415,59 @@ SlideView.dom(vu =>
 );
 SlideView.render(vu => {
 
-  let slideWidth = parseInt($(".view-slide").css('width'));
-  let slideHeight = parseInt($("view-slide").css('height'));
+  // Default CSS Setting
+  let containerCSS = {
+    width: '680px',
+    height: '390px'
+  };
 
-  //  setting CSS to adjust slide
+  vu.use('container').then(v => {
+    containerCSS.width = v.container.width;
+    containerCSS.height = v.container.height;
+  })
+  
+  vu.$el('.view-slide').css(containerCSS);
+  console.warn(vu);
+  // console.warn(vu.$el('.view-slide').css('width'));
+
+  //  Loading Data
+  /*
   vu.use('data').then(v => {
-
 
     if(Array.isArray(v.data)){
       let currentNumber = 0;
       let totalSlideNumber = v.data.length - 1;
 
-      //  DOM setting
+      //  Default DOM setting
       v.data.forEach((item, index) => {
-        vu.$el('@slideItem').append('<a href='+ item.link +'><div class="slideItem item' + index +'"></a>');
-        vu.$el('@slideCaption').append('<li>'+ item.caption +'<li>');
+        vu.$el('@slideItem').append('<a href='+ item.link +'><div class="slideItem item' + index +'"></div></a>');
+        vu.$el('@slideCaption').append('<li>'+ item.caption +'</li>');
         vu.$el('@slideNav').append('<li><i class="glyphicon glyphicon-stop"></i></li>');
       })
+        vu.$el('@slideNav').find('li').first().addClass('active');
 
-      //  CSS Setting
-      $('.view-slide').css({
-        'width': v.container.width,
-        'height': v.container.height
-      });
-      $('.banner').css({
+      let slideWidth = vu.$el(".view-slide").width();
+      let slideHeight = vu.$el(".view-slide").height();
+      console.log(slideWidth, slideHeight);
+
+      //  setting CSS to adjust slide
+      vu.$el('.banner').css({
         'width': slideWidth*(totalSlideNumber+1),
         'height': slideHeight
       });
-      $('.slideItem').css({
+      vu.$el('.slideItem').css({
         'width': slideWidth,
         'height': slideHeight
       });
-      $('.caption').css('width', slideWidth);
-      $('.caption').find('ul').css('width', slideWidth*3);
-      $('.caption').find('li').css('width', slideWidth);
+      vu.$el('.caption').css('width', slideWidth);
+      vu.$el('.caption').find('ul').css('width', slideWidth*(totalSlideNumber+1));
+      vu.$el('.caption').find('li').css('width', slideWidth);
+
       v.data.forEach((item, index) => {
-        $('.item'+ index).css('background-image', item.src);
+        vu.$el('.item'+ index).css('background-image', 'url('+item.src+')');
       })
 
-
+      //  SlideFunction
       let checkSlideNumber = (slideNumber, totalSlide) => {
         if (slideNumber < 0) {
             return totalSlide;
@@ -456,35 +478,42 @@ SlideView.render(vu => {
         }
       };
 
-      $('.slideButtonRight').on('click', function() {
-        currentNumber++;
+      let changeSlide = () => {
         currentNumber = checkSlideNumber(currentNumber, totalSlideNumber);
-        $('.banner').animate({
+        vu.$el('.banner').animate({
             'left': -slideWidth * currentNumber
         }, 400);
-        $('.caption ul').animate({
+        vu.$el('.caption ul').animate({
             'left': -slideWidth * currentNumber
         }, 400);
-        $('.slideNav li').removeClass('active');
-        $('.slideNav li:eq(' + currentNumber + ')').addClass('active');
+        vu.$el('.slideNav li').removeClass('active');
+        vu.$el('.slideNav li:eq(' + currentNumber + ')').addClass('active');
+      }
+
+      vu.$el('.slideButtonRight').on('click', function() {
+        currentNumber++;
+        changeSlide();
       });
 
-      $('.slideButtonLeft').on('click', function() {
+      vu.$el('.slideButtonLeft').on('click', function() {
         currentNumber--;
-        currentNumber = checkSlideNumber(currentNumber, totalSlideNumber);
-        $('.banner').animate({
-            'left': -slideWidth * currentNumber
-        }, 400);
-
-        $('.caption ul').animate({
-            'left': -slideWidth * currentNumber
-        }, 400);
-
-        $('.slideNav li').removeClass('active');
-        $('.slideNav li:eq(' + currentNumber + ')').addClass('active');
+        changeSlide();
        });
+
+      //  SetInterval
+      let changeTime = vu.val('changeTime') || 3000;
+      if(!(vu.val('autoSlide') === false)){
+        let auto = () => {
+          currentNumber++;
+          changeSlide();
+        }
+        let clock = setInterval(auto, changeTime);
+
+        //  Stop while hovering
+        vu.$el('.banner, .slideButton').hover(() => clearInterval(clock), () => clock = setInterval(auto, 1000));
+      }
     }
-  })
+  })*/
 })
 
 

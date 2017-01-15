@@ -242,6 +242,7 @@
 /* Slide */
 .view-slide {
   margin: 0 auto;
+  background: #DADADA url('https://fakeimg.pl/980x390/DADADA/?text=NoSlide') no-repeat center center;
 }
 .view-slide .slide{
   width: 100%;
@@ -271,9 +272,9 @@
   position: relative;
 }
 .view-slide .banner .slideItem {
-  float: left;
-/*  width: 780px;
+  /*  width: 780px;
   height: 390px;*/
+  float: left;
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center center;
@@ -303,10 +304,10 @@
   padding: 0;
 }
 .view-slide .caption ul li {
+  /*width: 780px;*/
   float: left;
   padding: 10px;
   font-size: 20px;
-  /*width: 780px;*/
   color: #DADADA;
 }
 .view-slide .slideNav {

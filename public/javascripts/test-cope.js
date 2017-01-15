@@ -853,6 +853,18 @@ Test.go(log => {
       src: 'https://fakeimg.pl/980x390/282828/eae0d0/?text=Slide1',
       link: 'https://www.google.com.tw/?q=1',
       caption: 'This is placeholder 1'
+    }]
+  })
+  
+  /*
+  SlideView.build({
+    sel: '#slide',
+    method: 'append'
+  }).val({
+    data: [{
+      src: 'https://fakeimg.pl/980x390/282828/eae0d0/?text=Slide1',
+      link: 'https://www.google.com.tw/?q=1',
+      caption: 'This is placeholder 1'
     }, {
       src: 'https://fakeimg.pl/980x390/282828/eae0d0/?text=Slide2',
       link: 'https://www.google.com.tw/?q=2',
@@ -861,12 +873,20 @@ Test.go(log => {
       src: 'https://fakeimg.pl/980x390/282828/eae0d0/?text=Slide3',
       link: 'https://www.google.com.tw/?q=3',
       caption: 'This is placeholder 3'
+    }, {
+      src: 'https://fakeimg.pl/980x390/282828/eae0d0/?text=Slide4',
+      link: 'https://www.google.com.tw/?q=4',
+      caption: 'This is placeholder 4'
     }],
     container: {
       width: '680px',
       height: '400px'
-    }
+    },
+    autoSlide: true,
+    changeTime: 3000,
   })
+  */
+  
 
   log.ok();
 }); // end of test

@@ -1,5 +1,8 @@
 extends layout
 
+block stylesheets
+  link( rel="stylesheet" href="/stylesheets/cope-style.css" )
+
 block content
   #page-container.purely.cope
     #nav.nav-top
@@ -27,5 +30,7 @@ block content
              
 block javascripts
   script( src = "https://d3js.org/d3.v4.min.js" )
-  script( src = "javascripts/views.js" )
-  script( src = "javascripts/cope-home.js" )
+  script( src = "/javascripts/cope-views.js" )
+  script( src = "/javascripts/cope-pages.js" )
+  script( src = "/javascripts/cope-main.js" )
+  //script( src = "/javascripts/cope-home.js" )

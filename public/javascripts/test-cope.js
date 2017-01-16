@@ -580,12 +580,14 @@ Test.go(log => {
   
   let Post = Views.class('Post');
 
-  Post.dom(vu => `<div ${vu.ID}>
-    <h3 data-component="title"></h3>
+  Post.dom(vu => `<div ${vu.ID} class="_Post">
+    <h3 data-component="title" class="_post-h3"></h3>
     <p data-component="content"></p>
   </div>`);
   
   Post.render(vu => {
+
+    log('Inside Post.render' + `vu.$el('._Post').length = ${ vu.$el('._Post').length }`);
 
     vu.$el().css({
       'max-width': '540px',
@@ -638,11 +640,12 @@ Test.go(log => {
 
 // Test - @hydra
 Test.go(log => {
-  log.title('@hydra: Views - Nav, Box, TextArea, ImageUploader');
+  log.title('@hydra: Views - Nav, Box, Textarea, ImageUploader');
   Vbox.append('nav');
   Vbox.append('box');
-  Vbox.append('textArea');
+  Vbox.append('textarea');
   Vbox.append('imageUploader');
+  Vbox.append('form');
 
   Vbox('nav').log('no data');
 
@@ -735,12 +738,20 @@ Test.go(log => {
   //console.log(BoxB);
   //BoxB.val('test', 0).val('test', 2)
 
-  //TextArea
-  let TextArea = TextAreaView.build({
-    sel: '#textArea',
+  //Textarea
+  let textarea = TextareaView.build({
+    sel: '#textarea',
+    method: 'append',
+    data: {
+      value: "11\nHello\nworld"
+    }
+  }).res('value', value => {
+    console.log(value);
+  });
+
+  let textarea2 = TextareaView.build({
+    sel: '#textarea',
     method: 'append'
-  }).res('value', val => {
-    console.log(val);
   });
 
   //ImageUploader 
@@ -752,7 +763,44 @@ Test.go(log => {
     console.log(val);
   });
   log.ok();
-});
+
+  //form
+  let form = FormView.build({
+    sel: '#form',
+    method: 'append',
+    data:{
+      inputs:[{type: "text", label: "name", placeholder: "inputYourName", comp: "input-name"},
+              {type: "text", label: "age", placeholder: "inputYourAge", comp: "input-age"},
+              {type: "text", placeholder: "nothing", comp: "input-nothing"},
+              {type: "text",}],
+      values: []              
+    }
+  });
+
+  let boxC = BoxView.build({
+    sel: '#form',
+    method: 'append',
+    data:{
+      css: { 
+        "width": "400px",
+        "height": "200px",
+        "display": "inline-flex",
+        "border": "2px solid #aca"
+      }
+    }
+  });
+  boxC.$el().click(() => {
+    let text = form.val('values').join('<br>');
+    console.log('--text--',text);
+    boxC.$el().html(text);
+  });
+
+
+}); // end of Test
+
+
+
+
 
 // Test - @Assface
 Test.go(log =>{

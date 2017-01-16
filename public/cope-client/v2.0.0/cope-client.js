@@ -1131,9 +1131,13 @@
           return root;
         } else if (_path.charAt(0) === '@') { // eg. "@display"
           let cmp = '[data-component="' + _path.slice(1) + '"]';
-          return root + cmp + ', ' + root + ' ' + cmp; 
+          if (cmp.indexOf(' ') > -1) {
+            console.error(`Invalid data-component "${cmp}"`);
+          } else {
+            return root + cmp + ', ' + root + ' ' + cmp; 
+          }
         }
-        return root + ' ' + _path;
+        return root + _path + ', ' + root + ' ' + _path;
       };
 
       vu.$el = function(_path) {

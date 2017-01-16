@@ -1,4 +1,5 @@
 *.log
+*.swp
 client-secret.json
 node_modules/*
 **/*.DS_STORE

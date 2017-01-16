@@ -1,10 +1,244 @@
-(function($) {
+(function(){
+//const UlistView = Views.class('Ulist'),
 const G = Cope.appGraph('testApp2'),
-      test = Cope.Util.setTest('test-cope'),
-      debug = Cope.Util.setDebug('test-cope', true),
-      Views = Cope.useViews('test-cope'),
       TestBlock = Views.class('TestBlock'),
-      TestBar = Views.class('TestBar');
+      TestBar = Views.class('TestBar'),
+      Viewport = Views.class('Viewport');
+
+// Views
+// TestBlock
+TestBlock.dom(vu => `
+  <div ${vu.ID} style="margin:30px 0; border:2px solid #999; padding: 16px">
+    <div data-component="status">
+      <div data-component="light"></div>
+      <h3 data-component="title"></h3>
+    </div>
+    <div data-component="log">
+    </div>
+  </div>
+`);
+
+TestBlock.render(vu => {
+
+  if (vu.get('ok')) {
+    vu.$el('@light').css({
+    'display': 'inline-block',
+    'width': '20px',
+    'height': '20px',
+    'border-radius': '99em',
+    'background-color': 'green',
+    'padding': '6px'
+  });
+  } else {
+    vu.$el('@light').css({
+    'display': 'inline-block',
+    'width': '20px',
+    'height': '20px',
+    'border-radius': '99em',
+    'background-color': 'red',
+    'padding': '6px'
+  });
+  }
+
+  if (!vu.get('hide')) {
+    vu.$el().show();
+  } else {
+    vu.$el().hide();
+  }
+
+  vu.use('title').then(v => {
+    vu.$el('@title').text(v.title);
+  });
+});
+ 
+// TestBar
+TestBar.dom(vu => `
+  <div ${vu.ID} class="row" style="text-align: left; border:2px solid black">
+    <a class="col-xs-4 inspector" data-component="tests">Tests</a>
+    <div class="col-xs-4 inspector" data-component="green-light">
+      <span class="green light"></span>
+      <span data-component="passed"></span>
+    </div>
+    <div class="col-xs-4 inspector" data-component="red-light">
+      <span class="red light"></span>
+      <span data-component="failed">${ vu.val('total') }</span>
+    </div>
+  </div>
+`);
+
+TestBar.render(vu => {
+  
+  // Set CSS
+  vu.$el('@tests').css({
+    //'cursor': 'pointer',
+    'font-size': '40px',
+    //'padding': '15px'
+  });
+
+  $('.inspector').css({
+    //'top': '20px',
+    'display': 'inline-block',
+    //'margin': '0px 100px 0 280px',
+    'cursor': 'pointer',
+    'padding': '15px'
+  })
+  .off('mouseenter')
+  .off('mouseleave')
+  .on('mouseenter', function() {
+    console.log($(this));  
+    $(this).css('background-color', '#abc');
+  })
+  .on('mouseleave', function() {
+    $(this).css('background-color', 'transparent');
+  });
+
+  vu.$el('.red.light').css({
+    'display': 'inline-block',
+    'width': '30px',
+    'height': '30px',
+    'border-radius': '99em',
+    'background-color': 'red'
+  });
+
+  vu.$el('.green.light').css({
+    'display': 'inline-block', 
+    'width': '30px',
+    'height': '30px',
+    'border-radius': '99em',
+    'background-color': 'green'
+  });
+
+  if (!vu.get('tests')) {
+    vu.set('tests', {});
+  }
+
+  if (!vu.get('passed')) {
+    vu.set('passed', {});
+  }
+  
+  let tests = vu.get('tests'),
+      passed = vu.get('passed');
+
+  vu.use('addTest').then(v => {
+    tests[v.addTest] = true;
+  });
+
+  vu.use('ok').then(v => {
+    passed[v.ok] = true;
+  });
+    
+  let testsCount = Object.keys(tests).length,
+      passedCount = Object.keys(passed).length;
+
+  vu.$el('@passed').html(passedCount).css({'font-size': '40px'});
+  vu.$el('@failed').html(testsCount - passedCount).css({'font-size': '40px'});
+
+  vu.$el('@green-light').off('click').on('click', () => {
+    vu.res('findPassed');
+  });
+
+  vu.$el('@red-light').off('click').on('click', () => {
+    vu.res('findFailed');
+  });
+
+  //選擇在dom中data-component="tests"的tag，當按下的時候便射出一個名為test的參數出去
+  vu.$el('@tests').off('click').on('click', () =>{
+    vu.res('Tests');
+  });
+});
+
+// Viewport
+// @tests
+// @purely
+// @views
+// -switch: string, desired section, could be 'tests' || 'purely' || 'views'
+Viewport.dom(vu => `
+  <div ${vu.ID}>
+    <div class="sec" data-component="tests"></div>
+    <div class="sec" data-component="purely" class="hidden"></div>
+    <div class="sec" data-component="views" class="hidden"></div>
+  </div>
+`);
+
+Viewport.render(vu => {
+  vu.$el('.sec').css({
+    'display': 'block',
+    'positoin': 'relative',
+    'margin': '50px auto',
+    'font-size': '24px',
+    'font-weight': 'bold'
+    });
+
+  vu.$el('.sec')
+    .css({
+      padding: '16px'
+    });
+
+  vu.$el('@tests').off('click').on('click', () =>{
+    vu.res('sec');
+  });
+  
+  switch (vu.val('switch')) {
+    case 'tests':
+      vu.$el('@tests').addClass('hidden');
+      vu.$el('@purely').addClass('hidden');
+      vu.$el('@views').addClass('hidden');
+      vu.$el('@tests').removeClass('hidden');
+      break;
+    case 'purely':
+      vu.$el('@tests').addClass('hidden');
+      vu.$el('@purely').addClass('hidden');
+      vu.$el('@views').addClass('hidden');
+      vu.$el('@purely').removeClass('hidden');
+      break;
+    case 'views':
+      vu.$el('@tests').addClass('hidden');
+      vu.$el('@purely').addClass('hidden');
+      vu.$el('@views').addClass('hidden');
+      vu.$el('@views').removeClass('hidden');
+      break;
+  }
+});
+// end of Views
+
+// Build Viewport
+let viewport = Viewport.build({
+  sel: '#tests-container'
+});
+
+// Test APIs
+const setVbox = function() {
+  let $root = viewport.$el('@views'), 
+      $selector;
+
+  let vbox = function(_id) {
+    $selector = $root.find('#' + _id);
+    return vbox;
+  };
+
+  vbox.log = function(_msg) {
+    $selector.append(`<div style="
+      font-size: 1.5em;
+      padding: 16px;
+      color: #987;
+    ">${_msg}</div>`);  
+  };
+
+  vbox.append = function(_str) {
+    if (typeof _str == 'string') {
+      $root.append(`<div id="${_str}" style="
+        display: block;
+        width:　100%;
+        margin-top: 50px;
+        margin-bottom: 50px;
+        padding: 0;
+        min-height: 200px;
+        border: 2px solid #aaa;
+      "></div>`);
+    }
+  };  
+  return vbox;
+}; //end of setVbox
 
 const setTest = function() {
   let okCount = 0,
@@ -12,19 +246,53 @@ const setTest = function() {
       blocks = [],
       test = {};
 
+  // // // Build Viewport
+  // let viewport = Viewport.build({
+  //   sel: '#tests-container'
+  // });
+
   let testBar = TestBar.build({
     sel: '#test-bar'
   }).res('findPassed', () => {
     test.toggle('passed');
   }).res('findFailed', () => {
     test.toggle('failed');
-  })
+  }).res('Tests', () => {
+    //$('#tests-container').removeClass('hidden');
+    viewport.val('switch', 'tests');
+  });
+
+  let toggle = UListView.build({
+    sel: '#tests-nav',
+    data: {
+      items: [{ 
+        'title': 'Purely', 'comp': 'purely' 
+      }, {
+        'title': 'Views', 'comp': 'views'
+      }]
+    }
+  }).res('comp', item => {
+    viewport.val({ switch: item });
+  });
+
+  toggle.$el().css({
+    'cursor': 'pointer',
+    'font-size': '30px'
+  });
+  toggle.$el('ul').css({
+    'padding': '0'
+  });
+
+  toggle.$el('li').css({
+    'display': 'inline-block',
+    'margin': '15px 50px 0 0'
+  });
 
   test.go = function(_fn) {
     if (typeof _fn == 'function') {
 
       let block = TestBlock.build({
-        sel: '#tests',
+        sel: viewport.sel('@tests'),
         method: 'append'
       });
 
@@ -82,173 +350,43 @@ const setTest = function() {
   return test;
 }; // end of setTest
 
-// Vbox 
-const setVbox = function() {
-  let $selector;
-
-  let vbox = function(_id) {
-    $selector = $('#' + _id);
-    return vbox;
-  };
-
-  vbox.log = function(_msg) {
-    $selector.append(`<div style="
-      font-size: 1.5em;
-      padding: 16px;
-      color: #987;
-    ">${_msg}</div>`);  
-  };
-
-  vbox.append = function(_str) {
-    if (typeof _str == 'string') {
-      $('#views').append(`<div id="${_str}" style="
-        display: block;
-        width:　100%;
-        margin-top: 50px;
-        margin-bottom: 50px;
-        padding: 0;
-        min-height: 200px;
-        border: 2px solid #aaa;
-      "></div>`);
-    }
-  };  
-  return vbox;
-}; //end of setVbox
-
+// Set Vbox
 const Vbox = setVbox();
-
-// TestBar
-TestBar.dom(vu => `
-  <div ${vu.ID} style="text-align: center">
-    <div class="green light">
-      <img src="img/green.jpg" width="25" height="25">
-      <span data-component="passed"></span>
-    </div>
-    <div class="red light">
-      <img src="img/red.jpg" width="25" height="25">
-      <span data-component="failed">${ vu.val('total') }</span>
-    </div>
-  </div>
-`);
-
-TestBar.render(vu => {
-  
-  // Set CSS
-  vu.$el('.light').css({
-    'display': 'inline-block',
-    'width': '100px',
-    'font-size': '18px',
-    'font-weight': 'bold',
-    'padding': '6px'
-  });
-
-  if (!vu.get('tests')) {
-    vu.set('tests', {});
-  }
-
-  if (!vu.get('passed')) {
-    vu.set('passed', {});
-  }
-  
-  let tests = vu.get('tests'),
-      passed = vu.get('passed');
-
-  vu.use('addTest').then(v => {
-    tests[v.addTest] = true;
-  });
-
-  vu.use('ok').then(v => {
-    passed[v.ok] = true;
-  });
-    
-  let testsCount = Object.keys(tests).length,
-      passedCount = Object.keys(passed).length;
-
-  vu.$el('@passed').html(passedCount);
-  vu.$el('@failed').html(testsCount - passedCount);
-
-  vu.$el('@passed').off('click').on('click', () => {
-    vu.res('findPassed');
-  });
-
-  vu.$el('@failed').off('click').on('click', () => {
-    vu.res('findFailed');
-  });
-});
-
-// TestBlock
-TestBlock.dom(vu => `
-  <div ${vu.ID} style="margin:30px 0; border:2px solid #999; padding: 16px">
-    <div data-component="status">
-      <img data-component="light" src="img/red.jpg" width="20" height="20">
-      <h3 data-component="title"></h3>
-    </div>
-    <div data-component="log">
-    </div>
-  </div>
-`);
-
-TestBlock.render(vu => {
-
-  if (vu.get('ok')) {
-    vu.$el('@light').prop('src', 'img/green.jpg');
-  } else {
-    vu.$el('@light').prop('src', 'img/red.jpg');
-  }
-
-  if (!vu.get('hide')) {
-    vu.$el().show();
-  } else {
-    vu.$el().hide();
-  }
-
-  vu.use('title').then(v => {
-    vu.$el('@title').text(v.title);
-  });
-});
-
-//show & hide
-function Show(){  
-  $('#toggle, #tests-status')
-    //.append(`<a id="toggle-purely">Purely</a>`)
-    //.append(`<a id="toggle-app-graph">Tests</a>`)
-    //.append(`<a id="toggle-views">Views</a>`)
-    .css({
-      'display': 'block',
-      'positoin': 'relative',
-      'margin': '50px auto',
-      'text-align': 'center',
-      'font-size': '24px',
-      'font-weight': 'bold'
-    });
-
-
-  $('#toggle a, #toggle-tests')
-    .css({
-      padding: '16px'
-    });
-
-  $('#toggle-purely, #toggle-views, #toggle-tests')
-    .click(function() {
-      $('#purely, #tests, #views').addClass('hidden');
-      switch ($(this).prop('id')) {
-        case 'toggle-purely':
-          $('#purely').removeClass('hidden');
-          break;
-        case 'toggle-tests':
-          $('#tests').removeClass('hidden');
-          break;
-        case 'toggle-views':
-          $('#views').removeClass('hidden');
-          break;
-      }
-    });
-}
-
-Show(); // TBD: Show is redundancy, extract the program plz
 
 // Set Tests
 const Test = setTest();
+
+
+// Tests Page
+
+// let toggle = UListView.build({
+//   sel: '#tests-nav',
+//   data: {
+//     items: [{ 
+//       'title': 'Purely', 'comp': 'purely' 
+//     }, {
+//       'title': 'Views', 'comp': 'views'
+//     }]
+//   }
+// }).res('comp', item => {
+//   console.log(item);
+//   switch (item) {
+//     case 'purely':
+//     break;
+//     case 'views':
+//     break;
+
+//   }
+// });
+
+
+// Tests
+
+// Viewport
+// @tests
+// @purely
+// @views
+// -switch: string, desired section, could be 'tests' || 'purely' || 'views'
 
 // Simplest test
 Test.go(log => {
@@ -256,7 +394,7 @@ Test.go(log => {
   log('Hello world');
   log.ok();
 });
-  
+
 // Tests with setTimeout
 setTimeout(function() {
   Test.go(log => {
@@ -317,7 +455,7 @@ Test.go(log => {
   log.title('Purely');
 
   // Set viewport of Purely
-  $('#purely').css({
+  viewport.$el('@purely').css({
     'border': '3px solid #333',
     'height': '80vh',
     'margin-bottom': '100px',
@@ -379,7 +517,7 @@ Test.go(log => {
 
   // Build Navbar
   let nav = NavView.build({
-    sel: '#purely',
+    sel: viewport.sel('@purely'),
     data: {
       signedIn: false,
       'user-items':[{title:"Account", href:"#"},{title:"Sign Out", comp:'signOut'}],
@@ -400,7 +538,7 @@ Test.go(log => {
 
   // Build some sections
   let secCover = BoxView.build({
-    sel: '#purely',
+    sel: viewport.sel('@purely'),
     method: 'append',
     data: {
       css: {
@@ -412,7 +550,7 @@ Test.go(log => {
   });
 
   let secCol = BoxView.build({
-    sel: '#purely',
+    sel: viewport.sel('@purely'),
     method: 'append',
     data: {
       css: {
@@ -424,7 +562,7 @@ Test.go(log => {
   });
 
   let secAbout = BoxView.build({
-    sel: '#purely',
+    sel: viewport.sel('@purely'),
     method: 'append',
     data: {
       css: {
@@ -436,7 +574,7 @@ Test.go(log => {
   });
 
   let secContact = BoxView.build({
-    sel: '#purely',
+    sel: viewport.sel('@purely'),
     method: 'append',
     data: {
       css: {
@@ -448,7 +586,7 @@ Test.go(log => {
   });
 
   let secFooter = BoxView.build({
-    sel: '#purely',
+    sel: viewport.sel('@purely'),
     method: 'append',
     data: {
       css: {
@@ -542,7 +680,7 @@ Test.go(log => {
     log(`<br>`);
 
     nodes.forEach(node => {
-      debug(node.key, node.snap());
+      console.log(node.key, node.snap());
       //log('[' + node.key + ']');
       // log(JSON.stringify(node.snap(), null, 4)
       //     .replace(/\n/g, '<br>')
@@ -580,14 +718,12 @@ Test.go(log => {
   
   let Post = Views.class('Post');
 
-  Post.dom(vu => `<div ${vu.ID} class="_Post">
-    <h3 data-component="title" class="_post-h3"></h3>
+  Post.dom(vu => `<div ${vu.ID}>
+    <h3 data-component="title"></h3>
     <p data-component="content"></p>
   </div>`);
   
   Post.render(vu => {
-
-    log('Inside Post.render' + `vu.$el('._Post').length = ${ vu.$el('._Post').length }`);
 
     vu.$el().css({
       'max-width': '540px',
@@ -762,7 +898,6 @@ Test.go(log => {
   }).res('value', val => {
     console.log(val);
   });
-  log.ok();
 
   //form
   let form = FormView.build({
@@ -795,12 +930,9 @@ Test.go(log => {
     boxC.$el().html(text);
   });
 
+  log.ok();
 
-}); // end of Test
-
-
-
-
+});
 
 // Test - @Assface
 Test.go(log =>{
@@ -893,39 +1025,6 @@ Test.go(log => {
     }
   }); 
 
-SlideView.build({
-    sel: '#slide',
-    method: 'append'
-  }).val({
-    data: [{
-      src: 'http://htmlcolorcodes.com/assets/images/html-color-codes-color-tutorials-hero-00e10b1f.jpg',
-      link: 'https://www.google.com.tw/?q=1',
-      caption: 'This is placeholder 1'
-    }, {
-      src: 'http://www.planwallpaper.com/static/images/6790904-free-background-wallpaper.jpg',
-      link: 'https://www.google.com.tw/?q=2',
-      caption: 'This is placeholder 2'
-    }, {
-      src: 'http://www.psdgraphics.com/file/fresh-background.jpg',
-      link: 'https://www.google.com.tw/?q=3',
-      caption: 'This is placeholder 3'
-    }],
-    container: {
-      width: '680px',
-      height: '400px'
-    },
-    captionFontCSS: {
-      "font-size": "42px",
-      "color": "#FFF",
-      "width": "300px"
-    },
-    autoSlide: true,
-    changeTime: 3000,
-    showArrow: false,
-    mode: 'center'
-  })
-  
-  
   SlideView.build({
     sel: '#slide',
     method: 'append'
@@ -942,27 +1041,17 @@ SlideView.build({
       src: 'https://fakeimg.pl/980x390/282828/eae0d0/?text=Slide3',
       link: 'https://www.google.com.tw/?q=3',
       caption: 'This is placeholder 3'
-    }, {
-      src: 'https://fakeimg.pl/980x390/282828/eae0d0/?text=Slide4',
-      link: 'https://www.google.com.tw/?q=4',
-      caption: 'This is placeholder 4'
     }],
     container: {
       width: '680px',
       height: '400px'
-    },
-    captionFontCSS: {
-      "font-size": "25px"
-    },
-    autoSlide: true,
-    changeTime: 3000,
-    showArrow: true,
-    mode: 'slide'
+    }
   })
-  
-  
 
   log.ok();
-}); // end of test
+});
 
-})(jQuery)
+// end Tests
+
+
+})(jQuery, Cope);

@@ -1,26 +1,13 @@
 extends layout
 
 block content
-  #page-container.purely
-    #page.page-wrap.cope
-      .container
-        .row
-          .col-xs-12
-            #tests-status
-              a#toggle-tests Tests
-              #test-bar
-          .col-xs-12
-            #toggle
-              a#toggle-purely Purely
-              a#toggle-views Views
-          .col-xs-12
-            #purely
-          .col-xs-12
-            #tests.hidden
-          .col-xs-12
-            #views.hidden
+  #page-container.purely.container
+    .row
+      .col-xs-12
+        #test-bar
+        #tests-nav
+        #tests-container
+
  
 block javascripts
-  script( src = "https://d3js.org/d3.v4.min.js" )
-  script( src = "javascripts/views.js" )
-  script( src = "javascripts/test-cope.js" )
+  script( src = "javascripts/tests.js" )

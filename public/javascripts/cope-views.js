@@ -1,12 +1,13 @@
 (function($, Cope) {
-var debug = Cope.Util.setDebug('views.js', true),
-    Editor = Cope.useEditor(),
+var debug = Cope.Util.setDebug('cope-views', true),
+    //Editor = Cope.useEditor(),
     
-    Views = Cope.useViews('views'), // global views
+    Views = Cope.views('Cope'), // global views
     ViewAppCard = Views.class('AppCard'),
     ViewAppPage = Views.class('AppPage'),
     ViewDataGraph = Views.class('DataGraph'),
     ViewAccountCard = Views.class('AccountCard'),
+    ToggleView = Views.class('Toggle');
 
     priViews = Cope.useViews(), // private views
     ViewAddInput = priViews.class('AddInput');
@@ -46,21 +47,21 @@ ViewAppCard.render(function() {
 ViewAccountCard.dom(function() {
   return '<div' + this.ID + '>' 
     + '<h3 data-component="name">Cope User</h3>'
-    + '<p data-component="mail"></p>'
+    + '<p data-component="email"></p>'
     + '<button data-component="signout" class="cope-card as-btn bg-blue color-w">Sign out</button>'
     + '</div>';
 });
 
 ViewAccountCard.render(function() {
   var $signout = this.$el('@signout'),
-      mail = this.val('mail'),
+      email = this.val('email'),
       that = this;
 
-  if (mail) this.$el('@mail').html(mail);
+  if (email) this.$el('@email').html(email);
 
   $signout.off('click').on('click', function() {
     debug('Sign out');
-    that.res('signout');
+    that.res('sign out');
   });
 });
 // end of "AccountCard"
@@ -69,35 +70,35 @@ ViewAccountCard.render(function() {
 ViewAppPage.dom(function() {
   return '<div' + this.ID + 'class="row">' 
     + '<div class="col-xs-12" style="height:700px; overflow:hidden">'
-      + '<div class="svg-wrap" data-component="svg">0</div>'
+      + '<div class="cope-card bg-w node-data hidden" ></div>'
+      + '<div class="svg-wrap" style="width:100%" data-component="svg">0</div>'
       + '<div data-component="card" class="cope-card touchable wrap bg-w" style="text-align:left"><ul>'
         + '<li data-component="display-li">' 
           + '<div class="title">App Name</div>'
           + '<div data-component="appName"></div>'
         + '</li>'
-        + '<li class="hidden">' 
+        + '<li>' 
           + '<div class="title">App Id</div>'
           + '<div data-component="appId"></div>'
         + '</li>'
-        + '<li class="hidden">' 
+        + '<li>' 
           + '<div class="title">URL</div>'
           + '<div data-component="url"></div>'
         + '</li>'
-        + '<li class="hidden">' 
+        + '<li>' 
           + '<div class="title">Owner</div>'
           + '<div data-component="owner"></div>'
         + '</li>'
-        + '<li class="hidden">' 
+        + '<li>' 
           + '<div class="title">Partners</div>'
           + '<div data-component="partners"></div>'
           + '<a data-component="add-partner">Add partner</a>'
         + '</li>'
-        + '<li class="hidden">' 
+        + '<li>' 
           + '<div class="title">Expired at</div>'
           + '<div data-component="expired-at"></div>'
         + '</li>'
       + '</ul></div>'
-      + '<div class="cope-card bg-w node-data" ></div>'
     + '</div>'
   + '</div>';
 }); // end of ViewAppPage.dom
@@ -123,7 +124,7 @@ ViewAppPage.render(function() {
   if (url) {
     this.$el('@url').html(url);
   } else {
-    this.$el('@url').html('cope.tech/' + appId);
+    this.$el('@url').html(appId + '.cope.tech');
   }
 
   // val.owner
@@ -140,7 +141,7 @@ ViewAppPage.render(function() { // draw the graph
       w = $svgWrap.width(),
       that = this;
 
-  if (!graph) return;
+  if (!graph || !w || !$svgWrap) return;
   
   // Build the graph view  
   Views.class('DataGraph').build({
@@ -152,6 +153,7 @@ ViewAppPage.render(function() { // draw the graph
     }
   }).res('node-data', function(_d) {
     debug(_d);  
+    that.$el('.node-data').removeClass('hidden');
     that.$el('.node-data').html(`name:${_d.id}`);
   });
 
@@ -162,27 +164,23 @@ ViewAppPage.render(function() { // draw the graph
   $card.off('click').on('click', function() {
     $card.find('li').removeClass('hidden');
     $li.removeClass('hidden');
-    //$card
-    //  .addClass('wider');
-      //.toggleClass('wrap', false, 1000, "easeOutSine");
   });
+
   $svgWrap.off('click').on('click', function() {
     $card.find('li').addClass('hidden');
     $li.removeClass('hidden');
-    //$card
-    //  .removeClass('wider');
   });
 
   // Set "add partner" link
   $addPartner.off('click').on('click', function() {
-    Editor.openModal(function(_sel) { 
-      ViewAddInput.build({
-        sel: _sel,
-        data: { placeholder: 'Email' }
-      }).res('value', function(_val) {
-        that.res('add-partner', _val);  
-      });
-    }); // end of Editor.openModal
+    //Editor.openModal(function(_sel) { 
+    //  ViewAddInput.build({
+    //    sel: _sel,
+    //    data: { placeholder: 'Email' }
+    //  }).res('value', function(_val) {
+        that.res('add-partner');  
+    //  });
+    //}); // end of Editor.openModal
   }); // end of $addPartner click
 }); // end of ViewAppPage.render // draw the graph
 // end of "AppPage"
@@ -297,5 +295,51 @@ ViewAddInput.render(function() {
   });
 });
 // end of "AddInput"
+
+// "Toggle"
+// @sec-dashboard
+// @account
+// @my-apps
+// @sec-app
+// -sec: string, 'home' || 'app'
+ToggleView.dom(vu => `
+  <div ${vu.ID} class="container" style="margin-bottom:100px">
+    <div data-component="sec-dashboard" class="row">
+      <div class="col-xs-12 col-md-4 col-md-push-8">
+        <h4>Account</h4>
+        <div data-component="account" class="cope-card bg-w wider"></div>
+      </div>
+      <div class="col-xs-12 col-md-8 col-md-pull-4">
+        <h4>Apps</h4>
+          
+        <div class="row">
+          <div data-component="my-apps" class="col-xs-12"></div>
+          <div class="col-xs-12">
+              <button class="cope-card as-btn bg-blue color-w">Add new app</button>
+          </div>
+        </div>
+        
+      </div>
+    </div>` // end of dashborad
+    + `<div data-component="sec-app" class="row hidden">
+      <div data-component="app" class="col-xs-12">
+      </div>
+    </div>
+  </div> 
+`);
+
+ToggleView.render(vu => {
+  switch (vu.get('sec')) {
+    case 'app':
+      vu.$el('@sec-dashboard').addClass('hidden');
+      vu.$el('@sec-app').removeClass('hidden');
+      break;
+    case 'home':
+    default:
+      vu.$el('@sec-app').addClass('hidden');
+      vu.$el('@sec-dashboard').removeClass('hidden');
+      break;
+  } 
+});
 
 })(jQuery, Cope, undefined)

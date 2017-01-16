@@ -395,6 +395,8 @@ GridView.render(vu => {
 // -container: object, set attribute for width and heigh with default value: 980*390
 // -autoSlide: boolean, set auto change slide with default value: true
 // -changeTime: numnber, set the time for slide auto-changing
+// -showArrow: boolean, set whether showing arrow or not with default value: true
+// -mode: string, set slide mode 'slide' or 'center' with default value: slide
 SlideView.dom(vu =>
   `<div class="view-slide" ${vu.ID}>
     <div class="slide">
@@ -427,28 +429,29 @@ SlideView.render(vu => {
   })
   
   vu.$el('.view-slide').css(containerCSS);
-  console.warn(vu);
-  // console.warn(vu.$el('.view-slide').css('width'));
 
   //  Loading Data
-  /*
   vu.use('data').then(v => {
 
     if(Array.isArray(v.data)){
       let currentNumber = 0;
       let totalSlideNumber = v.data.length - 1;
+      //  如果圖片只有一張，隱藏左右箭頭
+      if(totalSlideNumber == 0){
+        vu.$el('.slideButton').remove();
+      }
+
 
       //  Default DOM setting
       v.data.forEach((item, index) => {
-        vu.$el('@slideItem').append('<a href='+ item.link +'><div class="slideItem item' + index +'"></div></a>');
+        vu.$el('@slideItem').append('<a href='+ item.link +' target="_blank"><div class="slideItem item' + index +'"></div></a>');
         vu.$el('@slideCaption').append('<li>'+ item.caption +'</li>');
-        vu.$el('@slideNav').append('<li><i class="glyphicon glyphicon-stop"></i></li>');
+        vu.$el('@slideNav').append('<li data-navitem="'+index+'"><div class="slideNavItem"></div></li>');
       })
         vu.$el('@slideNav').find('li').first().addClass('active');
 
       let slideWidth = vu.$el(".view-slide").width();
       let slideHeight = vu.$el(".view-slide").height();
-      console.log(slideWidth, slideHeight);
 
       //  setting CSS to adjust slide
       vu.$el('.banner').css({
@@ -490,15 +493,21 @@ SlideView.render(vu => {
         vu.$el('.slideNav li:eq(' + currentNumber + ')').addClass('active');
       }
 
-      vu.$el('.slideButtonRight').on('click', function() {
+      //  slideArrowButton
+      vu.$el('.slideButtonRight').on('click', () => {
         currentNumber++;
         changeSlide();
       });
-
-      vu.$el('.slideButtonLeft').on('click', function() {
+      vu.$el('.slideButtonLeft').on('click', () => {
         currentNumber--;
         changeSlide();
        });
+
+      //  slideNavButton
+      vu.$el('.slideNav').find('li').on('click', function(){
+        currentNumber = $(this).data('navitem');
+        changeSlide();
+      });
 
       //  SetInterval
       let changeTime = vu.val('changeTime') || 3000;
@@ -510,10 +519,38 @@ SlideView.render(vu => {
         let clock = setInterval(auto, changeTime);
 
         //  Stop while hovering
-        vu.$el('.banner, .slideButton').hover(() => clearInterval(clock), () => clock = setInterval(auto, 1000));
+        vu.$el('.banner, .slideButton').hover(() => clearInterval(clock), () => clock = setInterval(auto, changeTime));
+      }
+
+      //  Set Slide Show Mode
+      let slideShowMode = vu.val('mode');
+      let modeSlide = () => {vu.$el('.caption').addClass('mode-slide')};
+      let modeCenter = () => {vu.$el('.caption').addClass('mode-center')};
+      switch (slideShowMode){
+        case 'slide':
+          modeSlide();
+          break;
+
+        case 'center':
+          modeCenter();
+          break;
+
+        default:
+          modeSlide();
       }
     }
-  })*/
+  })
+
+  vu.use('showArrow').then(v => {
+    if(v.showArrow === false) vu.$el('.slideButton').remove();
+  })
+
+  //  setting customer caption font
+  vu.use('captionFontCSS').then(v => {
+    delete v.captionFontCSS.width;
+    vu.$el('.caption').find('li').css(v.captionFontCSS);
+  })
+
 })
 
 

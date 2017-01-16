@@ -845,18 +845,39 @@ Test.go(log => {
     }
   }); 
 
-  SlideView.build({
+SlideView.build({
     sel: '#slide',
     method: 'append'
   }).val({
     data: [{
-      src: 'https://fakeimg.pl/980x390/282828/eae0d0/?text=Slide1',
+      src: 'http://htmlcolorcodes.com/assets/images/html-color-codes-color-tutorials-hero-00e10b1f.jpg',
       link: 'https://www.google.com.tw/?q=1',
       caption: 'This is placeholder 1'
-    }]
+    }, {
+      src: 'http://www.planwallpaper.com/static/images/6790904-free-background-wallpaper.jpg',
+      link: 'https://www.google.com.tw/?q=2',
+      caption: 'This is placeholder 2'
+    }, {
+      src: 'http://www.psdgraphics.com/file/fresh-background.jpg',
+      link: 'https://www.google.com.tw/?q=3',
+      caption: 'This is placeholder 3'
+    }],
+    container: {
+      width: '680px',
+      height: '400px'
+    },
+    captionFontCSS: {
+      "font-size": "42px",
+      "color": "#FFF",
+      "width": "300px"
+    },
+    autoSlide: true,
+    changeTime: 3000,
+    showArrow: false,
+    mode: 'center'
   })
   
-  /*
+  
   SlideView.build({
     sel: '#slide',
     method: 'append'
@@ -882,10 +903,15 @@ Test.go(log => {
       width: '680px',
       height: '400px'
     },
+    captionFontCSS: {
+      "font-size": "25px"
+    },
     autoSlide: true,
     changeTime: 3000,
+    showArrow: true,
+    mode: 'slide'
   })
-  */
+  
   
 
   log.ok();

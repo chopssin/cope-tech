@@ -30,6 +30,7 @@ let NavView = Views.class('Nav'),
 //   -css: object
 // "signIn" <- null
 // "signOut" <- null
+// "logo clicked" <- null 
 NavView.dom(vu => (`
   <header ${vu.ID} class="view-nav">
     <div data-component="logo" class="logo bg">Logo</div>
@@ -137,6 +138,11 @@ NavView.render(vu => {
     $(".logo .float-right").hide();
   });
  
+  // Set @logo click event
+  vu.$el('@logo').off('click').on('click', () => {
+    vu.res('logo clicked');
+  });
+
   // Set @signIn click event
   vu.$el('@signIn').off('click').on('click', () => {
     vu.res('signIn');

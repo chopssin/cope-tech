@@ -1,12 +1,13 @@
 (function($, Cope) {
-var debug = Cope.Util.setDebug('views.js', true),
-    Editor = Cope.useEditor(),
+var debug = Cope.Util.setDebug('cope-views', true),
+    //Editor = Cope.useEditor(),
     
-    Views = Cope.useViews('Cope'), // global views
+    Views = Cope.views('Cope'), // global views
     ViewAppCard = Views.class('AppCard'),
     ViewAppPage = Views.class('AppPage'),
     ViewDataGraph = Views.class('DataGraph'),
     ViewAccountCard = Views.class('AccountCard'),
+    ToggleView = Views.class('Toggle');
 
     priViews = Cope.useViews(), // private views
     ViewAddInput = priViews.class('AddInput');
@@ -46,21 +47,21 @@ ViewAppCard.render(function() {
 ViewAccountCard.dom(function() {
   return '<div' + this.ID + '>' 
     + '<h3 data-component="name">Cope User</h3>'
-    + '<p data-component="mail"></p>'
+    + '<p data-component="email"></p>'
     + '<button data-component="signout" class="cope-card as-btn bg-blue color-w">Sign out</button>'
     + '</div>';
 });
 
 ViewAccountCard.render(function() {
   var $signout = this.$el('@signout'),
-      mail = this.val('mail'),
+      email = this.val('email'),
       that = this;
 
-  if (mail) this.$el('@mail').html(mail);
+  if (email) this.$el('@email').html(email);
 
   $signout.off('click').on('click', function() {
     debug('Sign out');
-    that.res('signout');
+    that.res('sign out');
   });
 });
 // end of "AccountCard"
@@ -175,14 +176,14 @@ ViewAppPage.render(function() { // draw the graph
 
   // Set "add partner" link
   $addPartner.off('click').on('click', function() {
-    Editor.openModal(function(_sel) { 
-      ViewAddInput.build({
-        sel: _sel,
-        data: { placeholder: 'Email' }
-      }).res('value', function(_val) {
-        that.res('add-partner', _val);  
-      });
-    }); // end of Editor.openModal
+    //Editor.openModal(function(_sel) { 
+    //  ViewAddInput.build({
+    //    sel: _sel,
+    //    data: { placeholder: 'Email' }
+    //  }).res('value', function(_val) {
+    //    that.res('add-partner', _val);  
+    //  });
+    //}); // end of Editor.openModal
   }); // end of $addPartner click
 }); // end of ViewAppPage.render // draw the graph
 // end of "AppPage"
@@ -297,5 +298,51 @@ ViewAddInput.render(function() {
   });
 });
 // end of "AddInput"
+
+// "Toggle"
+// @sec-dashboard
+// @account
+// @my-apps
+// @sec-app
+// -sec: string, 'home' || 'app'
+ToggleView.dom(vu => `
+  <div ${vu.ID} class="container">
+    <div data-component="sec-dashboard" class="row">
+      <div class="col-xs-12 col-md-4 col-md-push-8">
+        <h4>Account</h4>
+        <div data-component="account" class="cope-card bg-w wider"></div>
+      </div>
+      <div class="col-xs-12 col-md-8 col-md-pull-4">
+        <h4>Apps</h4>
+          
+        <div class="row">
+          <div data-component="my-apps" class="col-xs-12"></div>
+          <div class="col-xs-12">
+              <button class="cope-card as-btn bg-blue color-w">Add new app</button>
+          </div>
+        </div>
+        
+      </div>
+    </div>` // end of dashborad
+    + `<div data-component="sec-app" class="row hidden">
+      <div data-component="app" class="col-xs-12">
+      </div>
+    </div>
+  </div> 
+`);
+
+ToggleView.render(vu => {
+  switch (vu.get('sec')) {
+    case 'app':
+      vu.$el('@sec-dashboard').addClass('hidden');
+      vu.$el('@sec-app').removeClass('hidden');
+      break;
+    case 'home':
+    default:
+      vu.$el('@sec-app').addClass('hidden');
+      vu.$el('@sec-dashboard').removeClass('hidden');
+      break;
+  } 
+});
 
 })(jQuery, Cope, undefined)

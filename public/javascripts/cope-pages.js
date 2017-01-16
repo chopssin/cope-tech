@@ -1,13 +1,22 @@
 (function() {
 
+let debug = Cope.Util.setDebug('cope-pages', true);
+
+let Graphs = Cope.Graphs;
+
 let Pages = Cope.pages('Cope'),
-    Purely = Cope.views('Purely');
+    Purely = Cope.views('Purely'),
+    CopeViews = Cope.views('Cope');
 
 // Paeg "/"
 Pages.use('/', params => {
+  // views
+  let nav,  
+      toggle, // toggle views of dashboard and app-page
+      accCard; // account card
 
   // Build navigation bar
-  let nav = Purely.class('Nav').build({
+  nav = Purely.class('Nav').build({
     sel: '#nav',
     data: {
       '@logo': {
@@ -20,18 +29,33 @@ Pages.use('/', params => {
         'height': '60px'
       }
     }
+  }).res('logo clicked', () => {
+    toggle.val('sec', 'home');
   });
 
-  // Set nav@logo hover event
-  nav.$el('@logo')
-    .off('mouseenter')
-    .off('mouseleave')
-    .on('mouseenter', () => {
-      nav.$el('@logo').css('color', '#333');
-    })
-    .on('mouseleave', () => {
-      nav.$el('@logo').css('color', '#555');
+  // Build Toggle
+  toggle = CopeViews.class('Toggle').build({
+    sel: '#page'
+  });
+
+  // Build Account Card
+  accCard = CopeViews.class('AccountCard').build({
+    sel: toggle.sel('@account')
+  }).res('sign out', () => {
+    Graphs.user().then(user => {
+      user.signOut();
     });
+  });
+
+  // Get the current user
+  Graphs.user().then(user => {
+    accCard.val('email', user.email);
+  });
+
+  // Get my apps
+  Graphs.list().then(graphs => {
+    console.log(graphs);
+  });
 
 }); // end of Page "/"
 

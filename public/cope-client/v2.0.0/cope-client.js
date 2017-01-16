@@ -62,6 +62,8 @@
     return debug;
   }; // end of setDebug
 
+  let debug = Cope.Util.setDebug('cope-client', true);
+
   // -----------------------------
   // Cope.Util.setTest
   // -----------------------------
@@ -542,11 +544,11 @@
   }; // end of Cope.dataSnap
 
   // -----------------------------
-  // Cope.useEditor
+  // editor
   // -----------------------------
-  Cope.useEditor = function(_graphDB) {
+  const editor = function(_graphDB) {
 
-    let debug = Cope.Util.setDebug('Cope.useEditor', false);
+    let debug = Cope.Util.setDebug('editor', false);
 
     let Views = Cope.useViews(),
         ModalView = Views.class('Modal'),
@@ -1091,7 +1093,7 @@
       vuModal.$el().click(); 
     };
     return my;
-  }; // end of Cope.useEditor
+  }; // end of editor
 
   // -----------------------------
   // Cope.views or Cope.useViews
@@ -1345,29 +1347,377 @@
 
     // return the newly created Pages object
     return Pages;
-  }
+  }; // end of Cope.pages
 
   // -----------------------------
-  // Cope.appGraph
+  // Cope.Graphs
   // -----------------------------
-  let hasInitFB; // has init the default firebase
-  Cope.appGraph = function(_appId) {
+  // To get the current firebase instance
+  let hasInitFB, // has init the default firebase
+      myUser; // current user using this appGraph
+
+  // To verify whether _name is valid input string
+  let notValid = function(_name) {
+    if (typeof _name == 'string'
+      && _name.charAt(0) != '_') {
+      return false;
+    }
+    debug(`[ERR] ${_name} is not valid.`);
+    return true;
+  }; // end of notValid
+
+  // To check whether _cb is a function
+  let isFunc = function(_cb) {
+    return typeof _cb == 'function';
+  };
+
+  // To verify whether the input is a node object
+  isNode = function(_node) {
+    return typeof _node == 'object' 
+      && _node 
+      && typeof _node.col == 'string'
+      && typeof _node.key == 'string';
+  };
+
+  // Get ot init firebase instance
+  let getFB = function() {
+    return {
+      then: function(_cb) {
+        if (!isFunc(_cb)) return;
+        let initFB, findFB, count = 0;
+
+        initFB = function() {
+          if (hasInitFB) {
+            return setTimeout(findFB, 100);
+          } else {
+            debug('Set hasInitFB as true');
+            hasInitFB = true;
+          }
+          // The following should be called only once
+          $.get({ url: '/cope-config' }).done(function(config) {
+            try {
+              firebase.initializeApp(config);
+              //findFB();
+              setTimeout(findFB, 100);
+            } catch (err) { 
+              console.error(err);
+            }
+          });
+        };
+
+        findFB = function() {
+          if (!hasInitFB) {
+            return setTimeout(initFB, Math.ceil(Math.random() * 1000));
+          } 
+
+          try {
+            let fbApp = firebase.app();
+            if (fbApp) {
+              debug('Found firebase app');
+              return _cb(fbApp);
+            }
+          } catch (err) {
+            if (count < 10) {
+              count++;
+              setTimeout(findFB, 100);
+            } else {
+              return console.error('Failed to find firebase instance');
+            }
+          }
+        };
+
+        // Start with findDB
+        findFB();
+      } // end of then
+    }; // end of return
+  }; // end of getFB
+  
+  // User interface
+  let makeUser = function(_user) {
+    let user = {};
+    if (!_user.uid) {
+      return;
+    }
+    let findUser = function(_email, _cb) {
+      getFB().then(function(_fb) {
+        // Find Cope user by email
+        _fb.database().ref('cope_users')
+          .orderByChild('public/email')
+          .equalTo(_email)
+          .once('value')
+          .then(function(_snap) {
+            let foundUser = null;
+            if (_snap.val()) foundUser = Object.keys(_snap.val())[0];
+            if (!foundUser) {
+              debug('dataSend', 'found no user by ' + _email);
+            } else {
+              if (typeof _cb == 'function') {
+                _cb(foundUser);
+              }
+            }
+          }).catch(function(err) {
+            debug('dataSend', 'found no user by ' + _email);
+            console.error(err);
+          });
+      });
+    }; // end of findUser
+
+    let dataUpdate = function() {
+      let args = arguments,
+          done = function() {},
+          dir = this && this.dir;
+      if (dir != 'public' && dir != 'credentials') return;
+
+      getFB().then(function(_fb) {
+        let ref = _fb.database().ref('cope_users')
+                  .child(_user.uid)
+                  .child(dir); 
+                  // dir should be either public or credentials
+
+        switch (args.length) {
+          case 0: // Do nothing...
+            break;
+          case 1: 
+            switch (typeof args[0]) {
+              case 'string': // getter
+                ref.child(args[0]).once('value').then(function(_snap) {
+                  done(_snap.val());
+                }).catch(function(err) {
+                  console.error(err);
+                });
+                break;
+              case 'object': // setter
+                let count = 0,
+                    keys = Object.keys(args[0]);
+                keys.forEach(function(_key) {
+                  ref.child(_key).set(args[0][_key])
+                    .then(function() {
+                      count++;
+                      if (count == keys.length) {
+                        done();
+                      }
+                    });
+                });
+                break;
+            }
+            break;
+          case 2: // setter
+            if (typeof args[0] == 'string') {
+              let ups = {};
+              ref.child(args[0]).set(args[1]).then(function() { done(); });
+            }
+            break;
+        } // end of switch
+      }); // end of getFB
+      return {
+        then: function(_cb) {
+          if (typeof _cb == 'function') {
+            done = _cb;
+          }
+        }
+      }
+    }; // end of function "dataUpdate"
+
+    // To send data to other Cope users' "inbox"
+    let sendInbox = function(_email, _key, _val) {
+      let done = function() {};
+      findUser(_email, function(foundUser) {
+        getFB().then(function(_fb) {
+          // Found the matched user
+          // Send data to the user
+          try {
+            _fb.database().ref('cope_users')
+              .child(foundUser)
+              .child('inbox')
+              .child(_key)
+              .child(_user.uid)
+              .set(_val)
+              .then(function() {
+                done();
+              })
+              .catch(function(err) {
+                console.error(err);
+              });
+          } catch (err) { console.error(err); }
+        }); // end of getFB
+      }); // end of findUser
+      return {
+        then: function(_cb) {
+          if (typeof _cb == 'function') {
+            done = _cb;
+          }
+        }
+      };
+    }; // end of sendInbox
+
+    // To read data from other users in "inbox"
+    let readInbox = function(_key) {
+      let done = function() {};
+      getFB().then(function(_fb) {
+        _fb.database().ref('cope_users')
+          .child(_user.uid)
+          .child('inbox')
+          .child(_key)
+          .on('value', function(_snap) {
+            done(_snap.val());
+          })
+      }); // end of getFB
+      return {
+        then: function(_cb) {
+          if (typeof _cb == 'function') {
+            done = _cb;
+          }
+        }
+      };
+    }; // end of readInbox
+
+    // To write or modify data in "inbox"
+    let writeInbox = function(_key, _val) {
+      let done = function() {};
+      getFB().then(function(_fb) {
+        _fb.database().ref('cope_users')
+          .child(_user.uid)
+          .child('inbox')
+          .child(_key)
+          .set(_val)
+          .then(function() {
+            done();
+          });
+      }); // end of getFB
+      return {
+        then: function(_cb) {
+          if (typeof _cb == 'function') {
+            done = _cb;
+          }
+        }
+      };
+    }; // end of writeInbox
+
+    user.addPartner = function(_appId, _email, _toAdd) {
+      let done = function() {};
+      findUser(_email, function(_foundUser) {
+        // TBD
+        getFB().then(function(_fb) {
+          _fb.database().ref('cope_user_apps')
+          .child(_appId)
+          .child('credentials/partners/' + _foundUser)
+          .set(_toAdd) // _toAdd should be true or null
+          .then(function() {
+            user.send(_email, 'add_partner_app', _appId).then(function() {
+              done();
+            });
+          });
+        }); // end of getFB.then
+      }); // end of findUser
+      return {
+        then: function(_cb) {
+          if (typeof _cb == 'function') done = _cb;
+        }
+      };
+    }; // end of user.addPartner
+    
+    user.val = dataUpdate.bind({ dir: 'public' });
+    user.cred = dataUpdate.bind({ dir: 'credentials' });
+    
+    // Inbox APIs: send, read, write 
+    user.send = sendInbox;
+    user.read = readInbox;
+    user.write = writeInbox;
+    
+    user.signOut = function() {
+      // TBD: sing out
+      getFB().then(fb => {
+        debug('user sign out')
+        fb.auth().signOut();
+      });
+    };
+
+    // Set email
+    user.email = _user.email;
+    return user;
+  };// end of makeUser
+
+  // Global observer for user auth 
+  let reqUserFuncs = [];
+  getFB().then(_fb => {
+    _fb.auth().onAuthStateChanged((_user) => {
+      myUser = null;
+      if (_user) {
+        myUser = makeUser(_user); // make user obj
+        debug('#user', myUser);
+
+        reqUserFuncs = reqUserFuncs.reduce((arr, fn) => {
+          fn(myUser);
+          return arr;
+        }, []);
+      } else {
+        debug('#user', 'Unverified user');
+        editor().openCopeAccount().res('try', function(pairs) {
+          // Fetch from Editor
+          let email = pairs.account,
+              password = pairs.pwd,
+              that = this;
+          debug('#user - signed in as', email);
+          getFB().then(_fb => {
+            _fb.auth().signInWithEmailAndPassword(email, password)
+              .then(() => {
+                that.val({ 'ok': true }); // talk to Editor
+              })
+              .catch((err) => {
+                debug('#user', err);
+                that.val({ 'error': err.code }); // talk to Editor
+              }); // end of catch
+          }); // end of getFB().then
+        }); // end of Editor.openCopeAccount
+      } // end of else
+    }); // end of _fb.auth()
+  }); // end of getFB()
+
+  // To continue as a user which may
+  // require user sign-in, or callback
+  // with User interface once signed in
+  // (This method could be used in both modes)
+  let getUser = function() {
+    let user = {};
+    return {
+      then: function(_cb) {
+        if (!isFunc(_cb)) return;
+        let done = _cb;
+        if (myUser) {
+          return done(myUser);
+        } else {
+          reqUserFuncs[reqUserFuncs.length] = done;
+        }
+      } // end of then
+    }; // end of return
+  }; // end of getUser
+
+  Cope.Graphs = {};
+  Cope.Graphs.user = getUser;
+  Cope.Graphs.create = {};
+  Cope.Graphs.list = function() {
+    return {
+      then: function(_cb) {
+        if (!isFunc(_cb)) return;
+        getUser().then(user => {
+          user.val('own_apps').then(myGraphs => {
+            _cb(myGraphs);
+          });
+        });
+      }
+    };
+  };
+  Cope.Graphs.remove = {};
+
+  // -----------------------------
+  // Cope.graph or Cope.appGraph
+  // -----------------------------
+  Cope.Graphs.get = Cope.graph = Cope.appGraph = function(_appId) {
 
     // To print debug messages
     let debug = Cope.Util.setDebug('appGraph', false);
-    
-    // To verify whether _name is valid input string
-    let notValid = function(_name) {
-      if (typeof _name == 'string'
-        && _name.charAt(0) != '_') {
-        return false;
-      }
-      debug(`[ERR] ${_name} is not valid.`);
-      return true;
-    }; // end of notValid
-
-    let asGlobal = (typeof _appId != 'string' || arguments.length == 0),
-        myUser, // current user using this appGraph
+        let asGlobal = (typeof _appId != 'string' || arguments.length == 0),
+        //myUser, // current user using this appGraph
         //api = {}, // to store and bind APIs to myGraph
         myGraph = {}, // the object to be returned
         GRAPH_ROOT = '', STORE_ROOT = '';
@@ -1384,333 +1734,10 @@
       } catch (err) { console.error(err); }
     }; // end of myGraphRef
 
-    // To check whether _cb is a function
-    let isFunc = function(_cb) {
-      return typeof _cb == 'function';
-    };
-
-    // To verify whether the input is a node object
-    isNode = function(_node) {
-      return typeof _node == 'object' 
-        && _node 
-        && typeof _node.col == 'string'
-        && typeof _node.key == 'string';
-    };
-
-    // To get the current firebase instance
-    let getFB = function() {
-      return {
-        then: function(_cb) {
-          if (!isFunc(_cb)) return;
-          let initFB, findFB, count = 0;
-
-          initFB = function() {
-            if (hasInitFB) {
-              return setTimeout(findFB, 100);
-            } else {
-              debug('Set hasInitFB as true');
-              hasInitFB = true;
-            }
-            // The following should be called only once
-            $.get({ url: '/cope-config' }).done(function(config) {
-              try {
-                firebase.initializeApp(config);
-                //findFB();
-                setTimeout(findFB, 100);
-              } catch (err) { 
-                console.error(err);
-              }
-            });
-          };
-
-          findFB = function() {
-            if (!hasInitFB) {
-              return setTimeout(initFB, Math.ceil(Math.random() * 1000));
-            } 
-
-            try {
-              let fbApp = firebase.app();
-              if (fbApp) {
-                debug('Found firebase app');
-                return _cb(fbApp);
-              }
-            } catch (err) {
-              if (count < 10) {
-                count++;
-                setTimeout(findFB, 100);
-              } else {
-                return console.error('Failed to find firebase instance');
-              }
-            }
-          };
-
-          // Start with findDB
-          findFB();
-        } // end of then
-      }; // end of return
-    }; // end of getFB
-
-    // User interface
-    let makeUser = function(_user) {
-      let user = {};
-      if (!_user.uid) {
-        return;
-      }
-      let findUser = function(_email, _cb) {
-        getFB().then(function(_fb) {
-          // Find Cope user by email
-          _fb.database().ref('cope_users')
-            .orderByChild('public/email')
-            .equalTo(_email)
-            .once('value')
-            .then(function(_snap) {
-              let foundUser = null;
-              if (_snap.val()) foundUser = Object.keys(_snap.val())[0];
-              if (!foundUser) {
-                debug('dataSend', 'found no user by ' + _email);
-              } else {
-                if (typeof _cb == 'function') {
-                  _cb(foundUser);
-                }
-              }
-            }).catch(function(err) {
-              debug('dataSend', 'found no user by ' + _email);
-              console.error(err);
-            });
-        });
-      }; // end of findUser
-
-      let dataUpdate = function() {
-        let args = arguments,
-            done = function() {},
-            dir = this && this.dir;
-        if (dir != 'public' && dir != 'credentials') return;
-
-        getFB().then(function(_fb) {
-          let ref = _fb.database().ref('cope_users')
-                    .child(_user.uid)
-                    .child(dir); 
-                    // dir should be either public or credentials
-
-          switch (args.length) {
-            case 0: // Do nothing...
-              break;
-            case 1: 
-              switch (typeof args[0]) {
-                case 'string': // getter
-                  ref.child(args[0]).once('value').then(function(_snap) {
-                    done(_snap.val());
-                  }).catch(function(err) {
-                    console.error(err);
-                  });
-                  break;
-                case 'object': // setter
-                  let count = 0,
-                      keys = Object.keys(args[0]);
-                  keys.forEach(function(_key) {
-                    ref.child(_key).set(args[0][_key])
-                      .then(function() {
-                        count++;
-                        if (count == keys.length) {
-                          done();
-                        }
-                      });
-                  });
-                  break;
-              }
-              break;
-            case 2: // setter
-              if (typeof args[0] == 'string') {
-                let ups = {};
-                ref.child(args[0]).set(args[1]).then(function() { done(); });
-              }
-              break;
-          } // end of switch
-        }); // end of getFB
-        return {
-          then: function(_cb) {
-            if (typeof _cb == 'function') {
-              done = _cb;
-            }
-          }
-        }
-      }; // end of function "dataUpdate"
-
-      // To send data to other Cope users' "inbox"
-      let sendInbox = function(_email, _key, _val) {
-        let done = function() {};
-        findUser(_email, function(foundUser) {
-          getFB().then(function(_fb) {
-            // Found the matched user
-            // Send data to the user
-            try {
-              _fb.database().ref('cope_users')
-                .child(foundUser)
-                .child('inbox')
-                .child(_key)
-                .child(_user.uid)
-                .set(_val)
-                .then(function() {
-                  done();
-                })
-                .catch(function(err) {
-                  console.error(err);
-                });
-            } catch (err) { console.error(err); }
-          }); // end of getFB
-        }); // end of findUser
-        return {
-          then: function(_cb) {
-            if (typeof _cb == 'function') {
-              done = _cb;
-            }
-          }
-        };
-      }; // end of sendInbox
-
-      // To read data from other users in "inbox"
-      let readInbox = function(_key) {
-        let done = function() {};
-        getFB().then(function(_fb) {
-          _fb.database().ref('cope_users')
-            .child(_user.uid)
-            .child('inbox')
-            .child(_key)
-            .on('value', function(_snap) {
-              done(_snap.val());
-            })
-        }); // end of getFB
-        return {
-          then: function(_cb) {
-            if (typeof _cb == 'function') {
-              done = _cb;
-            }
-          }
-        };
-      }; // end of readInbox
-
-      // To write or modify data in "inbox"
-      let writeInbox = function(_key, _val) {
-        let done = function() {};
-        getFB().then(function(_fb) {
-          _fb.database().ref('cope_users')
-            .child(_user.uid)
-            .child('inbox')
-            .child(_key)
-            .set(_val)
-            .then(function() {
-              done();
-            });
-        }); // end of getFB
-        return {
-          then: function(_cb) {
-            if (typeof _cb == 'function') {
-              done = _cb;
-            }
-          }
-        };
-      }; // end of writeInbox
-
-      user.addPartner = function(_appId, _email, _toAdd) {
-        let done = function() {};
-        findUser(_email, function(_foundUser) {
-          // TBD
-          getFB().then(function(_fb) {
-            _fb.database().ref('cope_user_apps')
-            .child(_appId)
-            .child('credentials/partners/' + _foundUser)
-            .set(_toAdd) // _toAdd should be true or null
-            .then(function() {
-              user.send(_email, 'add_partner_app', _appId).then(function() {
-                done();
-              });
-            });
-          }); // end of getFB.then
-        }); // end of findUser
-        return {
-          then: function(_cb) {
-            if (typeof _cb == 'function') done = _cb;
-          }
-        };
-      }; // end of user.addPartner
-      
-      user.val = dataUpdate.bind({ dir: 'public' });
-      user.cred = dataUpdate.bind({ dir: 'credentials' });
-      
-      // Inbox APIs: send, read, write 
-      user.send = sendInbox;
-      user.read = readInbox;
-      user.write = writeInbox;
-      
-      // Set email
-      user.email = _user.email;
-      return user;
-    };// end of makeUser
-
     // To continue as a user which may
     // require user sign-in, or callback
     // with User interface once signed in
-    // (This method could be used in both modes)
-    myGraph.user = function() {
-      let user = {};
-      return {
-        then: function(_cb) {
-          if (!isFunc(_cb)) return;
-          let done = _cb;
-
-          getFB().then(function(_fb) {
-            _fb.auth().onAuthStateChanged((_user) => {
-              myUser = null;
-              if (_user) {
-                myUser = makeUser(_user); // make user obj
-                debug('#user', myUser);
-                done(myUser);
-              } else {
-                debug('#user', 'Unverified user');
-              } // end of else
-            }); // end of _fb.auth()
-          }); // end of getFB()
-
-          if (myUser) {
-            return done(myUser);
-          } else {
-            Cope.useEditor(myGraph).openCopeAccount().res('try', function(pairs) {
-              // Fetch from Editor
-              let email = pairs.account,
-                  password = pairs.pwd,
-                  that = this;
-              debug('#user - signed in as', email);
-              getFB().then(_fb => {
-                _fb.auth().signInWithEmailAndPassword(email, password)
-                  .then(() => {
-                    that.val({ 'ok': true }); // talk to Editor
-                  })
-                  .catch((err) => {
-                    debug('#user', err);
-                    that.val({ 'error': err.code }); // talk to Editor
-                  }); // end of catch
-              }); // end of getFB().then
-            }); // end of useEditor
-          } // end of else (if !myUser)
-        } // end of then
-      }; // end of return
-    }; // end of myGraph.user
-
-    // # Global mode
-    if (asGlobal) {
-      myGraph.list = function() {
-        // TBD
-      };
-
-      myGraph.create = function() {
-        // TBD
-      }; 
-
-      myGraph.remove = function() {
-        // TBD
-      };
-      return myGraph;
-    };
+    myGraph.user = getUser;
 
     // # App graph mode
     // Node interface

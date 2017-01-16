@@ -1,5 +1,5 @@
 (function($, Cope) {
-var debug = Cope.Util.setDebug('cope-views', true),
+var debug = Cope.Util.setDebug('cope-views', false),
     //Editor = Cope.useEditor(),
     
     Views = Cope.views('Cope'), // global views
@@ -67,6 +67,7 @@ ViewAccountCard.render(function() {
 // end of "AccountCard"
 
 // "AppPage"
+// "rename app" <= string, the new name
 ViewAppPage.dom(function() {
   return '<div' + this.ID + 'class="row">' 
     + '<div class="col-xs-12" style="height:700px; overflow:hidden">'
@@ -76,6 +77,10 @@ ViewAppPage.dom(function() {
         + '<li data-component="display-li">' 
           + '<div class="title">App Name</div>'
           + '<div data-component="appName"></div>'
+          + '<div data-component="appName-edit" class="hidden">'
+            + '<input type="text" placeholder="App Name" style="outline:none;">'
+            + '<button class="cope-card as-btn bg-blue color-w" style="font-size:13px; padding:6px; float:right;">Done</button>'
+          + '</div>'
         + '</li>'
         + '<li>' 
           + '<div class="title">App Id</div>'
@@ -103,18 +108,18 @@ ViewAppPage.dom(function() {
   + '</div>';
 }); // end of ViewAppPage.dom
 
-ViewAppPage.render(function() {
-  let appName = this.val('appName'), // string
-      appId = this.val('appId'), // string
-      url = this.val('url'), // string
-      owner = this.val('owner'), // string
-      partners = this.val('partners'), // string array
-      expiredAt = this.val('expiredAt'); // timestamp
+ViewAppPage.render(vu => {
+  let appName = vu.val('appName'), // string
+      appId = vu.val('appId'), // string
+      url = vu.val('url'), // string
+      owner = vu.val('owner'), // string
+      partners = vu.val('partners'), // string array
+      expiredAt = vu.val('expiredAt'); // timestamp
 
-  this.$el('@appName').html(appName);
-  this.$el('@appId').html(appId);
+  vu.$el('@appName').html(appName.trim() || 'Untitled');
+  vu.$el('@appId').html(appId);
   if (owner) {
-    this.$el('@owner').html(owner);
+    vu.$el('@owner').html(owner);
   } 
   if (partners) {
     // TBD: partners
@@ -122,10 +127,31 @@ ViewAppPage.render(function() {
   }
 
   if (url) {
-    this.$el('@url').html(url);
+    vu.$el('@url').html(url);
   } else {
-    this.$el('@url').html(appId + '.cope.tech');
+    vu.$el('@url').html(appId + '.cope.tech');
   }
+
+  // @appName click event
+  vu.$el('@appName').off('click').on('click', () => {
+    vu.$el('@appName-edit').find('input').val(vu.val('appName') || 'Untitled');
+    vu.$el('@appName').addClass('hidden');
+    vu.$el('@appName-edit').removeClass('hidden');
+  });
+
+  // @appName-edit Done button click event
+  vu.$el('@appName-edit').find('button').off('click').on('click', () => {
+    vu.$el('@appName-edit').addClass('hidden');
+    vu.$el('@appName').removeClass('hidden');
+
+    let newName = vu.$el('@appName-edit').find('input').val().trim();
+    if (newName != vu.get('appName')) {
+
+      // Update app name
+      vu.res('rename app', newName);
+      vu.val('appName', newName);
+    }
+  });
 
   // val.owner
   // val.partners
@@ -301,6 +327,8 @@ ViewAddInput.render(function() {
 // @account
 // @my-apps
 // @sec-app
+// @app: show data graph
+// @app-purely: Purely live editor
 // -sec: string, 'home' || 'app'
 ToggleView.dom(vu => `
   <div ${vu.ID} class="container" style="margin-bottom:100px">
@@ -315,15 +343,15 @@ ToggleView.dom(vu => `
         <div class="row">
           <div data-component="my-apps" class="col-xs-12"></div>
           <div class="col-xs-12">
-              <button class="cope-card as-btn bg-blue color-w">Add new app</button>
+            <button class="cope-card as-btn bg-blue color-w">Add new app</button>
           </div>
         </div>
         
       </div>
     </div>` // end of dashborad
     + `<div data-component="sec-app" class="row hidden">
-      <div data-component="app" class="col-xs-12">
-      </div>
+      <div data-component="app" class="col-xs-12"></div>
+      <div data-component="app-purely" class="col-xs-12">Purely Live Editor</div>
     </div>
   </div> 
 `);

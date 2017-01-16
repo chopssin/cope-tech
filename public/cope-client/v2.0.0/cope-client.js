@@ -62,7 +62,8 @@
     return debug;
   }; // end of setDebug
 
-  let debug = Cope.Util.setDebug('cope-client', true);
+  // Global debug
+  let debug = Cope.Util.setDebug('cope-client', false);
 
   // -----------------------------
   // Cope.Util.setTest
@@ -397,8 +398,13 @@
 
     emit = function() {
       Object.keys(registry).forEach(function(id) {
-        registry[id].load(data);
+        //registry[id].load(data);
+        registry[id].set(data); // upsert data
+        registry[id].load();
       });
+
+      // Also, run all the assigned load functions
+      my.load();
     };
 
     isValidKey = function(_key) {
@@ -424,19 +430,28 @@
       switch (args.length) {
         case 1:
           switch (typeof args[0]) {
-            case 'object': 
+            case 'object': // upsert data 
+              let updated = false;
               Object.keys(args[0]).forEach(function(_key) {
-                if (!isValidKey(_key)) return;
-                data[_key] = args[0][_key];
+                if (!isValidKey(_key)) {
+                  return console.error('set: invalid key', _key);
+                }
+                if (data[_key] != args[0][_key]) {
+                  updated = true;
+                  data[_key] = args[0][_key];
+                }
               });
+              return updated;
               break;
           }
           break;
         case 2:
-          if (isValidKey(args[0])) {
+          if (isValidKey(args[0]) && data[args[0]] != args[1]) {
             data[args[0]] = args[1];
+            return true;
           }
       } // end of switch
+      return false;
     }; // end of my.set
 
     my.get = function() {
@@ -465,7 +480,6 @@
         
         // Get all values
         case 0:
-          //return data;
           return my.get.apply(my, args);
           break;
         case 1:
@@ -473,19 +487,15 @@
             
             // Get specific value by args[0]
             case 'string': 
-              //if (!isValidKey(args[0])) return;
-              //return data[args[0]]; // return the value
               return my.get.apply(my, args);
               break;
             
             // Set value(s) and emit changes
             case 'object': 
-              //Object.keys(args[0]).forEach(function(_key) {
-              //  if (!isValidKey(_key)) return;
-              //  data[_key] = args[0][_key];
-              //});
-              my.set.apply(my, args);
-              emit();
+              if (my.set.apply(my, args)) {
+                // emit iff value changed
+                emit();
+              }
               return; // return nothing
               break;
           }
@@ -493,12 +503,10 @@
 
         // Set a value and emit the change
         case 2:
-          //if (isValidKey(args[0])) {
-          //  data[args[0]] = args[1];
-          //  emit();
-          //}
-          my.set.apply(my, args);
-          emit();
+          if (my.set.apply(my, args)) {
+            // emit iff value changed
+            emit();
+          }
           return; // return nothing
           break;
       } // end of switch
@@ -513,7 +521,7 @@
         case 0: // call all funcs in loaders
           for (let _name in loaders) {
             debug('load', 'call ' + _name);
-            loaders[_name].call(my);
+            loaders[_name].call(my, data);
           }
           break;
         case 1: 
@@ -1240,7 +1248,7 @@
             } // end of if
           } // end of then
         };
-      };
+      }; // end of vu,use
 
       vu.ds = function() {
         return vuDataSnap;
@@ -1292,7 +1300,7 @@
               selector = obj.sel || obj.selector,
               method = obj.method || 'html';
           $(selector)[method](dom.call(vu, vu));
-          vu.load();
+          vu.load(); // run renderAll
           return vu;
         }; // end of proto.build
         classes[viewName] = proto;
@@ -1427,6 +1435,7 @@
               count++;
               setTimeout(findFB, 100);
             } else {
+              console.error(err);
               return console.error('Failed to find firebase instance');
             }
           }
@@ -1709,74 +1718,83 @@
   // Cope.Apps
   // -----------------------------
   Cope.Apps = {};
-  Cope.Apps.create = function(_id) {};
+  Cope.Apps.create = function(_id) {
+    // TBD
+  };
 
-  // App interface
+  // App Interface
   Cope.Apps.get = Cope.app = function(_id) {
     if (typeof _id != 'string') return;
+
+    let appRef = function(_fb) {
+      return _fb.database().ref('cope_user_apps').child(_id);
+    };
 
     let app = {};
     app.appId = _id;
     app.isOwner = false;
-    
-    return {
-      then: function(_cb) {
-        if (!isFunc(_cb) || typeof _id != 'string') {
-          return;
-        }
 
-        getFB().then(fb => {
-          let appRef = fb.database()
-            .ref('cope_user_apps')
-            .child(_id);
-    
-          // app.set
-          app.set = function(_key, _val) {
-            let done;
-            appRef.child('public').child(_key).set(_val).then(() => {
-              if (isFunc(done)) done();
-            });
-            return {
-              then: function(_cb) { done = _cb; }
-            };
-          }; // end of app.set
-
-          // app.get
-          app.get = function(_key) {
-            let done;
-            appRef.child('public').child(_key).once('value').then(snap => {
-              if (isFunc(done)) done(snap.val());
-            });
-            return {
-              then: function(_cb) { done = _cb; }
-            };
-          }; // end of app.set
-
-          // app.graph
-          app.graph = function () {
-            return Cope.graph(app.appId);
-          };
-          
-          appRef.child('credentials').once('value').then(c => {
-            appRef.child('public').once('value').then(p => {
-              c = c.val() || {};
-              p = p.val() || {};
-              // Make App interface
-              app.appName = p.appName || 'Untitled';
-              if (myUser && myUser.uid) {
-                app.isOwner = c.owner && c.owner[myUser.uid] || false;
-              }
-              console.log(myUser);
-              console.log(c);
-
-              // Callback with app
-              _cb(app);
-            }).catch(err => console.error(err));
-          }).catch(err => console.error(err));
-        });
-        
-      }
+    // app.graph
+    app.graph = function () {
+      return Cope.graph(app.appId);
     };
+    
+    // app.set
+    app.set = function(_key, _val) {
+      let done;
+      getFB().then(fb => {
+        appRef(fb).child('public').child(_key).set(_val).then(() => {
+          if (isFunc(done)) done();
+        });
+      });
+      return {
+        then: function(_cb) { done = _cb; }
+      };
+    }; // end of app.set
+
+    // app.get
+    app.get = function(_key) {
+      let done;
+      getFB().then(fb => {
+        appRef(fb).child('public').child(_key).once('value').then(snap => {
+          if (isFunc(done)) done(snap.val());
+        });
+      });
+      return {
+        then: function(_cb) { done = _cb; }
+      };
+    }; // end of app.get
+    
+    // app.cred
+    app.cred = {};
+    
+    // app.cred.set
+    app.cred.set = function(_key, _val) {
+      let done;
+      getFB().then(fb => {
+        appRef(fb).child('credentials').child(_key).set(_val).then(() => {
+          if (isFunc(done)) done();
+        });
+      });
+      return {
+        then: function(_cb) { done = _cb; }
+      };
+    }; // end of app.cred.set
+
+    // app.cred.get
+    app.cred.get = function(_key) {
+      let done;
+      getFB().then(fb => {
+        appRef(fb).child('credentials').child(_key).once('value').then(snap => {
+          if (isFunc(done)) done(snap.val());
+        });
+      });
+      return {
+        then: function(_cb) { done = _cb; }
+      };
+    }; // end of app.cred.get
+
+    return app;
   }; // end of Cope.app
 
   // To list my apps
@@ -1787,20 +1805,10 @@
 
         getUser().then(user => {
           user.val('own_apps').then(myApps => {
-            if (!myApps) return;
-
-            let apps = [],
-                appIds = Object.keys(myApps);
-            appIds.forEach(appId => {
-              // Get app info
-              Cope.app(appId).then(app => {
-                debug('Cope.Apps.list - app', app);
-                apps.push(app);
-                if (apps.length == appIds.length) {
-                  _cb(apps);
-                }
-              });
-            }); // end of appIds.forEach
+            if (!myApps) {
+              return _cb([]);
+            } 
+            return _cb(Object.keys(myApps).map(appId => Cope.app(appId)));
           }); // end of user.val('own_apps')
         }); // end of getUser
       }

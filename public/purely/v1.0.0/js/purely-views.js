@@ -2,13 +2,14 @@ const Views = Cope.useViews('Purely');
 
 let NavView = Views.class('Nav'),
   BoxView = Views.class('Box'),
-  TextAreaView = Views.class('TextArea'),
+  TextareaView = Views.class('Textarea'),
   ImageUploaderView = Views.class('ImageUploader'),
   PhotoView = Views.class('Photo'),
   GridView = Views.class('Grid'),
   SlideView = Views.class('Slide'),
   SelectView = Views.class('Select'),
-  UListView = Views.class('Ulist');
+  UListView = Views.class('Ulist'),
+  FormView = Views.class('Form');
 
 // NavView
 // @logo
@@ -192,27 +193,73 @@ BoxView.render(vu => {
   vu.use('css').then(v => {
     vu.$el('@box').css(v.css);
   });
+  vu.use('text').then(v=> {
+    vu.$el().html(v.text.join(' '));
+  });
 });
 
-// TextArea
-// @textArea
-TextAreaView.dom( vu => (`
-	<textarea ${vu.ID} class="view-textarea" data-component="textArea"></textarea>
-`));
+// Textarea
+// @textarea
+TextareaView.dom( vu => {
+	return `<textarea rows="1" ${vu.ID} class="view-textarea">
+    </textarea>`;
+});
 
-TextAreaView.render(vu => {
-  let $this = vu.$el();
-  $this
-    .css({
-      height: $this.height() + 'px',
-      'overflow-y': 'hidden'
-    })
-    .off('keyup')
-    .on('keyup', () => {
-      $this.css('height', 'auto');
-      $this.css('height', `${$this[0].scrollHeight}px`);
-      vu.res('value', $this.val().trim());
-    });
+TextareaView.render(vu => {
+  let height, 
+      $this = vu.$el('textarea'),
+      value = vu.get('value'),
+      content;
+
+  // Replace html entities:
+  // "<" -> "&lt;"
+  // ">" -> "&gt;"
+  // " " -> "&nbsp;"
+  // "\n" -> "<br>"
+
+  let autosize = function(e) {
+
+    console.log('resize', this.scrollHeight);
+
+    // Update the value
+    let updatedValue = this.value.trim();
+      //.replace(/<div[^\>]*>|<br>/g, '\n')
+      //.replace(/<[^<>]+>/g, '')
+      //.replace(/\&nbsp\;/g, ' ')
+      //.replace(/&gt;/g,'>')
+      //.replace(/&lt;/g,'<')
+      //.trim() || '';
+    
+    vu.set('value', updatedValue);
+    vu.res('value', updatedValue);
+
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+  };
+  
+  // Insert the value
+  $this.val(value);
+
+  $this.each(function () {
+    console.log('value', value);
+    let lineH = 28,
+        initH = lineH + 6;
+
+    // Calculate initial scroll height via the value
+    if (value && value.length) {
+      initH += lineH * (value.match(/\n/g) || []).length;
+    }
+    this.style.height = 'auto';
+    this.setAttribute('style', 'height:' + (this.scrollHeight || initH) + 'px;overflow:hidden;');
+  })
+  .off('keyup')
+  .off('focus')
+  .on('focus', autosize)
+  .on('keyup', autosize);
+
+  setTimeout(function() {
+    $this.click();
+  }, 1000);
 });
 
 // ImageUploader
@@ -263,6 +310,42 @@ ImageUploaderView.render( vu => {
 		} // end of if
 	});// end of change-event
 });
+
+// FormView
+FormView.dom(vu =>`
+  <div ${vu.ID}>
+    <div class="view-form">
+      <ul data-component="inputs"></ul>
+    </div>
+  </div>
+`);
+
+FormView.render(vu => {
+  vu.use('inputs').then(v => {
+    let vals = [];
+    v.inputs.forEach((obj, index) =>{
+      let type = obj.type || 'text', 
+          label = obj.label|| '', 
+          placeholder = obj.placeholder || '',
+          comp = obj.comp || ''; 
+      vu.$el('@inputs').append(`<li>
+                                  <div>${label}</div>
+                                  <input type=${type} placeholder="${placeholder}" data-component=${comp}>
+                                </li>`
+      );// end of append
+      vu.$el(`@${comp}`).off('input').on('input',e =>{
+          let value = vu.$el(`@${comp}`)[0].value;
+          console.log(value);
+          vals[index] = value;
+          vu.set('values', vals);
+          console.log(vals);
+      });
+    });// end of forEach
+  });// end of vu.use
+});
+
+
+
 
 // PhotoView
 // @img: for image src

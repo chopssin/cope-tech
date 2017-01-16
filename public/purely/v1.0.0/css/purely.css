@@ -208,13 +208,35 @@
   border: 1px solid #111;
 }
 
-/* TextArea */
+/* Textarea */
+/*.view-textarea {
+  display: block;
+  width: 100%;
+  max-width: 540px;
+  font-size: 25px;
+  font-weight: 300;
+  letter-spacing: 0;
+  line-height: 28px;
+  overflow: hidden;
+  background-color: #fff;
+  padding: 0;
+}*/
 .view-textarea {
-  height: 54px;
-  width: 540px;
-  max-width: 100%;
-  padding: 3px;
+  height: auto;
+  min-height: 30px;
+  width: 100%;
+  max-width: 540px;
+  padding-left: 6px;
+  overflow: hidden;
+  margin: 0;
   resize: none;
+  border: none;
+  outline: none;
+  background-color: #fff;
+  font-size: 25px;
+  font-weight: 300;
+  letter-spacing: 0;
+  line-height: 28px;
 }
 
 /* ImageUploader*/
@@ -223,6 +245,12 @@
   max-width: 100%;
   border: 1px solid #111;
   padding: 0 20px;
+}
+
+/* Form */
+.view-form ul {
+  list-style: none;
+  padding: 0px;
 }
 
 /* Photo */

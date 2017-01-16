@@ -645,6 +645,7 @@ Test.go(log => {
   Vbox.append('box');
   Vbox.append('textarea');
   Vbox.append('imageUploader');
+  Vbox.append('form');
 
   Vbox('nav').log('no data');
 
@@ -746,7 +747,7 @@ Test.go(log => {
     }
   }).res('value', value => {
     console.log(value);
-  })
+  });
 
   let textarea2 = TextareaView.build({
     sel: '#textarea',
@@ -762,7 +763,44 @@ Test.go(log => {
     console.log(val);
   });
   log.ok();
-});
+
+  //form
+  let form = FormView.build({
+    sel: '#form',
+    method: 'append',
+    data:{
+      inputs:[{type: "text", label: "name", placeholder: "inputYourName", comp: "input-name"},
+              {type: "text", label: "age", placeholder: "inputYourAge", comp: "input-age"},
+              {type: "text", placeholder: "nothing", comp: "input-nothing"},
+              {type: "text",}],
+      values: []              
+    }
+  });
+
+  let boxC = BoxView.build({
+    sel: '#form',
+    method: 'append',
+    data:{
+      css: { 
+        "width": "400px",
+        "height": "200px",
+        "display": "inline-flex",
+        "border": "2px solid #aca"
+      }
+    }
+  });
+  boxC.$el().click(() => {
+    let text = form.val('values').join('<br>');
+    console.log('--text--',text);
+    boxC.$el().html(text);
+  });
+
+
+}); // end of Test
+
+
+
+
 
 // Test - @Assface
 Test.go(log =>{

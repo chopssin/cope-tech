@@ -53,18 +53,45 @@ Pages.use('/', params => {
   });
 
   // Get my apps
-  Apps.list().then(graphs => {
-    console.log(graphs);
+  Apps.list().then(apps => {
+    console.log(apps);
     
     toggle.$el('@my-apps').html('');
 
-    graphs.forEach(g => {
+    apps.forEach(a => {
+
+      // Build app cards
       CopeViews.class('AppCard').build({
         sel: toggle.sel('@my-apps'),
         method: 'append',
         data: {
-          appId: g.appId
+          appId: a.appId,
+          appName: a.appName,
+          isOwner: a.isOwner
         }
+      }).res('touched', () => {
+        toggle.val('sec', 'app');
+
+        d3.json('d3-sample.json', (err, graph) => {
+          if (err) throw err;
+
+          console.log(graph);
+          CopeViews.class('AppPage').build({
+            sel: toggle.sel('@app'),
+            data: {
+              appId: a.appId,
+              appName: a.appName,
+              owner: a.isOwner ? 'Me' : 'Someone else',
+              graph: graph
+            }
+          }).res('select-node', node => {
+            debug('TBD: select node'); 
+          }).res('add-partner', email => {
+            debug('TBD: add partner'); 
+          });
+
+        }); // end of d3
+
       });
     });
   });

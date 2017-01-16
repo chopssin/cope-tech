@@ -323,9 +323,9 @@
 
 /* AppPage */
 .node-data {
-  position: fixed;
-  top: 100px;
-  right: 15px;
+  position: absolute;
+  top: 0px;
+  right: 0px;
   width: intrinsic;
 }
 

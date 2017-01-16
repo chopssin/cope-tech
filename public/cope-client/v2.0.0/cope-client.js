@@ -1638,8 +1638,9 @@
       });
     };
 
-    // Set email
+    // Set email, uid
     user.email = _user.email;
+    user.uid = _user.uid;
     return user;
   };// end of makeUser
 
@@ -1712,9 +1713,11 @@
 
   // App interface
   Cope.Apps.get = Cope.app = function(_id) {
+    if (typeof _id != 'string') return;
+
     let app = {};
     app.appId = _id;
-    app.appName = '';
+    app.isOwner = false;
     
     return {
       then: function(_cb) {
@@ -1723,47 +1726,87 @@
         }
 
         getFB().then(fb => {
-          fb.database()
+          let appRef = fb.database()
             .ref('cope_user_apps')
-            .child(_id)
-            .child('credentials')
-            .once('value')
-            .then(snap => {
-              // TBD: make App interface
-              console.log(snap.val());
-              _cb(snap.val());
-            })
-            .catch(err => console.error(err));
+            .child(_id);
+    
+          // app.set
+          app.set = function(_key, _val) {
+            let done;
+            appRef.child('public').child(_key).set(_val).then(() => {
+              if (isFunc(done)) done();
+            });
+            return {
+              then: function(_cb) { done = _cb; }
+            };
+          }; // end of app.set
+
+          // app.get
+          app.get = function(_key) {
+            let done;
+            appRef.child('public').child(_key).once('value').then(snap => {
+              if (isFunc(done)) done(snap.val());
+            });
+            return {
+              then: function(_cb) { done = _cb; }
+            };
+          }; // end of app.set
+
+          // app.graph
+          app.graph = function () {
+            return Cope.graph(app.appId);
+          };
+          
+          appRef.child('credentials').once('value').then(c => {
+            appRef.child('public').once('value').then(p => {
+              c = c.val() || {};
+              p = p.val() || {};
+              // Make App interface
+              app.appName = p.appName || 'Untitled';
+              if (myUser && myUser.uid) {
+                app.isOwner = c.owner && c.owner[myUser.uid] || false;
+              }
+              console.log(myUser);
+              console.log(c);
+
+              // Callback with app
+              _cb(app);
+            }).catch(err => console.error(err));
+          }).catch(err => console.error(err));
         });
         
       }
     };
   }; // end of Cope.app
 
+  // To list my apps
   Cope.Apps.list = function() { 
     return {
       then: function(_cb) {
         if (!isFunc(_cb)) return;
+
         getUser().then(user => {
           user.val('own_apps').then(myApps => {
             if (!myApps) return;
 
-            let apps = [];
-            Object.keys(myApps).forEach(appId => {
+            let apps = [],
+                appIds = Object.keys(myApps);
+            appIds.forEach(appId => {
               // Get app info
               Cope.app(appId).then(app => {
+                debug('Cope.Apps.list - app', app);
                 apps.push(app);
-                if (apps.length == myApps.length) {
+                if (apps.length == appIds.length) {
                   _cb(apps);
                 }
               });
-            });
-
-          });
-        });
+            }); // end of appIds.forEach
+          }); // end of user.val('own_apps')
+        }); // end of getUser
       }
     };
-  };
+  }; // end of Cope.Apps.list
+
   Cope.Apps.remove = {};
 
   // -----------------------------

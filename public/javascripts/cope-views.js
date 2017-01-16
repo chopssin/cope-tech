@@ -70,35 +70,35 @@ ViewAccountCard.render(function() {
 ViewAppPage.dom(function() {
   return '<div' + this.ID + 'class="row">' 
     + '<div class="col-xs-12" style="height:700px; overflow:hidden">'
-      + '<div class="svg-wrap" data-component="svg">0</div>'
+      + '<div class="cope-card bg-w node-data hidden" ></div>'
+      + '<div class="svg-wrap" style="width:100%" data-component="svg">0</div>'
       + '<div data-component="card" class="cope-card touchable wrap bg-w" style="text-align:left"><ul>'
         + '<li data-component="display-li">' 
           + '<div class="title">App Name</div>'
           + '<div data-component="appName"></div>'
         + '</li>'
-        + '<li class="hidden">' 
+        + '<li>' 
           + '<div class="title">App Id</div>'
           + '<div data-component="appId"></div>'
         + '</li>'
-        + '<li class="hidden">' 
+        + '<li>' 
           + '<div class="title">URL</div>'
           + '<div data-component="url"></div>'
         + '</li>'
-        + '<li class="hidden">' 
+        + '<li>' 
           + '<div class="title">Owner</div>'
           + '<div data-component="owner"></div>'
         + '</li>'
-        + '<li class="hidden">' 
+        + '<li>' 
           + '<div class="title">Partners</div>'
           + '<div data-component="partners"></div>'
           + '<a data-component="add-partner">Add partner</a>'
         + '</li>'
-        + '<li class="hidden">' 
+        + '<li>' 
           + '<div class="title">Expired at</div>'
           + '<div data-component="expired-at"></div>'
         + '</li>'
       + '</ul></div>'
-      + '<div class="cope-card bg-w node-data" ></div>'
     + '</div>'
   + '</div>';
 }); // end of ViewAppPage.dom
@@ -124,7 +124,7 @@ ViewAppPage.render(function() {
   if (url) {
     this.$el('@url').html(url);
   } else {
-    this.$el('@url').html('cope.tech/' + appId);
+    this.$el('@url').html(appId + '.cope.tech');
   }
 
   // val.owner
@@ -141,7 +141,7 @@ ViewAppPage.render(function() { // draw the graph
       w = $svgWrap.width(),
       that = this;
 
-  if (!graph) return;
+  if (!graph || !w || !$svgWrap) return;
   
   // Build the graph view  
   Views.class('DataGraph').build({
@@ -153,6 +153,7 @@ ViewAppPage.render(function() { // draw the graph
     }
   }).res('node-data', function(_d) {
     debug(_d);  
+    that.$el('.node-data').removeClass('hidden');
     that.$el('.node-data').html(`name:${_d.id}`);
   });
 
@@ -163,15 +164,11 @@ ViewAppPage.render(function() { // draw the graph
   $card.off('click').on('click', function() {
     $card.find('li').removeClass('hidden');
     $li.removeClass('hidden');
-    //$card
-    //  .addClass('wider');
-      //.toggleClass('wrap', false, 1000, "easeOutSine");
   });
+
   $svgWrap.off('click').on('click', function() {
     $card.find('li').addClass('hidden');
     $li.removeClass('hidden');
-    //$card
-    //  .removeClass('wider');
   });
 
   // Set "add partner" link
@@ -181,7 +178,7 @@ ViewAppPage.render(function() { // draw the graph
     //    sel: _sel,
     //    data: { placeholder: 'Email' }
     //  }).res('value', function(_val) {
-    //    that.res('add-partner', _val);  
+        that.res('add-partner');  
     //  });
     //}); // end of Editor.openModal
   }); // end of $addPartner click

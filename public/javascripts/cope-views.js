@@ -306,7 +306,7 @@ ViewAddInput.render(function() {
 // @sec-app
 // -sec: string, 'home' || 'app'
 ToggleView.dom(vu => `
-  <div ${vu.ID} class="container">
+  <div ${vu.ID} class="container" style="margin-bottom:100px">
     <div data-component="sec-dashboard" class="row">
       <div class="col-xs-12 col-md-4 col-md-push-8">
         <h4>Account</h4>

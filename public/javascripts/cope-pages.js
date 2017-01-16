@@ -2,7 +2,7 @@
 
 let debug = Cope.Util.setDebug('cope-pages', true);
 
-let Graphs = Cope.Graphs;
+let Apps = Cope.Apps;
 
 let Pages = Cope.pages('Cope'),
     Purely = Cope.views('Purely'),
@@ -48,13 +48,25 @@ Pages.use('/', params => {
   });
 
   // Get the current user
-  Graphs.user().then(user => {
+  Cope.user().then(user => {
     accCard.val('email', user.email);
   });
 
   // Get my apps
-  Graphs.list().then(graphs => {
+  Apps.list().then(graphs => {
     console.log(graphs);
+    
+    toggle.$el('@my-apps').html('');
+
+    graphs.forEach(g => {
+      CopeViews.class('AppCard').build({
+        sel: toggle.sel('@my-apps'),
+        method: 'append',
+        data: {
+          appId: g.appId
+        }
+      });
+    });
   });
 
 }); // end of Page "/"

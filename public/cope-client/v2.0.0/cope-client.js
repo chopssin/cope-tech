@@ -1350,7 +1350,13 @@
   }; // end of Cope.pages
 
   // -----------------------------
-  // Cope.Graphs
+  // functions used by Cope.user, 
+  // Cope.Apps and Cope.graph
+  // 
+  // Cope.user
+  // Cope.Apps
+  // Cope.app(<id>) = Cope.Apps.get(<id>)
+  // Cope.graph(<id>) = Cope.app(<id>).graph()
   // -----------------------------
   // To get the current firebase instance
   let hasInitFB, // has init the default firebase
@@ -1692,27 +1698,78 @@
     }; // end of return
   }; // end of getUser
 
-  Cope.Graphs = {};
-  Cope.Graphs.user = getUser;
-  Cope.Graphs.create = {};
-  Cope.Graphs.list = function() {
+  
+  // -----------------------------
+  // Cope.user
+  // -----------------------------
+  Cope.user = getUser;
+
+  // -----------------------------
+  // Cope.Apps
+  // -----------------------------
+  Cope.Apps = {};
+  Cope.Apps.create = function(_id) {};
+
+  // App interface
+  Cope.Apps.get = Cope.app = function(_id) {
+    let app = {};
+    app.appId = _id;
+    app.appName = '';
+    
+    return {
+      then: function(_cb) {
+        if (!isFunc(_cb) || typeof _id != 'string') {
+          return;
+        }
+
+        getFB().then(fb => {
+          fb.database()
+            .ref('cope_user_apps')
+            .child(_id)
+            .child('credentials')
+            .once('value')
+            .then(snap => {
+              // TBD: make App interface
+              console.log(snap.val());
+              _cb(snap.val());
+            })
+            .catch(err => console.error(err));
+        });
+        
+      }
+    };
+  }; // end of Cope.app
+
+  Cope.Apps.list = function() { 
     return {
       then: function(_cb) {
         if (!isFunc(_cb)) return;
         getUser().then(user => {
-          user.val('own_apps').then(myGraphs => {
-            _cb(myGraphs);
+          user.val('own_apps').then(myApps => {
+            if (!myApps) return;
+
+            let apps = [];
+            Object.keys(myApps).forEach(appId => {
+              // Get app info
+              Cope.app(appId).then(app => {
+                apps.push(app);
+                if (apps.length == myApps.length) {
+                  _cb(apps);
+                }
+              });
+            });
+
           });
         });
       }
     };
   };
-  Cope.Graphs.remove = {};
+  Cope.Apps.remove = {};
 
   // -----------------------------
   // Cope.graph or Cope.appGraph
   // -----------------------------
-  Cope.Graphs.get = Cope.graph = Cope.appGraph = function(_appId) {
+  Cope.graph = Cope.appGraph = function(_appId) {
 
     // To print debug messages
     let debug = Cope.Util.setDebug('appGraph', false);

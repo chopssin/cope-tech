@@ -154,23 +154,22 @@ TestBar.render(vu => {
 // -switch: string, desired section, could be 'tests' || 'purely' || 'views'
 Viewport.dom(vu => `
   <div ${vu.ID}>
-    <div data-component="tests"></div>
-    <div data-component="purely" class="hidden"></div>
-    <div data-component="views" class="hidden"></div>
+    <div class="sec" data-component="tests"></div>
+    <div class="sec" data-component="purely" class="hidden"></div>
+    <div class="sec" data-component="views" class="hidden"></div>
   </div>
 `);
 
 Viewport.render(vu => {
-  vu.$el('@tests, @purely, @views').css({
+  vu.$el('.sec').css({
     'display': 'block',
     'positoin': 'relative',
     'margin': '50px auto',
-    'text-align': 'center',
     'font-size': '24px',
     'font-weight': 'bold'
     });
 
-  vu.$el('@tests, @purely, @views')
+  vu.$el('.sec')
     .css({
       padding: '16px'
     });
@@ -777,11 +776,12 @@ Test.go(log => {
 
 // Test - @hydra
 Test.go(log => {
-  log.title('@hydra: Views - Nav, Box, TextArea, ImageUploader');
+  log.title('@hydra: Views - Nav, Box, Textarea, ImageUploader');
   Vbox.append('nav');
   Vbox.append('box');
-  Vbox.append('textArea');
+  Vbox.append('textarea');
   Vbox.append('imageUploader');
+  Vbox.append('form');
 
   Vbox('nav').log('no data');
 
@@ -874,12 +874,20 @@ Test.go(log => {
   //console.log(BoxB);
   //BoxB.val('test', 0).val('test', 2)
 
-  //TextArea
-  let TextArea = TextAreaView.build({
-    sel: '#textArea',
+  //Textarea
+  let textarea = TextareaView.build({
+    sel: '#textarea',
+    method: 'append',
+    data: {
+      value: "11\nHello\nworld"
+    }
+  }).res('value', value => {
+    console.log(value);
+  });
+
+  let textarea2 = TextareaView.build({
+    sel: '#textarea',
     method: 'append'
-  }).res('value', val => {
-    console.log(val);
   });
 
   //ImageUploader 
@@ -890,7 +898,40 @@ Test.go(log => {
   }).res('value', val => {
     console.log(val);
   });
+
+  //form
+  let form = FormView.build({
+    sel: '#form',
+    method: 'append',
+    data:{
+      inputs:[{type: "text", label: "name", placeholder: "inputYourName", comp: "input-name"},
+              {type: "text", label: "age", placeholder: "inputYourAge", comp: "input-age"},
+              {type: "text", placeholder: "nothing", comp: "input-nothing"},
+              {type: "text",}],
+      values: []              
+    }
+  });
+
+  let boxC = BoxView.build({
+    sel: '#form',
+    method: 'append',
+    data:{
+      css: { 
+        "width": "400px",
+        "height": "200px",
+        "display": "inline-flex",
+        "border": "2px solid #aca"
+      }
+    }
+  });
+  boxC.$el().click(() => {
+    let text = form.val('values').join('<br>');
+    console.log('--text--',text);
+    boxC.$el().html(text);
+  });
+
   log.ok();
+
 });
 
 // Test - @Assface

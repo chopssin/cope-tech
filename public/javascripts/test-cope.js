@@ -893,7 +893,7 @@ Test.go(log => {
     }
   }); 
 
-SlideView.build({
+  SlideView.build({
     sel: '#slide',
     method: 'append'
   }).val({

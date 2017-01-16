@@ -247,6 +247,12 @@
   padding: 0 20px;
 }
 
+/* Form */
+.view-form ul {
+  list-style: none;
+  padding: 0px;
+}
+
 /* Photo */
 .view-photo {
 

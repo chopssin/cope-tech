@@ -8,7 +8,8 @@ let NavView = Views.class('Nav'),
   GridView = Views.class('Grid'),
   SlideView = Views.class('Slide'),
   SelectView = Views.class('Select'),
-  UListView = Views.class('Ulist');
+  UListView = Views.class('Ulist'),
+  FormView = Views.class('Form');
 
 // NavView
 // @logo
@@ -192,6 +193,9 @@ BoxView.render(vu => {
   vu.use('css').then(v => {
     vu.$el('@box').css(v.css);
   });
+  vu.use('text').then(v=> {
+    vu.$el().html(v.text.join(' '));
+  });
 });
 
 // Textarea
@@ -306,6 +310,42 @@ ImageUploaderView.render( vu => {
 		} // end of if
 	});// end of change-event
 });
+
+// FormView
+FormView.dom(vu =>`
+  <div ${vu.ID}>
+    <div class="view-form">
+      <ul data-component="inputs"></ul>
+    </div>
+  </div>
+`);
+
+FormView.render(vu => {
+  vu.use('inputs').then(v => {
+    let vals = [];
+    v.inputs.forEach((obj, index) =>{
+      let type = obj.type || 'text', 
+          label = obj.label|| '', 
+          placeholder = obj.placeholder || '',
+          comp = obj.comp || ''; 
+      vu.$el('@inputs').append(`<li>
+                                  <div>${label}</div>
+                                  <input type=${type} placeholder="${placeholder}" data-component=${comp}>
+                                </li>`
+      );// end of append
+      vu.$el(`@${comp}`).off('input').on('input',e =>{
+          let value = vu.$el(`@${comp}`)[0].value;
+          console.log(value);
+          vals[index] = value;
+          vu.set('values', vals);
+          console.log(vals);
+      });
+    });// end of forEach
+  });// end of vu.use
+});
+
+
+
 
 // PhotoView
 // @img: for image src

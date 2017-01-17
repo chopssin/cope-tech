@@ -16,8 +16,7 @@ var debug = Cope.Util.setDebug('cope-views', false),
 ViewAppCard.dom(function() {
   return '<div' + this.ID + ' class="cope-card wider touchable bg-w" style="margin-bottom:16px">'
     + '<h3 data-component="appName"></h3>'
-    + '<p data-component="appId"></p>'
-    + '<p data-component="role"></p>'
+    + '<p data-component="appId" style="color:#aaa"></p>'
     + '<p data-component="stat"></p>'
     + '</div>';
 });
@@ -26,15 +25,9 @@ ViewAppCard.render(function() {
   var that = this,
       name = this.val('appName'),
       id = this.val('appId'),
-      isOwner = this.val('isOwner'),
-      stat = this.val('stat') || 'Expired in 700 days (2018/12/12)';
+      stat = this.val('stat');
   if (name) this.$el('@appName').html(name);
   if (id) this.$el('@appId').html(id);
-  if (isOwner) {
-    this.$el('@role').html('Owner');
-  } else {
-    this.$el('@role').html('Partner');
-  }
   if (stat) this.$el('@stat').html(stat);
 
   that.$el().off('click').on('click', function() {
@@ -83,7 +76,7 @@ ViewAppPage.dom(function() {
           + '</div>'
         + '</li>'
         + '<li>' 
-          + '<div class="title">App Id</div>'
+          + '<div class="title">App ID</div>'
           + '<div data-component="appId"></div>'
         + '</li>'
         + '<li>' 
@@ -100,8 +93,8 @@ ViewAppPage.dom(function() {
           + '<a data-component="add-partner">Add partner</a>'
         + '</li>'
         + '<li>' 
-          + '<div class="title">Expired at</div>'
-          + '<div data-component="expired-at"></div>'
+          + '<div class="title">Status</div>'
+          + '<div data-component="stat"></div>'
         + '</li>'
       + '</ul></div>'
     + '</div>'
@@ -109,12 +102,12 @@ ViewAppPage.dom(function() {
 }); // end of ViewAppPage.dom
 
 ViewAppPage.render(vu => {
-  let appName = vu.val('appName'), // string
+  let appName = vu.val('appName') || 'Untitled', // string
       appId = vu.val('appId'), // string
       url = vu.val('url'), // string
       owner = vu.val('owner'), // string
       partners = vu.val('partners'), // string array
-      expiredAt = vu.val('expiredAt'); // timestamp
+      stat = vu.val('stat'); // status
 
   vu.$el('@appName').html(appName.trim() || 'Untitled');
   vu.$el('@appId').html(appId);
@@ -132,9 +125,19 @@ ViewAppPage.render(vu => {
     vu.$el('@url').html(appId + '.cope.tech');
   }
 
+  if (stat) {
+    vu.$el('@stat').html(stat);
+  }
+
   // @appName click event
   vu.$el('@appName').off('click').on('click', () => {
-    vu.$el('@appName-edit').find('input').val(vu.val('appName') || 'Untitled');
+    vu.$el('@appName-edit').find('input')
+      .val(vu.val('appName') || 'Untitled');
+
+    setTimeout(() => {
+      vu.$el('@appName-edit').find('input').trigger('focus');
+    }, 200);
+
     vu.$el('@appName').addClass('hidden');
     vu.$el('@appName-edit').removeClass('hidden');
   });
@@ -151,6 +154,12 @@ ViewAppPage.render(vu => {
       vu.res('rename app', newName);
       vu.val('appName', newName);
     }
+  });
+
+  // Blur event of @appName-edit
+  vu.$el('@appName-edit').off('focusout').on('focusout', () => {
+    vu.$el('@appName-edit').addClass('hidden');
+    vu.$el('@appName').removeClass('hidden');
   });
 
   // val.owner

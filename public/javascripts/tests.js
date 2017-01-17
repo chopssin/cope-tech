@@ -70,13 +70,12 @@ TestBar.render(vu => {
   
   // Set CSS
   vu.$el('@tests').css({
-    //'cursor': 'pointer',
-    'font-size': '40px',
+    'font-size': '30px',
     //'padding': '15px'
   });
 
   $('.inspector').css({
-    //'top': '20px',
+    'text-align': 'center',
     'display': 'inline-block',
     //'margin': '0px 100px 0 280px',
     'cursor': 'pointer',
@@ -130,8 +129,8 @@ TestBar.render(vu => {
   let testsCount = Object.keys(tests).length,
       passedCount = Object.keys(passed).length;
 
-  vu.$el('@passed').html(passedCount).css({'font-size': '40px'});
-  vu.$el('@failed').html(testsCount - passedCount).css({'font-size': '40px'});
+  vu.$el('@passed').html(passedCount).css({'font-size': '30px'});
+  vu.$el('@failed').html(testsCount - passedCount).css({'font-size': '30px'});
 
   vu.$el('@green-light').off('click').on('click', () => {
     vu.res('findPassed');
@@ -165,8 +164,8 @@ Viewport.render(vu => {
     'display': 'block',
     'positoin': 'relative',
     'margin': '50px auto',
-    'font-size': '24px',
-    'font-weight': 'bold'
+    'font-size': '18px'
+    //'font-weight': 'bold'
     });
 
   vu.$el('.sec')

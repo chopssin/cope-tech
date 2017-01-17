@@ -462,6 +462,7 @@ Test.go(log => {
     'overflow': 'scroll'
   });
 
+
   // Sample Settings
   let settings = [];
   settings.push({
@@ -517,6 +518,7 @@ Test.go(log => {
   // Build Navbar
   let nav = NavView.build({
     sel: viewport.sel('@purely'),
+    method: 'append',
     data: {
       signedIn: false,
       'user-items':[{title:"Account", href:"#"},{title:"Sign Out", comp:'signOut'}],
@@ -595,6 +597,37 @@ Test.go(log => {
       }  
     }
   });
+// View
+  viewport.$el('@purely').prepend(`
+    <div class="row">
+      <div class="hidden-xs">
+        <button class="btn btn-primary" data-component="mobileBtn">mobile</button>
+        <button class="btn btn-primary" data-component="windowBtn">window</button>
+      </div>
+      <div data-component="form" class="col-md-6 col-xs-12">
+        Hello I'm window
+      </div>
+      <div data-component="viewport" class="col-md-6 col-xs-12 bg-blue">
+        0
+      </div>
+    </div>`
+  );
+//toggle RWD
+  let mobileBtn = viewport.$el('@mobileBtn'),
+      windowBtn = viewport.$el('@windowBtn'),
+      form = viewport.$el('@form');
+      vp = viewport.$el('@viewport');
+  mobileBtn.off('click').on('click',() =>{
+    console.log('mobileBtn onclick!');
+    form.addClass('col-md-6');
+    vp.addClass('col-md-6');
+  });
+  windowBtn.off('click').on('click',() =>{
+    console.log('windowBtn onclick!');
+    form.removeClass('col-md-6');
+    vp.removeClass('col-md-6');
+  });
+  
 
   log.ok();
 });

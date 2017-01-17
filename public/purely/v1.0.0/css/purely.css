@@ -93,7 +93,7 @@
 .view-nav {
   display: block;
   width: 100%;
-  height: 2.85em;
+  min-height: 2.85em;
   line-height:  2.85em;
   position: relative;
   padding: 0;
@@ -270,6 +270,7 @@
 /* Slide */
 .view-slide {
   margin: 0 auto;
+  background: #DADADA url('https://fakeimg.pl/980x390/DADADA/?text=NoSlide') no-repeat center center;
 }
 .view-slide .slide{
   width: 100%;
@@ -299,9 +300,9 @@
   position: relative;
 }
 .view-slide .banner .slideItem {
-  float: left;
-/*  width: 780px;
+  /*  width: 780px;
   height: 390px;*/
+  float: left;
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center center;
@@ -326,33 +327,64 @@
   /*width: 2340px;*/
   list-style: none;
   position: absolute;
-  bottom: 10px;
   margin: 0;
   padding: 0;
 }
 .view-slide .caption ul li {
-  float: left;
-  padding: 10px;
-  font-size: 20px;
   /*width: 780px;*/
-  color: #DADADA;
+  float: left;
+  padding: 10px 10px 10px 20px;
+  font-size: 20px;
+  color: #DDD;
 }
+
+/* for slide mode */
+.view-slide .caption.mode-slide ul{
+  bottom: 40px;
+}
+.view-slide .caption.mode-slide ul li{
+  padding: 10px 10px 10px 20px;
+}
+
+/* for center mode */
+.view-slide .caption.mode-center ul{
+  bottom: 50%;
+  transform: translateY(50%);
+}
+.view-slide .caption.mode-center ul li{
+  text-align: center;
+  font-size: 48px;
+}
+
+
 .view-slide .slideNav {
   position: absolute;
-  right: 10px;
-  bottom: 0;
+  right: 50%;
+  transform: translateX(50%);
+  bottom: 10px;
 }
 .view-slide .slideNav ul {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 10px 10px;
 }
 .view-slide .slideNav ul li {
   display: inline-block;
-  color: #DADADA;
+  color: #DDD;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  cursor: pointer;
 }
-.view-slide .slideNav .active {
-  color: #f9de57;
+.view-slide .slideNav .slideNavItem{
+  background-color: rgba(128, 128, 128, 0.2);
+  height: 2px;
+  width: 50px;
+  margin-left: 2px;
+  margin-right: 2px;
+  /*cursor: pointer;*/
+}
+.view-slide .slideNav .active .slideNavItem{
+  background-color: rgba(128, 128, 128, 0.8);
 }
 
 

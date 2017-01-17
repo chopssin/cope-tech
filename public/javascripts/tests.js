@@ -930,7 +930,6 @@ Test.go(log => {
   });
 
   log.ok();
-
 });
 
 // Test - @Assface
@@ -1029,6 +1028,39 @@ Test.go(log => {
     method: 'append'
   }).val({
     data: [{
+      src: 'http://htmlcolorcodes.com/assets/images/html-color-codes-color-tutorials-hero-00e10b1f.jpg',
+      link: 'https://www.google.com.tw/?q=1',
+      caption: 'This is placeholder 1'
+    }, {
+      src: 'http://www.planwallpaper.com/static/images/6790904-free-background-wallpaper.jpg',
+      link: 'https://www.google.com.tw/?q=2',
+      caption: 'This is placeholder 2'
+    }, {
+      src: 'http://www.psdgraphics.com/file/fresh-background.jpg',
+      link: 'https://www.google.com.tw/?q=3',
+      caption: 'This is placeholder 3'
+    }],
+    container: {
+      width: '680px',
+      height: '400px'
+    },
+    captionFontCSS: {
+      "font-size": "42px",
+      "color": "#FFF",
+      "width": "300px"
+    },
+    autoSlide: true,
+    changeTime: 3000,
+    showArrow: false,
+    mode: 'center'
+  })
+  
+  
+  SlideView.build({
+    sel: '#slide',
+    method: 'append'
+  }).val({
+    data: [{
       src: 'https://fakeimg.pl/980x390/282828/eae0d0/?text=Slide1',
       link: 'https://www.google.com.tw/?q=1',
       caption: 'This is placeholder 1'
@@ -1040,11 +1072,22 @@ Test.go(log => {
       src: 'https://fakeimg.pl/980x390/282828/eae0d0/?text=Slide3',
       link: 'https://www.google.com.tw/?q=3',
       caption: 'This is placeholder 3'
+    }, {
+      src: 'https://fakeimg.pl/980x390/282828/eae0d0/?text=Slide4',
+      link: 'https://www.google.com.tw/?q=4',
+      caption: 'This is placeholder 4'
     }],
     container: {
       width: '680px',
       height: '400px'
-    }
+    },
+    captionFontCSS: {
+      "font-size": "25px"
+    },
+    autoSlide: true,
+    changeTime: 3000,
+    showArrow: true,
+    mode: 'slide'
   })
 
   log.ok();

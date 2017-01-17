@@ -1,12 +1,3 @@
 (function() {
-
-let nav = NavView.build({
-  sel: '#purely-container',
-  data: {
-    '@logo': {
-      'logoText': 'Purely'
-    }
-  }
-});
-
+  Cope.pages('Purely').use('/');
 })(jQuery, Cope)

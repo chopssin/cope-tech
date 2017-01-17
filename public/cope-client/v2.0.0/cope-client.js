@@ -388,6 +388,7 @@
         debug, // to debug
         emit, // deliver updated data to registered Views 
         isValidKey, // to check the input key
+        isEqual, // to check equity between two inputs
         myName; // optional, name of this dataSnap
   
     myName = _name 
@@ -415,6 +416,17 @@
         && (_key.indexOf('#') < 0);
     };
 
+    isEqual = function(a, b) {
+      if (typeof a == typeof b) {
+        if (typeof a == 'string' 
+            || typeof a == 'number'
+            || typeof a == 'boolean') {
+          if (a === b) return true;
+        }
+      }
+      return false;
+    };
+
     my.enroll = function(_vu) {
       if (typeof _vu == 'object'
         && typeof _vu.id == 'string') {
@@ -436,7 +448,7 @@
                 if (!isValidKey(_key)) {
                   return console.error('set: invalid key', _key);
                 }
-                if (data[_key] != args[0][_key]) {
+                if (!isEqual(data[_key], args[0][_key])) {
                   updated = true;
                   data[_key] = args[0][_key];
                 }
@@ -446,7 +458,7 @@
           }
           break;
         case 2:
-          if (isValidKey(args[0]) && data[args[0]] != args[1]) {
+          if (isValidKey(args[0]) && !isEqual(data[args[0]], args[1])) {
             data[args[0]] = args[1];
             return true;
           }

@@ -53,8 +53,8 @@ TestBlock.render(vu => {
  
 // TestBar
 TestBar.dom(vu => `
-  <div ${vu.ID} class="row" style="text-align: left; border:2px solid black">
-    <a class="col-xs-4 inspector" data-component="tests">Tests</a>
+  <div ${vu.ID} class="row" style="text-align: left;">
+    <div class="col-xs-4 inspector" data-component="tests">Tests</div>
     <div class="col-xs-4 inspector" data-component="green-light">
       <span class="green light"></span>
       <span data-component="passed"></span>
@@ -83,9 +83,8 @@ TestBar.render(vu => {
   })
   .off('mouseenter')
   .off('mouseleave')
-  .on('mouseenter', function() {
-    console.log($(this));  
-    $(this).css('background-color', '#abc');
+  .on('mouseenter', function() {  
+    $(this).css('background-color', '#DDDDDD');
   })
   .on('mouseleave', function() {
     $(this).css('background-color', 'transparent');
@@ -275,6 +274,7 @@ const setTest = function() {
   });
 
   toggle.$el().css({
+    'text-align': 'center',
     'cursor': 'pointer',
     'font-size': '30px'
   });

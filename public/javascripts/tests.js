@@ -453,6 +453,8 @@ Test.go(log => {
 Test.go(log => {
   log.title('Purely');
 
+  let app = Cope.app('testApp2');
+
   // Set viewport of Purely
   viewport.$el('@purely').css({
     'border': '3px solid #333',
@@ -516,99 +518,100 @@ Test.go(log => {
   // TBD: use Cope.App.usePage
 
   // Build Navbar
-  let nav = NavView.build({
-    sel: viewport.sel('@purely'),
-    method: 'append',
-    data: {
-      signedIn: false,
-      'user-items':[{title:"Account", href:"#"},{title:"Sign Out", comp:'signOut'}],
-      '@logo': {
-        logoText: mySet.logo.text,
-      },
-      navItems: mySet.navItems
-    }
-  }).res('signIn', () => {
-    nav.val({
-      signedIn: true
-    });
-  }).res('signOut', () => {
-    nav.val({
-      signedIn: false
-    });
-  });
+  // let nav = NavView.build({
+  //   sel: viewport.sel('@purely'),
+  //   method: 'append',
+  //   data: {
+  //     signedIn: false,
+  //     'user-items':[{title:"Account", href:"#"},{title:"Sign Out", comp:'signOut'}],
+  //     '@logo': {
+  //       logoText: mySet.logo.text,
+  //     },
+  //     navItems: mySet.navItems
+  //   }
+  // }).res('signIn', () => {
+  //   nav.val({
+  //     signedIn: true
+  //   });
+  // }).res('signOut', () => {
+  //   nav.val({
+  //     signedIn: false
+  //   });
+  // });
 
-  // Build some sections
-  let secCover = BoxView.build({
-    sel: viewport.sel('@purely'),
-    method: 'append',
-    data: {
-      css: {
-        width: '100%',
-        height: '100%',
-        'background-color': mySet.colors.s1
-      }  
-    }
-  });
+  // // Build some sections
+  // let secCover = BoxView.build({
+  //   sel: viewport.sel('@purely'),
+  //   method: 'append',
+  //   data: {
+  //     css: {
+  //       width: '100%',
+  //       height: '100%',
+  //       'background-color': mySet.colors.s1
+  //     }  
+  //   }
+  // });
 
-  let secCol = BoxView.build({
-    sel: viewport.sel('@purely'),
-    method: 'append',
-    data: {
-      css: {
-        width: '100%',
-        height: '100%',
-        'background-color': mySet.colors.s2
-      }  
-    }
-  });
+  // let secCol = BoxView.build({
+  //   sel: viewport.sel('@purely'),
+  //   method: 'append',
+  //   data: {
+  //     css: {
+  //       width: '100%',
+  //       height: '100%',
+  //       'background-color': mySet.colors.s2
+  //     }  
+  //   }
+  // });
 
-  let secAbout = BoxView.build({
-    sel: viewport.sel('@purely'),
-    method: 'append',
-    data: {
-      css: {
-        width: '100%',
-        height: '100%',
-        'background-color': mySet.colors.h
-      }  
-    }
-  });
+  // let secAbout = BoxView.build({
+  //   sel: viewport.sel('@purely'),
+  //   method: 'append',
+  //   data: {
+  //     css: {
+  //       width: '100%',
+  //       height: '100%',
+  //       'background-color': mySet.colors.h
+  //     }  
+  //   }
+  // });
 
-  let secContact = BoxView.build({
-    sel: viewport.sel('@purely'),
-    method: 'append',
-    data: {
-      css: {
-        width: '100%',
-        height: '100%',
-        'background-color': mySet.colors.p1
-      }  
-    }
-  });
+  // let secContact = BoxView.build({
+  //   sel: viewport.sel('@purely'),
+  //   method: 'append',
+  //   data: {
+  //     css: {
+  //       width: '100%',
+  //       height: '100%',
+  //       'background-color': mySet.colors.p1
+  //     }  
+  //   }
+  // });
 
-  let secFooter = BoxView.build({
-    sel: viewport.sel('@purely'),
-    method: 'append',
-    data: {
-      css: {
-        width: '100%',
-        height: '100%',
-        'background-color': mySet.colors.p2
-      }  
-    }
-  });
+  // let secFooter = BoxView.build({
+  //   sel: viewport.sel('@purely'),
+  //   method: 'append',
+  //   data: {
+  //     css: {
+  //       width: '100%',
+  //       height: '100%',
+  //       'background-color': mySet.colors.p2
+  //     }  
+  //   }
+  // });
 // View
   viewport.$el('@purely').prepend(`
     <div class="row">
-      <div class="hidden-xs">
+      <div class="hidden-xs" style="float:right; padding: 20px;">
         <button class="btn btn-primary" data-component="mobileBtn">mobile</button>
         <button class="btn btn-primary" data-component="windowBtn">window</button>
       </div>
-      <div data-component="form" class="col-md-6 col-xs-12">
-        Hello I'm window
+      <div data-component="form" class="col-md-6 col-xs-12" style="clear:right;">
+        
       </div>
-      <div data-component="viewport" class="col-md-6 col-xs-12 bg-blue">
-        0
+      <div data-component="viewport" class="col-md-6 col-xs-12">
+        <div id="form-view"></div>
+        <button id="save-btn">Save</button>
       </div>
     </div>`
   );
@@ -626,6 +629,34 @@ Test.go(log => {
     console.log('windowBtn onclick!');
     form.removeClass('col-md-6');
     vp.removeClass('col-md-6');
+  });
+//form
+  let inputs = [{type: "text", label: "App Name", value: 'uuu' },{type: "text", label: "Company Name",value: 'hello'}]; 
+  let formview = FormView.build({
+    sel: '#form-view',
+    methon: 'append',
+    data:{
+      inputs: inputs
+    }
+  });
+
+  console.log('app', app);
+
+  // app.get('appName').then(appName => {
+  //   console.log(appName);
+
+  //   //formview.val('@appName', appName);
+  //   inputs[0].value = appName;
+  //   formview.val('inputs', inputs);
+  // });
+
+  $('#save-btn').click(() => {
+    let values = formview.val('values');
+    console.log(values);
+
+    app.set('appName', values[0]).then(() => {
+      console.log(':)');
+    });
   });
   
 
@@ -806,6 +837,71 @@ Test.go(log => {
   log.ok();
 });
 
+// Test - @hydra Nav beta
+Test.go(log => {
+  log.title('Nav測試版');
+  Vbox.append('nav-beta');
+
+  let navBeta = NavBeta.build({
+    sel: '#nav-beta',
+    method: 'append',
+    data: {
+      logo: {
+        "text":"Acahellodadadadas",
+      },
+      items: [{
+        "type": "main",
+        "text": "About",
+      },{
+        "text": "FAQ",
+        "comp": "faq"
+      },{
+        "type": "main",
+        "text": "OKOK",
+        "comp": "okok"
+      },{
+        "type": "user",
+        "text": "signOut",
+        "comp": "signOut"
+      },{
+        "text": "hello",
+        "comp": "hello"
+      },{
+        "type": "main",
+        "text": "wello",
+        "comp": "wello"
+      },{
+        "type": "user",
+        "text": "aello",
+        "comp": "aello"
+      },{
+        "type": "main",
+        "text": "xello",
+        "comp": "xello"
+      },{
+        "type": "user",
+        "text": "user",
+        "comp": "user"
+      },{
+        "type": "mooo",
+        "text": "mooo",
+        "comp": "mooo"
+      }],
+      "usingMembers": true
+    }
+  }).res('comp', comp => {
+    console.log(comp);
+  }).res('signIn', (B) => {
+    navBeta.val({
+      "usingMembers": true
+    });
+  }).res('signOut', () => {
+    navBeta.val({
+      "usingMembers": false
+    });
+  });
+});
+
 // Test - @hydra
 Test.go(log => {
   log.title('@hydra: Views - Nav, Box, Textarea, ImageUploader');
@@ -814,6 +910,7 @@ Test.go(log => {
   Vbox.append('textarea');
   Vbox.append('imageUploader');
   Vbox.append('form');
+
 
   Vbox('nav').log('no data');
 
@@ -860,7 +957,7 @@ Test.go(log => {
     navC.val({
       signedIn: false
     });
-  });;
+  });
 
   Vbox('nav').log('mainItem');
 

@@ -638,6 +638,13 @@ Test.go(log => {
   log.ok();
 });
 
+Test.go(log => {
+  console.log('okokokokok', log);
+  log.title('Nav測試版');
+  Vbox.append('nav-beta');
+
+});
+
 // Test - @hydra
 Test.go(log => {
   log.title('@hydra: Views - Nav, Box, Textarea, ImageUploader');
@@ -649,9 +656,21 @@ Test.go(log => {
 
   Vbox('nav').log('no data');
 
-  let navA = NavView.build({
-    sel: '#nav',
-    method: 'append'
+  let navA = NavBeta.build({
+    sel: '#nav-beta',
+    method: 'append',
+    data: {
+      logo: {
+        "text":"aca",
+      },
+      items: [{
+        "isMain": true,
+        "text": "About",
+      },{
+        "text": "FAQ"
+      }],
+      "usingMembers": true
+    }
   });
 
   Vbox('nav').log('signIn, navItems, css, @logo');

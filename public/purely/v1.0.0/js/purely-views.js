@@ -2,6 +2,7 @@ const Views = Cope.useViews('Purely');
 
 let NavView = Views.class('Nav'),
   BoxView = Views.class('Box'),
+  LayoutView = Views.class('Layout');
   TextareaView = Views.class('Textarea'),
   ImageUploaderView = Views.class('ImageUploader'),
   PhotoView = Views.class('Photo'),
@@ -202,6 +203,116 @@ BoxView.render(vu => {
   vu.use('text').then(v=> {
     vu.$el().html(v.text.join(' '));
   });
+});
+
+// Layout
+// -cut: obj, cut sequence
+// -box: string, seq number of a boxView
+LayoutView.dom(vu => {
+  return `<div ${vu.ID}></div>`;
+});
+
+LayoutView.render(vu => {
+  let w = vu.get('w'),
+      h = vu.get('h'),
+      cutObj = vu.get('cut');
+
+  vu.set('r', BoxView.build({
+    sel: vu.sel(),
+    data: {
+      css: { 
+        width: '100%',
+        height: '100%'
+      }
+    }
+  }));
+
+  let cmds = Object.keys(cutObj).sort((a, b) => {
+    if (b == 'r') {
+      return 1; 
+    }
+    return -1;
+  });
+  // "r": "x40 y50"
+  // "2": "x60"
+  // "21": "y50"
+
+  let dir = {
+    'x': 'width',
+    'y': 'height'
+  };
+  cmds.forEach(pid => { // pid: cmd
+    let cmd = cutObj[pid]; // 'x20 y30' 
+    let cs = cmd.split(' '); // ['x20', 'y30']
+    let xcuts = [];
+    let ycuts = [];
+    cs.forEach((_c,i) =>{
+      // 'x20'
+      console.log('QQQQQ',_c);
+      if (_c.charAt(0) == 'x') {
+        xcuts.push(parseInt(_c.slice(1)));  
+      }
+      else{
+        ycuts.push(parseInt(_c.slice(1)));
+      }
+    });
+
+    console.log('1111111',xcuts);
+    console.log('2222222',ycuts);
+
+    //console.log('11111111',cs)
+    let xs = cmd.match(/x/g) || [];
+    let ys = cmd.match(/y/g) || [];
+    let total = (xs.length + 1) * (ys.length + 1);
+    let css = [];
+    for (let i = 0; i < total; i++) {
+      css.push({ width: '100%', height: '100%' }); 
+    }
+
+    //{ width: '100%', height: '100%' }
+
+    css = css.map((s, i) => {
+
+      //console.log('111111',s);
+    });
+
+    console.log(pid);
+    console.log(cmd);
+  });
+
+  return;
+
+  // parentBoxId: "xL"
+  let css0 = {
+    width: '100%',
+    height: '100%'
+  },
+  css1 = {
+    width: '100%',
+    height: '100%'
+  }
+
+  css0[dir[x]] = L + '%'
+  css1[dir[x]] = (100 - L) + '%' 
+
+
+  vu.set(parentBoxId, BoxView.build({
+    sel: vu.get(parentBoxId).sel(),
+    method: 'append',
+    data: {
+      css: css0
+    }
+  }));
+
+
+  vu.set(parentBoxId, BoxView.build({
+    sel: vu.get(parentBoxId).sel(),
+    method: 'append',
+    data: {
+      css: css1
+    }
+  }));
+
 });
 
 // Textarea

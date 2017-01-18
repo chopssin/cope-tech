@@ -773,6 +773,29 @@ Test.go(log => {
   log.ok();
 });
 
+// Test - @assface: Layout
+Test.go(log => {
+  log.title('@assface: Layout')
+  Vbox.append('layout-test');
+  
+  let layout = LayoutView.build({
+    sel: '#layout-test',
+    data: {
+      w: 100,
+      h: 100,
+      cut: {
+        'r': 'x30',
+        '0': 'x50 y50',
+        '02': 'x40'
+      }
+    }
+  });
+
+  //layout.val('r');
+  //layout.val('1');
+  //layout.val('021');
+});
+
 // Test - @hydra
 Test.go(log => {
   log.title('@hydra: Views - Nav, Box, Textarea, ImageUploader');

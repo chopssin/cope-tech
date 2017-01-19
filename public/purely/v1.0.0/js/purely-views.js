@@ -192,7 +192,7 @@ UListView.render(vu => {
 // @box
 // -css: object, @box's style
 BoxView.dom( vu => (`
-	<div ${vu.ID} data-component="box" class="box">
+	<div ${vu.ID} data-component="box" class="view-box">
 	</div>
 `));
 
@@ -233,19 +233,21 @@ LayoutView.render(vu => {
   }));
   
   let cmds = Object.keys(cutObj).sort((a, b) => {
-    if (b == 'r') {
+    if (b == 'r' 
+      || (a.length > b.length)) {
       return 1; 
-    }
+    } 
     return -1;
   });
+  console.log(cmds);
 
-  cmds.forEach(pid => { // pid: cmd
+  cmds.map(pid => { // pid: cmd
     let cmd = cutObj[pid]; // 'x20 y30' 
     let cs = cmd.split(' '); // ['x20', 'y30']
     let xcuts = [];
     let ycuts = [];
-    console.log(pid);
-    console.log(cmd);
+
+    console.log('[PID] ' + pid);
 
     cs.forEach((_c,i) =>{
       // 'x20'
@@ -305,7 +307,7 @@ LayoutView.render(vu => {
       if (pid != 'r') {
         myId = pid + myId;
       }
-      console.log(pid, vu.val());
+
       console.log('Save ' + myId);
       vu.set(myId, BoxView.build({
         sel: vu.get(pid).sel(),
@@ -315,9 +317,11 @@ LayoutView.render(vu => {
         }
       }));
       return s;
-    });
+    }); // end of css.map
 
-  });
+    console.log(css);
+
+  }); // end of cmds.map
 
   return;
 

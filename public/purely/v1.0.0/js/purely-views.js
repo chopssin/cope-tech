@@ -11,9 +11,9 @@ let NavView = Views.class('Nav'),
   SelectView = Views.class('Select'),
   UListView = Views.class('Ulist'),
   FormView = Views.class('Form'),
-  NavBeta = Views.class('NavBeta');
+  MyPurelyView = Views.class('MyPurely');
 
-NavBeta.dom(vu => `
+NavView.dom(vu => `
  <header ${vu.ID} class="view-nav">
     <div data-component="logo" class="logo bg"></div>
     <div class="float-right">
@@ -38,7 +38,31 @@ NavBeta.dom(vu => `
   </header>
 `);
 
-NavBeta.render(vu=> {
+
+let NavDom = [
+  { 'header.view-nav': [
+    { 'div@logo.logo.bg': '' },
+    { 'div.float-right': [
+      { 'nav': [
+        { 'ul@main-items': '' }
+      ]}
+    ]},
+    { 'div.view-nav-items.bg-w@menu': [
+      { 'div.glyphicon.glyphicon-remove.float-right.remove-icon@close-button': '' },
+      { 'nav (style = "text-align:center;")': [
+        {'ul@nav-items': ''}
+      ]}
+    ]},
+    { 'div(style = "z-index:2;").view-nav-items.bg-w@user-menu': [
+      { 'div.glyphicon.glyphicon-remove.float-right.remove-icon@close-button': ''},
+      { 'nav(style="text-align:center;")': [
+        { 'ul@nav-items': ''}
+      ]}
+    ]}
+  ]}
+];
+
+NavView.render(vu=> {
 
   // Reset items
   vu.$el('@main-items').html(`
@@ -54,7 +78,6 @@ NavBeta.render(vu=> {
     'height': '100px',
     'background-color': '#aca',
     'line-height': '100px',
-    'overflow': "hidden"
   };
   //  Css
   vu.$el().css(defaultCss);
@@ -153,151 +176,7 @@ NavBeta.render(vu=> {
 
 });
 
-// NavView
-// @logo
-// @main-items: nav
-// @signIn: ul
-// @user: ul
-// @menu
-// @nav-items: ul
-// @close-button: close-icon
-// @items: ul
-// @user-menu
-// @user-items: ul
-// -signedIn: bool, check user signed
-// -navItems: array, input for @item
-// -user-items: array, input for @user-items
-// -css: object, NavView's style
-// -@logo: object
-//   -logoText: string
-//   -css: object
-// "signIn" <- null
-// "signOut" <- null
-// "logo clicked" <- null 
-// NavView.dom(vu => (`
-//   <header ${vu.ID} class="view-nav">
-//     <div data-component="logo" class="logo bg">Logo</div>
-//     <div class="float-right">
-//       <nav data-component="main-items">
-//         <ul data-component="signIn" class="hidden-xs hidden">
-//           <li><a class="user">Sign in</a></li>
-//         </ul>
-//         <ul data-component="user" class="hidden-xs hidden">
-//           <li><a class="user">User Name</a></li>
-//         </ul>
-//         <ul class="hidden">
-//           <li data-component="menu-button" class="menu-icon glyphicon glyphicon-menu-hamburger"></li>
-//         </ul>
-//       </nav>
-//     </div>
-//     <div class="view-nav-items bg-w" data-component="menu" >
-//       <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
-//       <nav style="text-align: center;">
-//         <ul data-component="nav-items" >
-//         </ul>
-//       </nav>
-//     </div>
-//     <div style="z-index: 2;" class="view-nav-items  bg-w" data-component="user-menu">
-//       <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
-//     	<nav style="text-align: center;">
-// 				<ul data-component="user-items"></ul>
-//     	</nav>
-//     </div>
-//   </header>`));
 
-// NavView.render(vu => {
-//   // Just with logoText
-//   vu.use('@logo.logoText').then(v => {
-//     vu.$el('@logo').html(v['@logo'].logoText);
-//   });
-//   //userItems, signedIn, member 
-//   vu.use('signedIn, user-items').then(v => {
-//     console.log(v.member);
-//     vu.$el('@signIn').removeClass('hidden');
-//     vu.$el('@user').removeClass('hidden');
-//   	if (v.signedIn) {
-//       vu.$el('@signIn').hide();
-//       vu.$el('@user').show();
-//     } else {
-//       vu.$el('@signIn').show();
-//       vu.$el('@user').hide();
-//     }
-//     vu.$el('@user-items').html('');
-//     v["user-items"].forEach(obj => {
-//     	if(obj.href){
-//     		vu.$el("@user-items").append(`<li class="user"><a href=${obj.href}>${obj.title}</a></li>`)
-//     	} else {
-//     		vu.$el("@user-items").append(`<li class="user"><a data-component=${obj.comp}>${obj.title}</a></li>`)
-//     	}
-//     });
-//   });
-//   //mainItems
-//   vu.use('mainItems').then(v=> {
-//     //vu.$el('@main-items').append(`<ul data-component="user-defined-items"><ul>`);
-//     UListView.build({
-//       sel: vu.sel('@main-items'),
-//       data: {
-//         comp: "user-defined-items",
-//         items: v.mainItems
-//       }
-//     }).res('comp', comp => {
-//       console.log(comp);
-//     });
-//   });  
-
-//   //navItems
-//   vu.use('navItems').then(v => {
-//     vu.$el('@menu-button').parent().removeClass('hidden');
-//   	vu.$el('@nav-items').html('');
-//     v.navItems.forEach(obj => {
-//       vu.$el('@nav-items').append(`<li class="user"><a href=${obj.href}>${obj.title}</a></li>`);
-//     });
-//   });
-//   //css
-//   vu.use('css').then(v=> {
-//     vu.$el().css(v.css);
-//     if (v.css.height) {
-//       vu.$el().css('line-height', v.css.height);
-//     }
-//   });
-//   //@logo
-//   vu.use('@logo.css').then(v => {
-//     vu.$el('@logo').css(v['@logo'].css);
-//     vu.$el('@logo').html(v['@logo'].logoText);
-//   });
-
-//   //animate include @menu && @user-menu
-//   vu.$el('@menu-button').off('click').on('click', () => {
-//     vu.$el('@menu').fadeIn(300);
-//     $(".logo float-right").hide();
-//   });
-//   vu.$el('@close-button').off('click').on('click', () => {
-//     vu.$el('@menu').fadeOut(300);
-//     vu.$el('@user-menu').fadeOut(300);
-//     $(".logo float-right").show();
-//   });
-//   vu.$el('@user').off('click').on('click', () => {
-//     vu.$el('@user-menu').fadeIn(300);
-//     $(".logo .float-right").hide();
-//   });
- 
-//   // Set @logo click event
-//   vu.$el('@logo').off('click').on('click', () => {
-//     vu.res('logo clicked');
-//   });
-
-//   // Set @signIn click event
-//   vu.$el('@signIn').off('click').on('click', () => {
-//     vu.res('signIn');
-//   });
-//   // Set @signOut click event
-//   vu.$el('@signOut').off('click').on('click', () => {
-//     vu.res('signOut');
-//     vu.$el('@user-menu').fadeOut(300);
-//     $(".logo .float-right").hide();
-//   });
-
-// });
 //UList
 //-comp: str, set element data-component
 //-items: array, input for list
@@ -329,6 +208,12 @@ UListView.render(vu => {
     });  
   });
 })
+
+let UListDom = [
+  { 'div': [
+    { 'ul': ''}
+  ]}
+];
 // BoxView
 // @box
 // -css: object, @box's style
@@ -345,6 +230,10 @@ BoxView.render(vu => {
     vu.$el().html(v.text.join(' '));
   });
 });
+
+let BoxDom = [
+  { 'div.view-box@box': ''}
+];
 
 // Tiles
 // -cut: obj, cut sequence
@@ -486,8 +375,8 @@ TilesView.render(vu => {
       css: css1
     }
   }));
-
 });
+
 
 // Textarea
 // @textarea
@@ -553,6 +442,11 @@ TextareaView.render(vu => {
   }, 1000);
 });
 
+
+let TextareaDom = [
+  { 'textarea(row="1").view-textarea': ''}
+];
+
 // ImageUploader
 // @preview
 // @button 
@@ -602,6 +496,14 @@ ImageUploaderView.render( vu => {
 	});// end of change-event
 });
 
+let ImageUploaderDom = [
+  { 'div.view-image-uploader': [
+    { 'div@preview': ''},
+    { 'button@button': '上傳'},
+    { 'button@done(style = "float:right;")': '完成'},
+    { 'input@files.hidden(type="file" name="img[]" multiple)': ''}
+  ]}
+];
 // FormView
 FormView.dom(vu =>`
   <div ${vu.ID}>
@@ -646,7 +548,13 @@ FormView.render(vu => {
   });// end of vu.use
 });
 
-
+let FromDom = [
+  { 'div': [
+    { 'div': [
+      { 'ul@inputs': ''}
+    ]}
+  ]}
+];
 
 
 // PhotoView
@@ -669,6 +577,17 @@ PhotoView.dom(vu =>
     </div>
   </div>`
 );
+
+let PhotoDom = [
+  { 'div': [
+    { 'a(href="#")': [
+      { 'img@img.img-responsive(src="")': ''}
+    ]},
+    { 'div@caption': [
+      { 'a.text(href="")': ''}
+    ]}
+  ]}
+];
 
 PhotoView.render(vu => {
 
@@ -725,6 +644,12 @@ GridView.dom(vu =>
     </div>
   </div>`
 );
+
+let GridDom = [
+  { 'div.view-grid': [
+    { 'div.row.clear-margin@grid': ''}
+  ]}
+];
 
 GridView.render(vu => {
 
@@ -800,6 +725,24 @@ SlideView.dom(vu =>
     </div>
   </div>`
 );
+
+let SlideDom = [
+  { 'div.view-slide': [
+    { 'div.slide': [
+      { 'i.slideButtonLeft.glyphicon.glyphicon-chevron-left': ''},
+      { 'i.slideButtonRight.glyphicon.glyphicon-chevron-right': ''},
+      { 'div.banner@slideItem': ''},
+      { 'div.caption': [
+        { 'ul@slideCaption': ''}
+      ]},
+      { 'div.slideNav': [
+        { 'ul@slideNav': ''}
+      ]}
+    ]}
+  ]}
+];
+
+
 SlideView.render(vu => {
 
   // Default CSS Setting
@@ -953,6 +896,12 @@ SelectView.dom(vu =>
   </div>`
 );
 
+let SelectDom = [
+  { 'div.view-select': [
+    { 'select@select' : ''}
+  ]}
+];
+
 SelectView.render(vu => {
   vu.use('options').then(v => {
     if(Array.isArray(v.options)){
@@ -971,3 +920,76 @@ SelectView.render(vu => {
     } 
   })  
 });
+
+MyPurelyView.dom(vu => `
+ <div ${vu.ID} class="row viewport">
+      <div class="hidden-xs" style="float:right; padding: 20px;">
+        <button class="btn btn-primary" data-component="mobileBtn">mobile</button>
+        <button class="btn btn-primary" data-component="windowBtn">window</button>
+      </div>
+      <div data-component="form" class="col-md-6 col-xs-12" style="clear:right;">
+        <div id="form-view"></div>
+        <div>Logo</div>
+        <div class="uploader">
+          <div class="glyphicon glyphicon-upload" style="font-size:2.5em;"></div>
+        </div>
+        <div id="imageuploader"></div>
+        <div>
+          <div class="glyphicon glyphicon-plus-sign" style="font-size:2em; margin:10px 17px;"></div>
+        </div>
+        <div id="form-list"></div>
+        <div id="save-btn" class="btn btn-primary">Save</div>
+      </div>
+      <div data-component="viewport" class="col-md-6 col-xs-12">
+      </div>
+    </div>` 
+);
+
+MyPurelyView.render(vu => {
+  
+//form
+  let inputs = [{type: "text", label: "App Name", value: 'uuu' },{type: "text", label: "Company Name",value: 'hello'}]; 
+  let formview = FormView.build({
+    sel: '#form-view',
+    method: 'append',
+    data:{
+      inputs: inputs
+    }
+  });
+
+  let formlist = UListView.build({
+    sel: '#form-list',
+    method: 'append',
+    data:{
+      items:[{title:'Product'},{title:'Blog'}]
+    }
+  });
+
+  $('#save-btn').click(() => {
+    let values = formview.val('values');
+    console.log(values);
+
+    vu.res('save', values);
+
+  });
+  //toggle RWD
+  
+  let mobileBtn = vu.$el('@mobileBtn'),
+      windowBtn = vu.$el('@windowBtn'),
+      form = vu.$el('@form'),
+      vp = vu.$el('@viewport');
+  mobileBtn.off('click').on('click',() =>{
+    console.log('mobileBtn onclick!');
+    form.addClass('col-md-6');
+    vp.addClass('col-md-6');
+  });
+  windowBtn.off('click').on('click',() =>{
+    console.log('windowBtn onclick!');
+    form.removeClass('col-md-6');
+    vp.removeClass('col-md-6');
+  });
+});
+
+
+
+

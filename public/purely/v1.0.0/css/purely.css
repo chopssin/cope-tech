@@ -387,6 +387,42 @@
   background-color: rgba(128, 128, 128, 0.8);
 }
 
+/* viewport */
+.viewport .uploader {
+  width: 211px;
+  height: 150px;
+  line-height: 170px;
+  background-color: #bbb;
+  text-align: center;
+  cursor: pointer;
+  opacity: 0.55;
+}
+.viewport .uploader:hover {
+  opacity: 0.87;
+}
+.viewport li {
+  font-family: monospace;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  -o-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  -moz-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  -webkit-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  -o-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  -ms-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  border: 0;
+  color: #333;
+  font-weight: 300;
+  letter-spacing: 0.125em;
+  text-decoration: none;
+  white-space: nowrap;
+  text-indent: 0.25em;
+  cursor: pointer;
+  list-style: none;
+}
+
 
 /* Extra Small Devices, Phones */
 @media only screen and (min-width : 480px) {

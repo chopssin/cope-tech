@@ -599,67 +599,95 @@ Test.go(log => {
   //   }
   // });
 // View
-  viewport.$el('@purely').prepend(`
-    <div class="row">
-      <div class="hidden-xs" style="float:right; padding: 20px;">
-        <button class="btn btn-primary" data-component="mobileBtn">mobile</button>
-        <button class="btn btn-primary" data-component="windowBtn">window</button>
-      </div>
-      <div data-component="form" class="col-md-6 col-xs-12" style="clear:right;">
-        
-      </div>
-      <div data-component="viewport" class="col-md-6 col-xs-12">
-        <div id="form-view"></div>
-        <button id="save-btn">Save</button>
-      </div>
-    </div>`
-  );
-//toggle RWD
-  let mobileBtn = viewport.$el('@mobileBtn'),
-      windowBtn = viewport.$el('@windowBtn'),
-      form = viewport.$el('@form');
-      vp = viewport.$el('@viewport');
-  mobileBtn.off('click').on('click',() =>{
-    console.log('mobileBtn onclick!');
-    form.addClass('col-md-6');
-    vp.addClass('col-md-6');
-  });
-  windowBtn.off('click').on('click',() =>{
-    console.log('windowBtn onclick!');
-    form.removeClass('col-md-6');
-    vp.removeClass('col-md-6');
-  });
-//form
-  let inputs = [{type: "text", label: "App Name", value: 'uuu' },{type: "text", label: "Company Name",value: 'hello'}]; 
-  let formview = FormView.build({
-    sel: '#form-view',
-    methon: 'append',
-    data:{
-      inputs: inputs
-    }
-  });
 
-  console.log('app', app);
-
-  // app.get('appName').then(appName => {
-  //   console.log(appName);
-
-  //   //formview.val('@appName', appName);
-  //   inputs[0].value = appName;
-  //   formview.val('inputs', inputs);
-  // });
-
-  $('#save-btn').click(() => {
-    let values = formview.val('values');
-    console.log(values);
-
+// >>>>>>>>>>>> build: sel: viewport.sel('@purely')
+  MyPurelyView.build({
+    sel: viewport.sel('@purely')
+  }).res('save',values => {
     app.set('appName', values[0]).then(() => {
       console.log(':)');
     });
   });
   
+//   viewport.$el('@purely').prepend(`
+//     <div class="row viewport">
+//       <div class="hidden-xs" style="float:right; padding: 20px;">
+//         <button class="btn btn-primary" data-component="mobileBtn">mobile</button>
+//         <button class="btn btn-primary" data-component="windowBtn">window</button>
+//       </div>
+//       <div data-component="viewport" class="col-md-6 col-xs-12" style="clear:right;">
+//       </div>
+//       <div data-component="form" class="col-md-6 col-xs-12">
+//         <div id="form-view"></div>
+//         <div>Logo</div>
+//         <div class="uploader">
+//           <div class="glyphicon glyphicon-upload" style="font-size:2.5em;"></div>
+//         </div>
+//         <div id="imageuploader"></div>
+//         <div>
+//           <div class="glyphicon glyphicon-plus-sign" style="font-size:2em; margin:10px 17px;"></div>
+//         </div>
+//         <div id="form-list"></div>
+//         <div id="save-btn" class="btn btn-primary">Save</div>
+//       </div>
+//     </div>`
+//   );
+// //toggle RWD
+//   let mobileBtn = viewport.$el('@mobileBtn'),
+//       windowBtn = viewport.$el('@windowBtn'),
+//       form = viewport.$el('@form');
+//       vp = viewport.$el('@viewport');
+//   mobileBtn.off('click').on('click',() =>{
+//     console.log('mobileBtn onclick!');
+//     form.addClass('col-md-6');
+//     vp.addClass('col-md-6');
+//   });
+//   windowBtn.off('click').on('click',() =>{
+//     console.log('windowBtn onclick!');
+//     form.removeClass('col-md-6');
+//     vp.removeClass('col-md-6');
+//   });
+// //form
+//   let inputs = [{type: "text", label: "App Name", value: 'uuu' },{type: "text", label: "Company Name",value: 'hello'}]; 
+//   let formview = FormView.build({
+//     sel: '#form-view',
+//     method: 'append',
+//     data:{
+//       inputs: inputs
+//     }
+//   });
+
+//   let formlist = UListView.build({
+//     sel: '#form-list',
+//     method: 'append',
+//     data:{
+//       items:[{title:'Product'},{title:'Blog'}]
+//     }
+//   });
+
+//   console.log('app', app);
+
+//   // app.get('appName').then(appName => {
+//   //   console.log(appName);
+
+//   //   //formview.val('@appName', appName);
+//   //   inputs[0].value = appName;
+//   //   formview.val('inputs', inputs);
+//   // });
+
+//   $('#save-btn').click(() => {
+//     let values = formview.val('values');
+//     console.log(values);
+
+//     app.set('appName', values[0]).then(() => {
+//       console.log(':)');
+//     });
+//   });
+  
 
   log.ok();
+//plus
+
 });
 
 // Test - appGraph: edges formed by node.link
@@ -909,13 +937,17 @@ Test.go(log => {
   });
 });
 
-// Test - @hydra Nav beta
 Test.go(log => {
-  log.title('Nav測試版');
-  Vbox.append('nav-beta');
+  log.title('@hydra: Views - Nav, Box, Textarea, ImageUploader');
+  Vbox.append('nav');
+  Vbox.append('box');
+  Vbox.append('textarea');
+  Vbox.append('imageUploader');
+  Vbox.append('form');
 
-  let navBeta = NavBeta.build({
-    sel: '#nav-beta',
+  //Nav
+  let navA = NavView.build({
+    sel: '#nav',
     method: 'append',
     data: {
       logo: {
@@ -964,83 +996,15 @@ Test.go(log => {
   }).res('comp', comp => {
     console.log(comp);
   }).res('signIn', (B) => {
-    navBeta.val({
+    navA.val({
       "usingMembers": true
     });
   }).res('signOut', () => {
-    navBeta.val({
+    navA.val({
       "usingMembers": false
     });
   });
-});
-
-// Test - @hydra
-Test.go(log => {
-  log.title('@hydra: Views - Nav, Box, Textarea, ImageUploader');
-  Vbox.append('nav');
-  Vbox.append('box');
-  Vbox.append('textarea');
-  Vbox.append('imageUploader');
-  Vbox.append('form');
-
-
-  Vbox('nav').log('no data');
-
-  let navA = NavView.build({
-    sel: '#nav',
-    method: 'append'
-  });
-
-  Vbox('nav').log('signIn, navItems, css, @logo');
   
-  let navB = NavView.build({
-    sel: '#nav',
-    method: 'append'
-  }).val({
-    signedIn: true,
-    navItems: [{title:"HOME",href:"#"},{title:"About",href:"#"},{title:"FAQ",href:"#"}], // { title, href }
-    css: {
-      "height": "100px",
-      "background-color": "#aca",
-    },
-    "@logo": {
-      logoText: 'Aca',
-      css: {
-        "background-image":'url("http://blog.asiayo.com/wp-content/uploads/2016/11/%E5%8F%B0%E5%8D%97-1.jpg")'
-      }
-    }
-  });
-
-  Vbox('nav').log('signIn, member, user-items')
-
-  let navC = NavView.build({
-    sel: '#nav',
-    method: 'append',
-    data: {
-      member: true,
-      signedIn: false,
-      "user-items": [{title:"Account", href:"#"},{title:"Sign Out", comp:'signOut'}]
-    }
-  }).res('signIn', () => {
-    navC.val({
-      signedIn: true
-    });
-  }).res('signOut', () => {
-    navC.val({
-      signedIn: false
-    });
-  });
-
-  Vbox('nav').log('mainItem');
-
-  let navD = NavView.build({
-    sel: '#nav',
-    method: 'append',
-    data: {
-      mainItems:[{title:"About",comp:"About",href:"#"},{title:"FAQ",comp:"FAQ"}]
-    }
-  });
-
 
   //Box
   let boxA = BoxView.build({
@@ -1093,8 +1057,15 @@ Test.go(log => {
 
   //ImageUploader 
 
-  let ImageUploader = ImageUploaderView.build({
+  let ImageUploaderA = ImageUploaderView.build({
     sel: '#imageUploader',
+    method: 'append'
+  }).res('value', val => {
+    console.log(val);
+  });
+
+  let ImageUploaderB = ImageUploaderView.build({
+    sel: '#imageuploader',
     method: 'append'
   }).res('value', val => {
     console.log(val);

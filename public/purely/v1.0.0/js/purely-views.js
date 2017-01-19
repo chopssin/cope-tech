@@ -231,11 +231,10 @@ BoxView.render(vu => {
   });
 });
 
-<<<<<<< HEAD
 let BoxDom = [
-  { 'div.box@box': ''}
+  { 'div.view-box@box': ''}
 ];
-=======
+
 // Tiles
 // -cut: obj, cut sequence
 // -box: string, seq number of a boxView
@@ -376,9 +375,8 @@ TilesView.render(vu => {
       css: css1
     }
   }));
-
 });
->>>>>>> dev
+
 
 // Textarea
 // @textarea

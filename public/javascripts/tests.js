@@ -864,11 +864,6 @@ Test.go(log => {
   log.ok();
 });
 
-<<<<<<< HEAD
-
-
-// Test - @hydra
-=======
 // Test - @assface: Tiles
 Test.go(log => {
   log.title('@assface: Tiles')
@@ -905,8 +900,6 @@ Test.go(log => {
   });
 });
 
-// Test - @hydra Nav beta
->>>>>>> dev
 Test.go(log => {
   log.title('@hydra: Views - Nav, Box, Textarea, ImageUploader');
   Vbox.append('nav');

@@ -1652,7 +1652,6 @@
     user.write = writeInbox;
     
     user.signOut = function() {
-      // TBD: sing out
       getFB().then(fb => {
         debug('user sign out')
         fb.auth().signOut();

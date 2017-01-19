@@ -221,34 +221,35 @@ LayoutView.render(vu => {
     sel: vu.sel(),
     data: {
       css: { 
-        width: '100%',
-        height: '100%'
+        width: w,
+        height: h,
+        display: 'inline-block',
+        padding: '0',
+        margin: '0',
+        border: '0',
+        'background-color': '#' + Math.floor(Math.random() * 1000)
       }
     }
   }));
-
+  
   let cmds = Object.keys(cutObj).sort((a, b) => {
     if (b == 'r') {
       return 1; 
     }
     return -1;
   });
-  // "r": "x40 y50"
-  // "2": "x60"
-  // "21": "y50"
 
-  let dir = {
-    'x': 'width',
-    'y': 'height'
-  };
   cmds.forEach(pid => { // pid: cmd
     let cmd = cutObj[pid]; // 'x20 y30' 
     let cs = cmd.split(' '); // ['x20', 'y30']
     let xcuts = [];
     let ycuts = [];
+    console.log(pid);
+    console.log(cmd);
+
     cs.forEach((_c,i) =>{
       // 'x20'
-      console.log('QQQQQ',_c);
+      //console.log('QQQQQ',_c);
       if (_c.charAt(0) == 'x') {
         xcuts.push(parseInt(_c.slice(1)));  
       }
@@ -257,8 +258,17 @@ LayoutView.render(vu => {
       }
     });
 
-    console.log('1111111',xcuts);
-    console.log('2222222',ycuts);
+    function cutsArraySort(a,b){
+      return a - b
+    }
+
+    xcuts = xcuts.sort(cutsArraySort);
+    ycuts = ycuts.sort(cutsArraySort);
+
+    xcuts = [0].concat(xcuts, [100]);
+    ycuts = [0].concat(ycuts, [100]);
+    // console.log('1111111',xcuts);
+    // console.log('2222222',ycuts);
 
     //console.log('11111111',cs)
     let xs = cmd.match(/x/g) || [];
@@ -266,31 +276,50 @@ LayoutView.render(vu => {
     let total = (xs.length + 1) * (ys.length + 1);
     let css = [];
     for (let i = 0; i < total; i++) {
-      css.push({ width: '100%', height: '100%' }); 
+      css.push({ 
+        display: 'inline-block',
+        position: 'relative',
+        width: '100%', 
+        height: '100%',
+        padding: '0',
+        margin: '0',
+        border: '0',
+        'background-color': '#' + Math.floor(Math.random() * 1000)
+      }); 
     }
 
     //{ width: '100%', height: '100%' }
 
     css = css.map((s, i) => {
+      //console.log('ycuts arr', ycuts);
+      //console.log('ycuts i', Math.floor(i / (ycuts.length - 1)));
+      // Modify s
 
-      //console.log('111111',s);
+      s.width = xcuts[i % (xcuts.length-1) + 1] - xcuts[i % (xcuts.length-1)];
+      s.height = ycuts[Math.floor(i / (xcuts.length - 1)) + 1] - ycuts[(Math.floor(i / (xcuts.length - 1)))];
+
+      s.width = s.width + '%';
+      s.height = s.height + '%';
+
+      let myId = i + '';
+      if (pid != 'r') {
+        myId = pid + myId;
+      }
+      console.log(pid, vu.val());
+      console.log('Save ' + myId);
+      vu.set(myId, BoxView.build({
+        sel: vu.get(pid).sel(),
+        method: 'append',
+        data: {
+          css: s
+        }
+      }));
+      return s;
     });
 
-    console.log(pid);
-    console.log(cmd);
   });
 
   return;
-
-  // parentBoxId: "xL"
-  let css0 = {
-    width: '100%',
-    height: '100%'
-  },
-  css1 = {
-    width: '100%',
-    height: '100%'
-  }
 
   css0[dir[x]] = L + '%'
   css1[dir[x]] = (100 - L) + '%' 

@@ -781,10 +781,10 @@ Test.go(log => {
   let layout = LayoutView.build({
     sel: '#layout-test',
     data: {
-      w: 100,
-      h: 100,
+      w: '100px',
+      h: '100px',
       cut: {
-        'r': 'x30',
+        'r': 'x70',
         '0': 'x50 y50',
         '02': 'x40'
       }

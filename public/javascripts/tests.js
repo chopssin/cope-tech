@@ -815,7 +815,6 @@ Test.go(log => {
   </div>`);
   
   Post.render(vu => {
-
     vu.$el().css({
       'max-width': '540px',
       padding: '16px',
@@ -865,9 +864,49 @@ Test.go(log => {
   log.ok();
 });
 
+<<<<<<< HEAD
 
 
 // Test - @hydra
+=======
+// Test - @assface: Tiles
+Test.go(log => {
+  log.title('@assface: Tiles')
+  Vbox.append('tiles');
+  
+  TilesView.build({
+    sel: '#tiles',
+    data: {
+      w: '200px',
+      h: '200px',
+      cut: {
+        'r': 'x70 x80 x83 y60',
+        '0': 'x50 y50',
+        '02': 'x40',
+        '1': 'y40',
+        '01': 'y40',
+        '4': 'x24 x57 x76 y50',
+        '3': 'y33'
+      }
+    }
+  });
+
+  TilesView.build({
+    sel: '#tiles',
+    method: 'append',
+    data: {
+      w: '300px',
+      h: '200px',
+      cut: {
+        'r': 'y70',
+        '0': 'x33.3333 x66.6666'
+      }
+    }
+  });
+});
+
+// Test - @hydra Nav beta
+>>>>>>> dev
 Test.go(log => {
   log.title('@hydra: Views - Nav, Box, Textarea, ImageUploader');
   Vbox.append('nav');

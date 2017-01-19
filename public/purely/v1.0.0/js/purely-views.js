@@ -2,6 +2,7 @@ const Views = Cope.useViews('Purely');
 
 let NavView = Views.class('Nav'),
   BoxView = Views.class('Box'),
+  TilesView = Views.class('Tiles');
   TextareaView = Views.class('Textarea'),
   ImageUploaderView = Views.class('ImageUploader'),
   PhotoView = Views.class('Photo'),
@@ -217,7 +218,7 @@ let UListDom = [
 // @box
 // -css: object, @box's style
 BoxView.dom( vu => (`
-	<div ${vu.ID} data-component="box" class="box">
+	<div ${vu.ID} data-component="box" class="view-box">
 	</div>
 `));
 
@@ -230,9 +231,154 @@ BoxView.render(vu => {
   });
 });
 
+<<<<<<< HEAD
 let BoxDom = [
   { 'div.box@box': ''}
 ];
+=======
+// Tiles
+// -cut: obj, cut sequence
+// -box: string, seq number of a boxView
+TilesView.dom(vu => {
+  return `<div ${vu.ID}></div>`;
+});
+
+TilesView.render(vu => {
+  let w = vu.get('w'),
+      h = vu.get('h'),
+      cutObj = vu.get('cut');
+
+  vu.set('r', BoxView.build({
+    sel: vu.sel(),
+    data: {
+      css: { 
+        width: w,
+        height: h,
+        display: 'inline-block',
+        padding: '0',
+        margin: '0',
+        border: '0',
+        'background-color': '#' + Math.floor(Math.random() * 1000)
+      }
+    }
+  }));
+  
+  let cmds = Object.keys(cutObj).sort((a, b) => {
+    if (b == 'r' 
+      || (a.length > b.length)) {
+      return 1; 
+    } 
+    return -1;
+  });
+  console.log(cmds);
+
+  cmds.map(pid => { // pid: cmd
+    let cmd = cutObj[pid]; // 'x20 y30' 
+    let cs = cmd.split(' '); // ['x20', 'y30']
+    let xcuts = [];
+    let ycuts = [];
+
+    console.log('[PID] ' + pid);
+
+    cs.forEach((_c,i) =>{
+      // 'x20'
+      //console.log('QQQQQ',_c);
+      if (_c.charAt(0) == 'x') {
+        xcuts.push(parseInt(_c.slice(1)));  
+      }
+      else{
+        ycuts.push(parseInt(_c.slice(1)));
+      }
+    });
+
+    function cutsArraySort(a,b){
+      return a - b
+    }
+
+    xcuts = xcuts.sort(cutsArraySort);
+    ycuts = ycuts.sort(cutsArraySort);
+
+    xcuts = [0].concat(xcuts, [100]);
+    ycuts = [0].concat(ycuts, [100]);
+    // console.log('1111111',xcuts);
+    // console.log('2222222',ycuts);
+
+    //console.log('11111111',cs)
+    let xs = cmd.match(/x/g) || [];
+    let ys = cmd.match(/y/g) || [];
+    let total = (xs.length + 1) * (ys.length + 1);
+    let css = [];
+    for (let i = 0; i < total; i++) {
+      css.push({ 
+        display: 'inline-block',
+        position: 'relative',
+        width: '100%', 
+        height: '100%',
+        padding: '0',
+        margin: '0',
+        border: '0',
+        'background-color': '#' + Math.floor(Math.random() * 1000)
+      }); 
+    }
+
+    //{ width: '100%', height: '100%' }
+
+    css = css.map((s, i) => {
+      //console.log('ycuts arr', ycuts);
+      //console.log('ycuts i', Math.floor(i / (ycuts.length - 1)));
+      // Modify s
+
+      s.width = xcuts[i % (xcuts.length-1) + 1] - xcuts[i % (xcuts.length-1)];
+      s.height = ycuts[Math.floor(i / (xcuts.length - 1)) + 1] - ycuts[(Math.floor(i / (xcuts.length - 1)))];
+
+      s.width = s.width + '%';
+      s.height = s.height + '%';
+
+      let myId = i + '';
+      if (pid != 'r') {
+        myId = pid + myId;
+      }
+
+      console.log('Save ' + myId);
+      vu.set(myId, BoxView.build({
+        sel: vu.get(pid).sel(),
+        method: 'append',
+        data: {
+          css: s
+        }
+      }));
+      return s;
+    }); // end of css.map
+
+    console.log(css);
+
+  }); // end of cmds.map
+
+  return;
+
+  css0[dir[x]] = L + '%'
+  css1[dir[x]] = (100 - L) + '%' 
+
+
+  vu.set(parentBoxId, BoxView.build({
+    sel: vu.get(parentBoxId).sel(),
+    method: 'append',
+    data: {
+      css: css0
+    }
+  }));
+
+
+  vu.set(parentBoxId, BoxView.build({
+    sel: vu.get(parentBoxId).sel(),
+    method: 'append',
+    data: {
+      css: css1
+    }
+  }));
+
+});
+>>>>>>> dev
 
 // Textarea
 // @textarea

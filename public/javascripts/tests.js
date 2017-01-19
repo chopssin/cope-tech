@@ -841,7 +841,7 @@ Test.go(log => {
   log.title('@assface: Tiles')
   Vbox.append('tiles');
   
-  let tiles = TilesView.build({
+  TilesView.build({
     sel: '#tiles',
     data: {
       w: '200px',
@@ -854,6 +854,19 @@ Test.go(log => {
         '01': 'y40',
         '4': 'x24 x57 x76 y50',
         '3': 'y33'
+      }
+    }
+  });
+
+  TilesView.build({
+    sel: '#tiles',
+    method: 'append',
+    data: {
+      w: '300px',
+      h: '200px',
+      cut: {
+        'r': 'y70',
+        '0': 'x33.3333 x66.6666'
       }
     }
   });

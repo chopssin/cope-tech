@@ -464,7 +464,6 @@ Test.go(log => {
     'overflow': 'scroll'
   });
 
-
   // Sample Settings
   let settings = [];
   settings.push({
@@ -827,6 +826,44 @@ Test.go(log => {
   } else {
     log('undefined jQuery or $');
   }
+});
+
+// Test - Test with Cope dom language
+Test.go(log => {
+  log.title('Cope Dom Test');
+  Vbox.append('dom-test');
+
+  let testDom = [
+    { 'div.color-blue(style="padding:20px;")': [
+      { 'h3': 'Test Dom' },
+      '<p>Wrapped in &lt;p&gt;</p>',
+      { 'p@text': '' }] 
+    },
+    { 'ul': [
+      { 'li': 'First li' },
+      { 'li(style = "color:#aca")@text': '' },
+      { 'li@text': '' },
+      { 'li': 'Last li' }] 
+    },
+    { 'div(style="font-size:12px; padding:20px")': [
+      { 'h4': 'The following shows the dom' },
+      { 'pre': [
+        { 'code@dom': '' }]
+      }]
+    }
+  ];
+
+  let TestView = Cope.views().class('Test');
+  TestView.dom(vu => testDom);
+  TestView.render(vu => {
+
+    vu.$el('@text').html('This text will show up in all @text');
+
+    vu.$el('@dom').html(JSON.stringify(testDom, null, 2)
+      .replace(/\n/g, '<br>')
+      .replace(/\s/g, '&nbsp;'));
+  });
+  TestView.build({ sel: '#dom-test' });
 });
 
 // Test - Purely iframe 

@@ -1311,7 +1311,23 @@
               vu = newView(data, renderAll),
               selector = obj.sel || obj.selector,
               method = obj.method || 'html';
-          $(selector)[method](dom.call(vu, vu));
+
+          let html = dom.call(vu, vu);
+          if (Array.isArray(html)) {
+            let domArr = [];
+
+            // Add vu.id to the first children
+            domArr = html.map(o => {
+              let newO = {};
+              k = Object.keys(o)[0]; // TBD
+              newO[k + '*' + vu.id] = o[k];
+              return newO;
+            });
+            html = domToHtml(domArr);
+          }
+
+          // Render with initial dom
+          $(selector)[method](html);
           vu.load(); // run renderAll
           return vu;
         }; // end of proto.build
@@ -1325,6 +1341,227 @@
     }
     return my;
   }; // end of Cope.views or Cope.useViews
+
+  function readTag(tag, value) {
+    var parse = /^([^@#<>\.\*\(\)]+)([@#<>\.\*][^@#<>\.\*]+|\(.+\))*$/g;
+    var result = parse.exec(tag);
+    if (result) {
+      var tagname = result[1].trim();
+      var id = '';
+      var vuId = '';
+      var classes = [];
+      var props = [];
+      var path = '';
+      var comp = '';
+      var html = '';
+
+      parse = /[@|#|\.|\*][^@#<>\.\*\(\)]+|[<>][^@#<>\.\*\(\)]+([\*][^@#<>\.\*\(\)]+)?|\(.+\)/g;
+      result = tag.match(parse);
+      if (result && result.length) {
+        result = result.map(function(x) {
+          switch (x.charAt(0)) {
+            case '@':
+              comp = x;
+              return { comp: x }; break;
+
+            case '#': 
+              id = x;
+              return { id: x }; break;
+            
+            case '.': 
+              classes.push(x);
+              return { 'class': x }; break;
+            
+            case '(': 
+              var len = x.length - 1;
+              props = x.slice(1, len);
+              return { props: x }; break;
+
+            case '*':
+              vuId = x.slice(1);
+              return { vuId: x }; break;
+    
+            default:
+          }
+        });
+      } // End if
+
+      // Get html and path
+      html = '<' + tagname;
+      path = tagname;
+      if (vuId) {
+        html += ` data-vuid = "${vuId}"`;
+      }
+      if (id) {
+        html += ' id = "' + id.replace('#', '') + '"';
+        path += id;
+      }
+      if (comp) {
+        html += ` data-component = "${ comp.slice(1) }"`;
+        path += comp;
+      }
+      if (classes.length > 0) {
+        html += ' class = "' + classes.reduce(function(x, y) {
+          return x + y.replace('.', ' ');
+        },'').trim() + '"';
+        path += classes.reduce(function(x, y) {
+          // Only accept "._actionName_randStr"
+          if (/\._\w+_\w+/.test(y)) {
+            return x + y;
+          }
+          return x;
+        }, '').trim();
+      }
+      if (props.length) {
+        html += ' ' + props;
+      }
+      html += '>'; 
+      if (tagname != 'input' 
+          && tagname != 'area'
+          && tagname != 'base'
+          && tagname != 'br'
+          && tagname != 'col'
+          && tagname != 'command'
+          && tagname != 'embed'
+          && tagname != 'hr'
+          && tagname != 'keygen'
+          && tagname != 'link'
+          && tagname != 'meta'
+          && tagname != 'param'
+          && tagname != 'source'
+          && tagname != 'img') html += (value || '') + '</' + tagname + '>';
+
+      let ret = {
+        tagname: tagname,
+        id: id || '',
+        vuId: vuId || '',
+        comp: comp.slice(1) || '',
+        classes: classes,
+        props: props,
+        html: html,
+        path: path
+      };
+      console.log('readTag', ret);
+      return ret;
+    }
+  }; // end of readTag
+
+  function domToHtml(dom) {
+    let html = '[dom]';
+    //return html;
+
+    let walk = function(node, path) {
+      
+      // value - Object type
+      if (!Array.isArray(node) && typeof node === 'object') {
+        // Create an element: for object type, eg. { key: value }
+        var keys = Object.keys(node);
+        var key = keys[0];
+        // Turn number type value into string type
+        if (!isNaN(node[key])) {
+          node[key] = node[key] + '';
+        }
+
+        if (key === 'submodule') {
+          // { submodule: {} }
+          return console.error('submodule is deprecated'); 
+        } else if (typeof node[key] === 'string') {
+          // { key: String }
+          return readTag(key, node[key]);
+        } else if (Array.isArray(node[key])) {
+          // { key: [] }
+          var fulltag = readTag(key).tagname;
+          return readTag(key, walk(node[key], path + ' ' + fulltag).html);
+        }
+      } 
+
+      // value - Array of children nodes
+      if (Array.isArray(node)) {
+        // Init each node
+        var w = {};
+        w.html = '';
+        w.path = '';
+
+        if (node.length === 2 && typeof node[0] === 'string') {
+          
+          // Turn number type value into string type
+          if (!isNaN(node[1])) node[1] = node[1] + '';
+
+          // Create an element: for array type [ String, value ]
+          if (typeof node[1] === 'string') {
+
+            // [ String, String ]
+            return readTag(node[0], node[1]);
+          } else if (typeof node[1] === 'object' && !Array.isArray(node[1])) { 
+
+            // [ String, {} ]
+            var rid = '_mod_' + rands();
+            var mroot = 'div#' + rid;
+            var newDiv = '<div id = "' + rid + '"></div>';
+            submodules.push([mroot, node[1].$moduleName, node[1].$gen]);
+            return readTag(node[0], newDiv); 
+          } else if (Array.isArray(node[1])) {
+
+            // [ String, [] ]
+            var fulltag = readTag(node[0]).path;
+            return readTag(node[0], walk(node[1], path + ' ' + fulltag).html);
+          }
+        } else {
+
+          // Array of nodes: [ value, ... ]
+          node.forEach(function(x) {
+            var ret = {};
+
+            if (typeof x === 'string') {
+              
+              // value is string
+              ret.html = x;
+              //return false;
+            }
+            if (typeof x === 'object' && !Array.isArray(x)) {
+              if (x.$moduleName) {
+                
+                // value is a submodule
+                var rid = '_mod_' + rands();
+                var mroot = 'div#' + rid;
+                w.html += '<div id = "' + rid + '"></div>';
+                submodules.push([mroot, x.$moduleName, x.$gen]);
+              } else {
+
+                // value is an object
+                ret = walk(x, path);
+              }
+            } else if (Array.isArray(x)) {
+
+              // value is an array
+              ret = walk(x, path);
+            } 
+
+            // x is an array or object
+            if (ret) {
+              console.log('x', x);
+              console.log('ret', ret);
+              w.html += ret.html;
+              w.path += (path + ' ' + ret.path).trim(); 
+            }
+          }); // End of forEach
+        };
+      } // End of isArray check
+      return w;
+    }; // End of walk
+
+    var result = walk(dom, '');
+    console.log(result);
+    return result.html;
+    //return '[ dom ]';
+    // return {
+    //   html: result.html,
+    //   dom: dom, 
+    //   path: result.path.trim(),
+    //   actions: actions,
+    //   submodules: submodules
+    // };
+  }; // end of domToHtml
   
   // -----------------------------
   // Cope.pages
@@ -1718,7 +1955,6 @@
       } // end of then
     }; // end of return
   }; // end of getUser
-
   
   // -----------------------------
   // Cope.user

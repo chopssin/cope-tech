@@ -824,6 +824,7 @@ Test.go(log => {
       vu.$el('@title').html(v.title);
       vu.$el('@content').html(v["@post"].content);
     });
+    log.ok();
   });
 
   Post.build({
@@ -836,12 +837,6 @@ Test.go(log => {
       content: 'Rendered @content with v["@post"].content.'
     }
   }).val('title', 'Rendered @title with v.title');
-
-  //let logQQ = block.$el('@logs')
-
-  //log('<br>');
-  //log('Passed');
-  log.ok();
 });
 
 // Test - use jQuery
@@ -890,6 +885,8 @@ Test.go(log => {
     vu.$el('@dom').html(JSON.stringify(testDom, null, 2)
       .replace(/\n/g, '<br>')
       .replace(/\s/g, '&nbsp;'));
+
+    log.ok();
   });
   TestView.build({ sel: '#dom-test' });
 });
@@ -935,6 +932,8 @@ Test.go(log => {
       }
     }
   });
+
+  log.ok();
 });
 
 Test.go(log => {

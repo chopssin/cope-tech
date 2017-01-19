@@ -2,7 +2,7 @@ const Views = Cope.useViews('Purely');
 
 let NavView = Views.class('Nav'),
   BoxView = Views.class('Box'),
-  LayoutView = Views.class('Layout');
+  TilesView = Views.class('Tiles');
   TextareaView = Views.class('Textarea'),
   ImageUploaderView = Views.class('ImageUploader'),
   PhotoView = Views.class('Photo'),
@@ -10,7 +10,148 @@ let NavView = Views.class('Nav'),
   SlideView = Views.class('Slide'),
   SelectView = Views.class('Select'),
   UListView = Views.class('Ulist'),
-  FormView = Views.class('Form');
+  FormView = Views.class('Form'),
+  NavBeta = Views.class('NavBeta');
+
+NavBeta.dom(vu => `
+ <header ${vu.ID} class="view-nav">
+    <div data-component="logo" class="logo bg"></div>
+    <div class="float-right">
+      <nav>
+        <ul data-component="main-items">
+        </ul>
+      </nav>
+    </div>
+    <div class="view-nav-items bg-w" data-component="menu" >
+      <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
+      <nav style="text-align: center;">
+        <ul data-component="nav-items" >
+        </ul>
+      </nav>
+    </div>
+    <div style="z-index: 2;" class="view-nav-items  bg-w" data-component="user-menu">
+      <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
+      <nav style="text-align: center;">
+        <ul data-component="user-items"></ul>
+      </nav>
+    </div>
+  </header>
+`);
+
+NavBeta.render(vu=> {
+
+  // Reset items
+  vu.$el('@main-items').html(`
+    <li data-component="user" class="hidden user"><a>User Name</a></li>
+    <li data-component="signIn" class="hidden user"><a>Sign in</a></li>
+    <li data-component="menu-button" class="menu-icon glyphicon glyphicon-menu-hamburger hidden"></li>
+  `);
+  vu.$el('@nav-items').html('');
+  vu.$el('@user-items').html('');
+
+  // Default Css setting 
+  let defaultCss = {
+    'height': '100px',
+    'background-color': '#aca',
+    'line-height': '100px',
+    'overflow': "hidden"
+  };
+  //  Css
+  vu.$el().css(defaultCss);
+  // @logo
+  vu.use('logo').then(v => {
+    if (v.logo.imgsrc) {
+      vu.$el('@logo').css('background-image',v.logo.imgsrc);
+    }else {
+      vu.$el('@logo').html(`${v.logo.text}`);
+    }
+  });
+  // @items
+  vu.use('items').then(v => {
+    let  navItems = [];
+    function pend(item){
+      
+      let method = 'append';
+
+      switch (item.type) {
+        case "main":
+          item.el = 'main-items';
+          method = 'prepend';
+          //mainItems.push(item);
+          break;
+        case "user":
+          item.el = 'user-items';
+          //userItems.push(item);
+          break;
+        default:
+          item.el = 'nav-items';
+          navItems.push(item);
+      }
+
+      if (item.href) {
+        vu.$el(`@${item.el}`)[method](`<li data-component="${item.comp}" class="user hidden-xs"><a href="${itemhref}">${item.text}</a></li>`);
+      } else {
+        vu.$el(`@${item.el}`)[method](`<li data-component="${item.comp}" class="user hidden-xs"><a>${item.text}</a></li>`);
+      }
+    }
+    //navItems.forEach(pend);
+
+    v.items.forEach(pend);
+
+    //setting click event
+    vu.use('items').then(v =>{
+      v.items.forEach(item => { 
+      if (item.comp) {
+        console.log(item.comp);
+        vu.$el(`@${item.comp}`).off('click').on('click',() => {
+          vu.res('comp', item.comp);
+        });
+      }
+      });
+    });
+    if (navItems.length > 0) {
+      vu.$el('@menu-button').removeClass('hidden');
+    }
+  }); //end of items
+  vu.use('usingMembers').then( v => {
+    if (v.usingMembers) {
+      vu.$el('@user').removeClass('hidden');
+      vu.$el('@signIn').addClass('hidden');
+    } else {
+      vu.$el('@signIn').removeClass('hidden');
+      vu.$el('@user').addClass('hidden');
+    }
+  });
+
+  // animate
+  vu.$el('@menu-button').off('click').on('click', () => {
+    vu.$el('@menu').fadeIn(300);
+    $(".logo float-right").hide();
+  });
+
+  vu.$el('@close-button').off('click').on('click', () => {
+    vu.$el('@menu').fadeOut(300);
+    vu.$el('@user-menu').fadeOut(300);
+    $(".logo float-right").show();
+  });
+
+  vu.$el('@user').off('click').on('click', () => {
+    vu.$el('@user-menu').fadeIn(300);
+    $(".logo .float-right").hide();
+  });
+
+  // Set @signIn click event
+  vu.$el('@signIn').off('click').on('click', () => {
+    vu.res('signIn');
+  });
+  // Set @signOut click event
+  vu.$el('@signOut').off('click').on('click', () => {
+    vu.res('signOut');
+    vu.$el('@user-menu').fadeOut(300);
+    $(".logo .float-right").hide();
+  });
+
+});
 
 // NavView
 // @logo
@@ -33,130 +174,130 @@ let NavView = Views.class('Nav'),
 // "signIn" <- null
 // "signOut" <- null
 // "logo clicked" <- null 
-NavView.dom(vu => (`
-  <header ${vu.ID} class="view-nav">
-    <div data-component="logo" class="logo bg">Logo</div>
-    <div class="float-right">
-      <nav data-component="main-items">
-        <ul data-component="signIn" class="hidden-xs hidden">
-          <li><a class="user">Sign in</a></li>
-        </ul>
-        <ul data-component="user" class="hidden-xs hidden">
-          <li><a class="user">User Name</a></li>
-        </ul>
-        <ul class="hidden">
-          <li data-component="menu-button" class="menu-icon glyphicon glyphicon-menu-hamburger"></li>
-        </ul>
-      </nav>
-    </div>
-    <div class="view-nav-items bg-w" data-component="menu" >
-      <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
-      <nav style="text-align: center;">
-        <ul data-component="nav-items" >
-        </ul>
-      </nav>
-    </div>
-    <div style="z-index: 2;" class="view-nav-items  bg-w" data-component="user-menu">
-      <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
-    	<nav style="text-align: center;">
-				<ul data-component="user-items"></ul>
-    	</nav>
-    </div>
-  </header>`));
+// NavView.dom(vu => (`
+//   <header ${vu.ID} class="view-nav">
+//     <div data-component="logo" class="logo bg">Logo</div>
+//     <div class="float-right">
+//       <nav data-component="main-items">
+//         <ul data-component="signIn" class="hidden-xs hidden">
+//           <li><a class="user">Sign in</a></li>
+//         </ul>
+//         <ul data-component="user" class="hidden-xs hidden">
+//           <li><a class="user">User Name</a></li>
+//         </ul>
+//         <ul class="hidden">
+//           <li data-component="menu-button" class="menu-icon glyphicon glyphicon-menu-hamburger"></li>
+//         </ul>
+//       </nav>
+//     </div>
+//     <div class="view-nav-items bg-w" data-component="menu" >
+//       <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
+//       <nav style="text-align: center;">
+//         <ul data-component="nav-items" >
+//         </ul>
+//       </nav>
+//     </div>
+//     <div style="z-index: 2;" class="view-nav-items  bg-w" data-component="user-menu">
+//       <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
+//     	<nav style="text-align: center;">
+// 				<ul data-component="user-items"></ul>
+//     	</nav>
+//     </div>
+//   </header>`));
 
-NavView.render(vu => {
-  // Just with logoText
-  vu.use('@logo.logoText').then(v => {
-    vu.$el('@logo').html(v['@logo'].logoText);
-  });
-  //userItems, signedIn, member 
-  vu.use('signedIn, user-items').then(v => {
-    console.log(v.member);
-    vu.$el('@signIn').removeClass('hidden');
-    vu.$el('@user').removeClass('hidden');
-  	if (v.signedIn) {
-      vu.$el('@signIn').hide();
-      vu.$el('@user').show();
-    } else {
-      vu.$el('@signIn').show();
-      vu.$el('@user').hide();
-    }
-    vu.$el('@user-items').html('');
-    v["user-items"].forEach(obj => {
-    	if(obj.href){
-    		vu.$el("@user-items").append(`<li class="user"><a href=${obj.href}>${obj.title}</a></li>`)
-    	} else {
-    		vu.$el("@user-items").append(`<li class="user"><a data-component=${obj.comp}>${obj.title}</a></li>`)
-    	}
-    });
-  });
-  //mainItems
-  vu.use('mainItems').then(v=> {
-    //vu.$el('@main-items').append(`<ul data-component="user-defined-items"><ul>`);
-    UListView.build({
-      sel: vu.sel('@main-items'),
-      data: {
-        comp: "user-defined-items",
-        items: v.mainItems
-      }
-    }).res('comp', comp => {
-      console.log(comp);
-    });
-  });  
+// NavView.render(vu => {
+//   // Just with logoText
+//   vu.use('@logo.logoText').then(v => {
+//     vu.$el('@logo').html(v['@logo'].logoText);
+//   });
+//   //userItems, signedIn, member 
+//   vu.use('signedIn, user-items').then(v => {
+//     console.log(v.member);
+//     vu.$el('@signIn').removeClass('hidden');
+//     vu.$el('@user').removeClass('hidden');
+//   	if (v.signedIn) {
+//       vu.$el('@signIn').hide();
+//       vu.$el('@user').show();
+//     } else {
+//       vu.$el('@signIn').show();
+//       vu.$el('@user').hide();
+//     }
+//     vu.$el('@user-items').html('');
+//     v["user-items"].forEach(obj => {
+//     	if(obj.href){
+//     		vu.$el("@user-items").append(`<li class="user"><a href=${obj.href}>${obj.title}</a></li>`)
+//     	} else {
+//     		vu.$el("@user-items").append(`<li class="user"><a data-component=${obj.comp}>${obj.title}</a></li>`)
+//     	}
+//     });
+//   });
+//   //mainItems
+//   vu.use('mainItems').then(v=> {
+//     //vu.$el('@main-items').append(`<ul data-component="user-defined-items"><ul>`);
+//     UListView.build({
+//       sel: vu.sel('@main-items'),
+//       data: {
+//         comp: "user-defined-items",
+//         items: v.mainItems
+//       }
+//     }).res('comp', comp => {
+//       console.log(comp);
+//     });
+//   });  
 
-  //navItems
-  vu.use('navItems').then(v => {
-    vu.$el('@menu-button').parent().removeClass('hidden');
-  	vu.$el('@nav-items').html('');
-    v.navItems.forEach(obj => {
-      vu.$el('@nav-items').append(`<li class="user"><a href=${obj.href}>${obj.title}</a></li>`);
-    });
-  });
-  //css
-  vu.use('css').then(v=> {
-    vu.$el().css(v.css);
-    //if (v.css.height) {
-    //  vu.$el().css('line-height', v.css.height);
-    //}
-  });
-  //@logo
-  vu.use('@logo.css').then(v => {
-    vu.$el('@logo').css(v['@logo'].css);
-    vu.$el('@logo').html(v['@logo'].logoText);
-  });
+//   //navItems
+//   vu.use('navItems').then(v => {
+//     vu.$el('@menu-button').parent().removeClass('hidden');
+//   	vu.$el('@nav-items').html('');
+//     v.navItems.forEach(obj => {
+//       vu.$el('@nav-items').append(`<li class="user"><a href=${obj.href}>${obj.title}</a></li>`);
+//     });
+//   });
+//   //css
+//   vu.use('css').then(v=> {
+//     vu.$el().css(v.css);
+//     if (v.css.height) {
+//       vu.$el().css('line-height', v.css.height);
+//     }
+//   });
+//   //@logo
+//   vu.use('@logo.css').then(v => {
+//     vu.$el('@logo').css(v['@logo'].css);
+//     vu.$el('@logo').html(v['@logo'].logoText);
+//   });
 
-  //animate include @menu && @user-menu
-  vu.$el('@menu-button').off('click').on('click', () => {
-    vu.$el('@menu').fadeIn(300);
-    $(".logo float-right").hide();
-  });
-  vu.$el('@close-button').off('click').on('click', () => {
-    vu.$el('@menu').fadeOut(300);
-    vu.$el('@user-menu').fadeOut(300);
-    $(".logo float-right").show();
-  });
-  vu.$el('@user').off('click').on('click', () => {
-    vu.$el('@user-menu').fadeIn(300);
-    $(".logo .float-right").hide();
-  });
+//   //animate include @menu && @user-menu
+//   vu.$el('@menu-button').off('click').on('click', () => {
+//     vu.$el('@menu').fadeIn(300);
+//     $(".logo float-right").hide();
+//   });
+//   vu.$el('@close-button').off('click').on('click', () => {
+//     vu.$el('@menu').fadeOut(300);
+//     vu.$el('@user-menu').fadeOut(300);
+//     $(".logo float-right").show();
+//   });
+//   vu.$el('@user').off('click').on('click', () => {
+//     vu.$el('@user-menu').fadeIn(300);
+//     $(".logo .float-right").hide();
+//   });
  
-  // Set @logo click event
-  vu.$el('@logo').off('click').on('click', () => {
-    vu.res('logo clicked');
-  });
+//   // Set @logo click event
+//   vu.$el('@logo').off('click').on('click', () => {
+//     vu.res('logo clicked');
+//   });
 
-  // Set @signIn click event
-  vu.$el('@signIn').off('click').on('click', () => {
-    vu.res('signIn');
-  });
-  // Set @signOut click event
-  vu.$el('@signOut').off('click').on('click', () => {
-    vu.res('signOut');
-    vu.$el('@user-menu').fadeOut(300);
-    $(".logo .float-right").hide();
-  });
+//   // Set @signIn click event
+//   vu.$el('@signIn').off('click').on('click', () => {
+//     vu.res('signIn');
+//   });
+//   // Set @signOut click event
+//   vu.$el('@signOut').off('click').on('click', () => {
+//     vu.res('signOut');
+//     vu.$el('@user-menu').fadeOut(300);
+//     $(".logo .float-right").hide();
+//   });
 
-});
+// });
 //UList
 //-comp: str, set element data-component
 //-items: array, input for list
@@ -205,14 +346,14 @@ BoxView.render(vu => {
   });
 });
 
-// Layout
+// Tiles
 // -cut: obj, cut sequence
 // -box: string, seq number of a boxView
-LayoutView.dom(vu => {
+TilesView.dom(vu => {
   return `<div ${vu.ID}></div>`;
 });
 
-LayoutView.render(vu => {
+TilesView.render(vu => {
   let w = vu.get('w'),
       h = vu.get('h'),
       cutObj = vu.get('cut');
@@ -471,25 +612,36 @@ FormView.dom(vu =>`
 `);
 
 FormView.render(vu => {
+  if (!vu.get('values')) {
+    vu.set('values', []);
+  }
+
   vu.use('inputs').then(v => {
     let vals = [];
+
+    // Clean up @inputs
+    vu.$el('@inputs').html('');
+
     v.inputs.forEach((obj, index) =>{
       let type = obj.type || 'text', 
           label = obj.label|| '', 
           placeholder = obj.placeholder || '',
-          comp = obj.comp || ''; 
-      vu.$el('@inputs').append(`<li>
-                                  <div>${label}</div>
-                                  <input type=${type} placeholder="${placeholder}" data-component=${comp}>
-                                </li>`
+          comp = obj.comp || `li-${index}`; 
+          val = obj.value || '';
+      vu.$el('@inputs').append(`
+        <li>
+          <div>${label}</div>
+          <input type=${type} placeholder="${placeholder}" data-component="${comp}">
+        </li>`
       );// end of append
-      vu.$el(`@${comp}`).off('input').on('input',e =>{
-          let value = vu.$el(`@${comp}`)[0].value;
-          console.log(value);
+      vu.$el(`@${comp}`)[0].value = val;
+      vals[index] = val;
+      vu.set('values', vals);
+      vu.$el(`@${comp}`).off('keyup').on('keyup',e =>{
+          let value = vu.$el('@' + comp)[0].value;
           vals[index] = value;
           vu.set('values', vals);
-          console.log(vals);
-      });
+      });// end of keyup
     });// end of forEach
   });// end of vu.use
 });

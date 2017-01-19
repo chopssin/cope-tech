@@ -205,6 +205,7 @@
 /* Box */
 .view-box {
   position: relative;
+  font-size: 0;
 }
 
 /* Textarea */

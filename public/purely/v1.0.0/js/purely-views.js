@@ -480,7 +480,6 @@ ImageUploaderView.render( vu => {
 				let reader = new FileReader();
 				reader.readAsDataURL($files[0].files[i]);
 				reader.onload = e => {
-					console.log(files);
 					files.push(e.target.result);
 					//vu.$el(`@img-${i}`).append(`<img src="$e.target.result}" class="img-responsive">`);
 					GridView.build({
@@ -488,8 +487,8 @@ ImageUploaderView.render( vu => {
 					}).val({
 						src: files//e.target.result
 					});
+          vu.set('files',files);
 				};
-			
 				//$preview.append(`<div data-component="img-${i}"></div>`)
 			}
 		} // end of if

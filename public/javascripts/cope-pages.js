@@ -22,18 +22,16 @@ Pages.use('/', params => {
   nav = Purely.class('Nav').build({
     sel: '#nav',
     data: {
-      '@logo': {
-        logoText: 'Cope',
-        css: {
-          'font-size': '2em',
-        }
-      },
-      css: {
-        'height': '60px'
+      logo: {
+        text: 'Cope'
       }
     }
   }).res('logo clicked', () => {
     toggle.val('sec', 'home');
+  });
+
+  nav.$el().css({ 
+    'font-size': '25px'
   });
 
   // Build Toggle
@@ -83,6 +81,7 @@ Pages.use('/', params => {
         }).res('add-partner', email => {
           debug('TBD: add partner'); 
         }).res('rename app', newName => {
+          console.log('rename!');
           app.set('appName', newName).then(() => {
             appCard.val('appName', newName);
           });

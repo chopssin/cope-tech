@@ -1441,7 +1441,6 @@
         html: html,
         path: path
       };
-      console.log('readTag', ret);
       return ret;
     }
   }; // end of readTag
@@ -1539,8 +1538,6 @@
 
             // x is an array or object
             if (ret) {
-              console.log('x', x);
-              console.log('ret', ret);
               w.html += ret.html;
               w.path += (path + ' ' + ret.path).trim(); 
             }
@@ -1551,7 +1548,6 @@
     }; // End of walk
 
     var result = walk(dom, '');
-    console.log(result);
     return result.html;
     //return '[ dom ]';
     // return {

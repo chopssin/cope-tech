@@ -61,45 +61,50 @@ ViewAccountCard.render(function() {
 
 // "AppPage"
 // "rename app" <= string, the new name
-ViewAppPage.dom(function() {
-  return '<div' + this.ID + 'class="row">' 
-    + '<div class="col-xs-12" style="height:700px; overflow:hidden">'
-      + '<div class="cope-card bg-w node-data hidden" ></div>'
-      + '<div class="svg-wrap" style="width:100%" data-component="svg">0</div>'
-      + '<div data-component="card" class="cope-card touchable wrap bg-w" style="text-align:left"><ul>'
-        + '<li data-component="display-li">' 
-          + '<div class="title">App Name</div>'
-          + '<div data-component="appName"></div>'
-          + '<div data-component="appName-edit" class="hidden">'
-            + '<input type="text" placeholder="App Name" style="outline:none;">'
-            + '<button class="cope-card as-btn bg-blue color-w" style="font-size:13px; padding:6px; float:right;">Done</button>'
-          + '</div>'
-        + '</li>'
-        + '<li>' 
-          + '<div class="title">App ID</div>'
-          + '<div data-component="appId"></div>'
-        + '</li>'
-        + '<li>' 
-          + '<div class="title">URL</div>'
-          + '<div data-component="url"></div>'
-        + '</li>'
-        + '<li>' 
-          + '<div class="title">Owner</div>'
-          + '<div data-component="owner"></div>'
-        + '</li>'
-        + '<li>' 
-          + '<div class="title">Partners</div>'
-          + '<div data-component="partners"></div>'
-          + '<a data-component="add-partner">Add partner</a>'
-        + '</li>'
-        + '<li>' 
-          + '<div class="title">Status</div>'
-          + '<div data-component="stat"></div>'
-        + '</li>'
-      + '</ul></div>'
-    + '</div>'
-  + '</div>';
-}); // end of ViewAppPage.dom
+ViewAppPage.dom(vu => [
+  { 'div.row': [
+    { 'div.col-xs-12(style="height:700px; overflow:hidden")': [
+      { 'div.cope-card.bg-w.node-data.hidden': '' },
+      { 'div@svg.svg-wrap(style="width:100%")': '' },
+      { 'div@card.cope-card.touchable.wrap.bg-w(style="text-align:left")': [
+        { 'ul': [
+          { 'li@display-li(style="display:table;")': [
+            { 'div.title': 'App Name' }, 
+            { 'div@appName': '' },
+            { 'div@appName-edit.hidden': [
+              { 'input(type="text" placeholder="App Name" style="display:block; outline:none;")': '' },
+              { 'div(style="display:block; float:right;")': [
+                { 'span@renameCancel.cope-card.as-btn.bg-w.color-blue':'Cancel' },
+                { 'span@renameDone.cope-card.as-btn.bg-blue.color-w':'Save' }] 
+              }]
+            }] 
+          }, 
+          { 'li': [
+            { 'div.title': 'App ID' },
+            { 'div@appId': '' }] 
+          }, 
+          { 'li': [
+            { 'div.title': 'URL' },
+            { 'div@url': '' }] 
+          }, 
+          { 'li': [
+            { 'div.title': 'Owner' },
+            { 'div@owner': '' }] 
+          }, 
+          { 'li': [ 
+            { 'div.title': 'Partners' },
+            { 'div@partners': '' },
+            { 'a@add-partner': 'Add partner' }]
+          },
+          { 'li': [ 
+            { 'div.title': 'Status' },
+            { 'div@stat': '' }]
+          }]
+        }] 
+      }]
+    }] 
+  }
+]);
 
 ViewAppPage.render(vu => {
   let appName = vu.val('appName') || 'Untitled', // string
@@ -142,8 +147,17 @@ ViewAppPage.render(vu => {
     vu.$el('@appName-edit').removeClass('hidden');
   });
 
-  // @appName-edit Done button click event
-  vu.$el('@appName-edit').find('button').off('click').on('click', () => {
+  // @appName-edit Rename button "Cancel" click event
+  vu.$el('@renameCancel').off('click').on('click', function(e) {
+    vu.$el('@appName-edit').addClass('hidden');
+    vu.$el('@appName').removeClass('hidden');
+  });
+
+  // @appName-edit Rename button "Done" click event
+  vu.$el('@renameDone')
+    .off('click')
+    .on('click', function(e) {
+
     vu.$el('@appName-edit').addClass('hidden');
     vu.$el('@appName').removeClass('hidden');
 
@@ -156,10 +170,11 @@ ViewAppPage.render(vu => {
     }
   });
 
-  // Blur event of @appName-edit
-  vu.$el('@appName-edit').off('focusout').on('focusout', () => {
-    vu.$el('@appName-edit').addClass('hidden');
-    vu.$el('@appName').removeClass('hidden');
+  vu.$el('.as-btn').css({
+    'display': 'inline-block',
+    'padding': '6px',
+    'font-size': '13px',
+    'margin': '4px 0 4px 4px'
   });
 
   // val.owner
@@ -167,20 +182,20 @@ ViewAppPage.render(vu => {
   // val.expiredAt
 }); // end of ViewAppPage.render
 
-ViewAppPage.render(function() { // draw the graph
-  var graph = this.val('graph'),
-      $card = this.$el('@card'),
-      $li = this.$el('@display-li'),
-      $addPartner = this.$el('@add-partner'),
-      $svgWrap = this.$el('@svg'),
+ViewAppPage.render(vu => { // draw the graph
+  var graph = vu.val('graph'),
+      $card = vu.$el('@card'),
+      $li = vu.$el('@display-li'),
+      $addPartner = vu.$el('@add-partner'),
+      $svgWrap = vu.$el('@svg'),
       w = $svgWrap.width(),
-      that = this;
+      that = vu;
 
   if (!graph || !w || !$svgWrap) return;
   
   // Build the graph view  
   Views.class('DataGraph').build({
-    sel: this.sel('@svg'),
+    sel: vu.sel('@svg'),
     data: {
       width: w,
       height: 600,
@@ -204,6 +219,9 @@ ViewAppPage.render(function() { // draw the graph
   $svgWrap.off('click').on('click', function() {
     $card.find('li').addClass('hidden');
     $li.removeClass('hidden');
+
+    console.log('ad');
+    vu.$el('@renameCancel').click();
   });
 
   // Set "add partner" link

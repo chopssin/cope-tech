@@ -13,6 +13,8 @@ let NavView = Views.class('Nav'),
   FormView = Views.class('Form'),
   MyPurelyView = Views.class('MyPurely');
 
+// Nav
+// "logo clicked" <- null, callback when @logo being clicked
 NavView.dom(vu => `
  <header ${vu.ID} class="view-nav">
     <div data-component="logo" class="logo bg"></div>
@@ -75,12 +77,13 @@ NavView.render(vu=> {
 
   // Default Css setting 
   let defaultCss = {
-    'height': '100px',
-    'background-color': '#aca',
-    'line-height': '100px',
+    'height': '100%',
+    'line-height': '100%'
   };
+
   //  Css
   vu.$el().css(defaultCss);
+  
   // @logo
   vu.use('logo').then(v => {
     if (v.logo.imgsrc) {
@@ -89,6 +92,11 @@ NavView.render(vu=> {
       vu.$el('@logo').html(`${v.logo.text}`);
     }
   });
+
+  vu.$el('@logo').off('click').on('click', function() {
+    vu.res('logo clicked');
+  });
+  
   // @items
   vu.use('items').then(v => {
     let  navItems = [];

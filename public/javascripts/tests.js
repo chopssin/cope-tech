@@ -900,7 +900,7 @@ Test.go(log => {
   log.title('@assface: Tiles')
   Vbox.append('tiles');
   
-  Views.class('Tiles').build({
+  let t1 = Views.class('Tiles').build({
     sel: '#tiles',
     data: {
       w: '200px',
@@ -917,7 +917,7 @@ Test.go(log => {
     }
   });
 
-  let tiles2 = Views.class('Tiles').build({
+  let t2 = Views.class('Tiles').build({
     sel: '#tiles',
     method: 'append',
     data: {
@@ -930,8 +930,40 @@ Test.go(log => {
     }
   });
 
-  tiles2.val('01').$el().css('font-size', '16px')
-    .html('Box "01": Middle section with some texts');
+  t2.val('01').$el().css({
+    'font-size': '16px',
+    'color': '#fff'
+  }).html('Box "01": Middle section with some texts');
+
+  let t3 = Views.class('Tiles').build({
+    sel: '#tiles',
+    method: 'append',
+    data: {
+      w: '100%',
+      h: '400px',
+      cut: {
+        'r': 'x33.3333 x66.6666',
+        '0': 'y50 y80',
+        '1': 'y30 y70',
+        '2': 'y40 y80'
+      }
+    }
+  });
+
+  // Put values inside all "xxx" tiles of t3
+  ['00', '01', '02', '10', '11', '12', '20', '21', '22'].map(seq => {
+    t3.val(seq).$el().html(`<span style="font-size:20px; color:#fff">${seq}</span>`);
+  });
+
+  // Style the above tiles
+  let rcss = {
+    'display': 'block',
+    'position': 'relative',
+    'margin': '20px auto'
+  };
+  t1.val('r').$el().css(rcss);
+  t2.val('r').$el().css(rcss);
+  t3.val('r').$el().css(rcss);
 
   log.ok();
 });
@@ -1352,6 +1384,10 @@ Test.go(log => {
       vu.$el('@value').val('');
       server.get(vu.$el('@key').val().trim()).then(val => {
         vu.$el('@value').val(val);
+
+        if (val) {
+          log.ok();
+        }
       })
     });
   });

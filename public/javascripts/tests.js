@@ -9,7 +9,7 @@ const G = Cope.appGraph('testApp2'),
 // Views
 // TestBlock
 TestBlock.dom(vu => `
-  <div ${vu.ID} style="margin:30px 0; border:2px solid #999; padding: 16px">
+  <div ${vu.ID} style="display:table; width:100%; margin:30px 0; border:2px solid #999; padding: 16px">
     <div data-component="status">
       <div data-component="light"></div>
       <h3 data-component="title"></h3>
@@ -133,10 +133,12 @@ TestBar.render(vu => {
   vu.$el('@failed').html(testsCount - passedCount).css({'font-size': '30px'});
 
   vu.$el('@green-light').off('click').on('click', () => {
+    vu.$el('@tests').click(); 
     vu.res('findPassed');
   });
 
   vu.$el('@red-light').off('click').on('click', () => {
+    vu.$el('@tests').click(); 
     vu.res('findFailed');
   });
 
@@ -178,12 +180,6 @@ Viewport.render(vu => {
   });
   
   switch (vu.val('switch')) {
-    case 'tests':
-      vu.$el('@tests').addClass('hidden');
-      vu.$el('@purely').addClass('hidden');
-      vu.$el('@views').addClass('hidden');
-      vu.$el('@tests').removeClass('hidden');
-      break;
     case 'purely':
       vu.$el('@tests').addClass('hidden');
       vu.$el('@purely').addClass('hidden');
@@ -195,6 +191,13 @@ Viewport.render(vu => {
       vu.$el('@purely').addClass('hidden');
       vu.$el('@views').addClass('hidden');
       vu.$el('@views').removeClass('hidden');
+      break;
+    case 'tests':
+    default:
+      vu.$el('@tests').addClass('hidden');
+      vu.$el('@purely').addClass('hidden');
+      vu.$el('@views').addClass('hidden');
+      vu.$el('@tests').removeClass('hidden');
       break;
   }
 });
@@ -1353,8 +1356,7 @@ Test.go(log => {
     });
   });
 
-  Vbox.append('test-panel');
-  Panel.build({ 'sel': '#test-panel' });
+  Panel.build({ 'sel': log.sel() });
 });
 
 // end Tests

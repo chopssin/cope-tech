@@ -771,13 +771,6 @@ Test.go(log => {
     log(`<br>`);
 
     nodes.forEach(node => {
-      console.log(node.key, node.snap());
-      //log('[' + node.key + ']');
-      // log(JSON.stringify(node.snap(), null, 4)
-      //     .replace(/\n/g, '<br>')
-      //     .replace(/\s/g, '&nbsp;'));
-      // log('<br>');
-
       log('[' + node.key + ']');
       log(JSON.stringify(node.snap(), null, 4)
         .replace(/\n/g, '<br>')

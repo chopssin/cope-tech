@@ -323,7 +323,8 @@ TilesView.render(vu => {
         padding: '0',
         margin: '0',
         border: '0',
-        'background-color': '#' + Math.floor(Math.random() * 1000)
+        'background-color': '#' + Math.floor(Math.random() * 1000),
+        overflow: 'scroll'
       }); 
     }
 

@@ -1,6 +1,7 @@
 (function(){
 //const UlistView = Views.class('Ulist'),
 const G = Cope.appGraph('testApp2'),
+      Views = Cope.views('Purely'),
       TestBlock = Views.class('TestBlock'),
       TestBar = Views.class('TestBar'),
       Viewport = Views.class('Viewport');
@@ -903,7 +904,7 @@ Test.go(log => {
   log.title('@assface: Tiles')
   Vbox.append('tiles');
   
-  TilesView.build({
+  Views.class('Tiles').build({
     sel: '#tiles',
     data: {
       w: '200px',
@@ -920,7 +921,7 @@ Test.go(log => {
     }
   });
 
-  let tiles2 = TilesView.build({
+  let tiles2 = Views.class('Tiles').build({
     sel: '#tiles',
     method: 'append',
     data: {
@@ -950,7 +951,7 @@ Test.go(log => {
   $('#textarea').css({ 'background': '#eee', padding: '8px' });
 
   //Nav
-  let navA = NavView.build({
+  let navA = Views.class('Nav').build({
     sel: '#nav',
     method: 'append',
     data: {
@@ -1011,7 +1012,7 @@ Test.go(log => {
   
 
   //Box
-  let boxA = BoxView.build({
+  let boxA = Views.class('Box').build({
     sel: '#box',
     method: 'append'
   });
@@ -1027,7 +1028,7 @@ Test.go(log => {
     }
   });
 
-  let boxB = BoxView.build({
+  let boxB = Views.class('Box').build({
     sel: boxA.sel(),
     method: 'append'
   }).val({
@@ -1096,7 +1097,7 @@ Test.go(log => {
     }
   });
 
-  let boxC = BoxView.build({
+  let boxC = Views.class('Box').build({
     sel: '#form',
     method: 'append',
     data:{

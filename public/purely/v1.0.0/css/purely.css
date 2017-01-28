@@ -1,4 +1,11 @@
 /* Purely - Reset */
+input,
+textarea {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #aaa;
+  resize: none;
+}
 
 /* Purely Default Theme */
 .color-w {
@@ -206,6 +213,7 @@
 .view-box {
   position: relative;
   font-size: 0;
+  vertical-align: top;
 }
 
 /* Textarea */

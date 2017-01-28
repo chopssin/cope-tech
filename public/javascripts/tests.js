@@ -920,7 +920,7 @@ Test.go(log => {
     }
   });
 
-  TilesView.build({
+  let tiles2 = TilesView.build({
     sel: '#tiles',
     method: 'append',
     data: {
@@ -933,6 +933,9 @@ Test.go(log => {
     }
   });
 
+  tiles2.val('01').$el().css('font-size', '16px')
+    .html('Box "01": Middle section with some texts');
+
   log.ok();
 });
 
@@ -943,6 +946,8 @@ Test.go(log => {
   Vbox.append('textarea');
   Vbox.append('imageUploader');
   Vbox.append('form');
+
+  $('#textarea').css({ 'background': '#eee', padding: '8px' });
 
   //Nav
   let navA = NavView.build({
@@ -1043,7 +1048,7 @@ Test.go(log => {
     sel: '#textarea',
     method: 'append',
     data: {
-      value: "11\nHello\nworld"
+      value: "Textarea\nwith\ndefault value"
     }
   }).res('value', value => {
     console.log(value);
@@ -1051,7 +1056,15 @@ Test.go(log => {
 
   let textarea2 = TextareaView.build({
     sel: '#textarea',
-    method: 'append'
+    method: 'append',
+    data: {
+      value: 'Textarea with custom css'
+    }
+  });
+
+  textarea2.$el().css({
+    'border': '1px solid #aaa',
+    'font-size': '14px'
   });
 
   //ImageUploader 
@@ -1265,7 +1278,91 @@ Test.go(log => {
   log.ok();
 });
 
-// end Tests
+// Fake server
+Test.go(log => {
+  log.title('Fake server');
 
+  let server = {};
+  let data = {};
+  data.greet = 'Hello world.'
+
+  server.get = function(path) {
+    if (typeof path == 'string') {
+      return {
+        then: function(cb) {
+          if (typeof cb == 'function') {
+            setTimeout(() => {
+              cb(data[path]);
+            }, 200);
+          } else {
+            console.warn('server.get: Lack of callback function');
+          }
+        }
+      };
+    } 
+  };
+
+  server.set = function(path, value) {
+    let done;
+    if (typeof path == 'string') {
+      setTimeout(() => {
+        data[path] = value;
+        if (typeof done == 'function') {
+          done();
+        }
+      }, 200);
+    }
+      
+    return {
+      then: function(cb) {
+        done = cb;
+      }
+    };
+  };
+
+  let Panel = Cope.views().class('Panel');    
+  Panel.dom(vu => [
+    { 'div.col-xs-12.col-sm-6': [
+      { 'div.col-xs-12': [
+        [ 'h3', 'Test Panel for Fake Server' ]]
+      },
+      { 'div.col-xs-12': [
+        [ 'input@key(type="text" placeholder=\'Enter any key, try "greet"\')', '' ]]
+      },
+      { 'div.col-xs-12': [
+        { 'textarea@value': '' }]
+      },
+      { 'div.col-xs-12': [
+        { 'button': 'Done' }]
+      }]
+    }
+  ]);
+
+  Panel.render(vu => {
+
+    vu.use('key').then(v => {
+      let key = vu.$el('@key').val().trim();
+      server.get(key).then(val => {
+        vu.$el('@value').val(val);
+      });
+    });
+
+    vu.$el('button').off('click').on('click', () => {
+      server.set(vu.$el('@key').val().trim(), vu.$el('@value').val().trim());
+    });
+
+    vu.$el('input').off('keyup').on('keyup', () => {
+      vu.$el('@value').val('');
+      server.get(vu.$el('@key').val().trim()).then(val => {
+        vu.$el('@value').val(val);
+      })
+    });
+  });
+
+  Vbox.append('test-panel');
+  Panel.build({ 'sel': '#test-panel' });
+});
+
+// end Tests
 
 })(jQuery, Cope);

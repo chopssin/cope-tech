@@ -15,33 +15,33 @@ let NavView = Views.class('Nav'),
 
 // Nav
 // "logo clicked" <- null, callback when @logo being clicked
-NavView.dom(vu => `
- <header ${vu.ID} class="view-nav">
-    <div data-component="logo" class="logo bg"></div>
-    <div class="float-right">
-      <nav>
-        <ul data-component="main-items">
-        </ul>
-      </nav>
-    </div>
-    <div class="view-nav-items bg-w" data-component="menu" >
-      <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
-      <nav style="text-align: center;">
-        <ul data-component="nav-items" >
-        </ul>
-      </nav>
-    </div>
-    <div style="z-index: 2;" class="view-nav-items  bg-w" data-component="user-menu">
-      <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
-      <nav style="text-align: center;">
-        <ul data-component="user-items"></ul>
-      </nav>
-    </div>
-  </header>
-`);
+// NavView.dom(vu => `
+//  <header ${vu.ID} class="view-nav">
+//     <div data-component="logo" class="logo bg"></div>
+//     <div class="float-right">
+//       <nav>
+//         <ul data-component="main-items">
+//         </ul>
+//       </nav>
+//     </div>
+//     <div class="view-nav-items bg-w" data-component="menu" >
+//       <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
+//       <nav style="text-align: center;">
+//         <ul data-component="nav-items" >
+//         </ul>
+//       </nav>
+//     </div>
+//     <div style="z-index: 2;" class="view-nav-items  bg-w" data-component="user-menu">
+//       <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
+//       <nav style="text-align: center;">
+//         <ul data-component="user-items"></ul>
+//       </nav>
+//     </div>
+//   </header>
+// `);
 
 
-let NavDom = [
+NavView.dom(vu=>[
   { 'header.view-nav': [
     { 'div@logo.logo.bg': '' },
     { 'div.float-right': [
@@ -62,7 +62,7 @@ let NavDom = [
       ]}
     ]}
   ]}
-];
+]);
 
 NavView.render(vu=> {
 

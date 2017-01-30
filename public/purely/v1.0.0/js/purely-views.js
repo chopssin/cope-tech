@@ -1,3 +1,6 @@
+(function($, Cope) {
+// -----
+
 const Views = Cope.useViews('Purely');
 
 let NavView = Views.class('Nav'),
@@ -133,7 +136,6 @@ NavView.render(vu=> {
     vu.use('items').then(v =>{
       v.items.forEach(item => { 
       if (item.comp) {
-        console.log(item.comp);
         vu.$el(`@${item.comp}`).off('click').on('click',() => {
           vu.res('comp', item.comp);
         });
@@ -277,15 +279,12 @@ TilesView.render(vu => {
     } 
     return -1;
   });
-  console.log(cmds);
 
   cmds.map(pid => { // pid: cmd
     let cmd = cutObj[pid]; // 'x20 y30' 
     let cs = cmd.split(' '); // ['x20', 'y30']
     let xcuts = [];
     let ycuts = [];
-
-    console.log('[PID] ' + pid);
 
     cs.forEach((_c,i) =>{
       // 'x20'
@@ -324,17 +323,14 @@ TilesView.render(vu => {
         padding: '0',
         margin: '0',
         border: '0',
-        'background-color': '#' + Math.floor(Math.random() * 1000)
+        'background-color': '#' + Math.floor(Math.random() * 1000),
+        overflow: 'scroll'
       }); 
     }
 
-    //{ width: '100%', height: '100%' }
-
     css = css.map((s, i) => {
-      //console.log('ycuts arr', ycuts);
-      //console.log('ycuts i', Math.floor(i / (ycuts.length - 1)));
-      // Modify s
 
+      // Modify s
       s.width = xcuts[i % (xcuts.length-1) + 1] - xcuts[i % (xcuts.length-1)];
       s.height = ycuts[Math.floor(i / (xcuts.length - 1)) + 1] - ycuts[(Math.floor(i / (xcuts.length - 1)))];
 
@@ -346,7 +342,6 @@ TilesView.render(vu => {
         myId = pid + myId;
       }
 
-      console.log('Save ' + myId);
       vu.set(myId, BoxView.build({
         sel: vu.get(pid).sel(),
         method: 'append',
@@ -356,9 +351,6 @@ TilesView.render(vu => {
       }));
       return s;
     }); // end of css.map
-
-    console.log(css);
-
   }); // end of cmds.map
 
   return;
@@ -429,7 +421,6 @@ TextareaView.render(vu => {
   $this.val(value);
 
   $this.each(function () {
-    console.log('value', value);
     let lineH = 28,
         initH = lineH + 6;
 
@@ -997,6 +988,5 @@ MyPurelyView.render(vu => {
   });
 });
 
-
-
-
+// -----
+})(jQuery, Cope);

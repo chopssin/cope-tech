@@ -1,6 +1,7 @@
 (function(){
 //const UlistView = Views.class('Ulist'),
 const G = Cope.appGraph('testApp2'),
+      Views = Cope.views('Purely'),
       TestBlock = Views.class('TestBlock'),
       TestBar = Views.class('TestBar'),
       Viewport = Views.class('Viewport');
@@ -8,7 +9,7 @@ const G = Cope.appGraph('testApp2'),
 // Views
 // TestBlock
 TestBlock.dom(vu => `
-  <div ${vu.ID} style="margin:30px 0; border:2px solid #999; padding: 16px">
+  <div ${vu.ID} style="display:table; width:100%; margin:30px 0; border:2px solid #999; padding: 16px">
     <div data-component="status">
       <div data-component="light"></div>
       <h3 data-component="title"></h3>
@@ -132,10 +133,12 @@ TestBar.render(vu => {
   vu.$el('@failed').html(testsCount - passedCount).css({'font-size': '30px'});
 
   vu.$el('@green-light').off('click').on('click', () => {
+    vu.$el('@tests').click(); 
     vu.res('findPassed');
   });
 
   vu.$el('@red-light').off('click').on('click', () => {
+    vu.$el('@tests').click(); 
     vu.res('findFailed');
   });
 
@@ -177,12 +180,6 @@ Viewport.render(vu => {
   });
   
   switch (vu.val('switch')) {
-    case 'tests':
-      vu.$el('@tests').addClass('hidden');
-      vu.$el('@purely').addClass('hidden');
-      vu.$el('@views').addClass('hidden');
-      vu.$el('@tests').removeClass('hidden');
-      break;
     case 'purely':
       vu.$el('@tests').addClass('hidden');
       vu.$el('@purely').addClass('hidden');
@@ -194,6 +191,13 @@ Viewport.render(vu => {
       vu.$el('@purely').addClass('hidden');
       vu.$el('@views').addClass('hidden');
       vu.$el('@views').removeClass('hidden');
+      break;
+    case 'tests':
+    default:
+      vu.$el('@tests').addClass('hidden');
+      vu.$el('@purely').addClass('hidden');
+      vu.$el('@views').addClass('hidden');
+      vu.$el('@tests').removeClass('hidden');
       break;
   }
 });
@@ -770,13 +774,6 @@ Test.go(log => {
     log(`<br>`);
 
     nodes.forEach(node => {
-      console.log(node.key, node.snap());
-      //log('[' + node.key + ']');
-      // log(JSON.stringify(node.snap(), null, 4)
-      //     .replace(/\n/g, '<br>')
-      //     .replace(/\s/g, '&nbsp;'));
-      // log('<br>');
-
       log('[' + node.key + ']');
       log(JSON.stringify(node.snap(), null, 4)
         .replace(/\n/g, '<br>')
@@ -903,7 +900,7 @@ Test.go(log => {
   log.title('@assface: Tiles')
   Vbox.append('tiles');
   
-  TilesView.build({
+  let t1 = Views.class('Tiles').build({
     sel: '#tiles',
     data: {
       w: '200px',
@@ -920,7 +917,7 @@ Test.go(log => {
     }
   });
 
-  TilesView.build({
+  let t2 = Views.class('Tiles').build({
     sel: '#tiles',
     method: 'append',
     data: {
@@ -933,6 +930,41 @@ Test.go(log => {
     }
   });
 
+  t2.val('01').$el().css({
+    'font-size': '16px',
+    'color': '#fff'
+  }).html('Box "01": Middle section with some texts');
+
+  let t3 = Views.class('Tiles').build({
+    sel: '#tiles',
+    method: 'append',
+    data: {
+      w: '100%',
+      h: '400px',
+      cut: {
+        'r': 'x33.3333 x66.6666',
+        '0': 'y50 y80',
+        '1': 'y30 y70',
+        '2': 'y40 y80'
+      }
+    }
+  });
+
+  // Put values inside all "xxx" tiles of t3
+  ['00', '01', '02', '10', '11', '12', '20', '21', '22'].map(seq => {
+    t3.val(seq).$el().html(`<span style="font-size:20px; color:#fff">${seq}</span>`);
+  });
+
+  // Style the above tiles
+  let rcss = {
+    'display': 'block',
+    'position': 'relative',
+    'margin': '20px auto'
+  };
+  t1.val('r').$el().css(rcss);
+  t2.val('r').$el().css(rcss);
+  t3.val('r').$el().css(rcss);
+
   log.ok();
 });
 
@@ -944,8 +976,10 @@ Test.go(log => {
   Vbox.append('imageUploader');
   Vbox.append('form');
 
+  $('#textarea').css({ 'background': '#eee', padding: '8px' });
+
   //Nav
-  let navA = NavView.build({
+  let navA = Views.class('Nav').build({
     sel: '#nav',
     method: 'append',
     data: {
@@ -1006,7 +1040,7 @@ Test.go(log => {
   
 
   //Box
-  let boxA = BoxView.build({
+  let boxA = Views.class('Box').build({
     sel: '#box',
     method: 'append'
   });
@@ -1022,7 +1056,7 @@ Test.go(log => {
     }
   });
 
-  let boxB = BoxView.build({
+  let boxB = Views.class('Box').build({
     sel: boxA.sel(),
     method: 'append'
   }).val({
@@ -1043,7 +1077,7 @@ Test.go(log => {
     sel: '#textarea',
     method: 'append',
     data: {
-      value: "11\nHello\nworld"
+      value: "Textarea\nwith\ndefault value"
     }
   }).res('value', value => {
     console.log(value);
@@ -1051,7 +1085,15 @@ Test.go(log => {
 
   let textarea2 = TextareaView.build({
     sel: '#textarea',
-    method: 'append'
+    method: 'append',
+    data: {
+      value: 'Textarea with custom css'
+    }
+  });
+
+  textarea2.$el().css({
+    'border': '1px solid #aaa',
+    'font-size': '14px'
   });
 
   //ImageUploader 
@@ -1083,7 +1125,7 @@ Test.go(log => {
     }
   });
 
-  let boxC = BoxView.build({
+  let boxC = Views.class('Box').build({
     sel: '#form',
     method: 'append',
     data:{
@@ -1265,7 +1307,94 @@ Test.go(log => {
   log.ok();
 });
 
-// end Tests
+// Fake server
+Test.go(log => {
+  log.title('Fake server');
 
+  let server = {};
+  let data = {};
+  data.greet = 'Hello world.'
+
+  server.get = function(path) {
+    if (typeof path == 'string') {
+      return {
+        then: function(cb) {
+          if (typeof cb == 'function') {
+            setTimeout(() => {
+              cb(data[path]);
+            }, 200);
+          } else {
+            console.warn('server.get: Lack of callback function');
+          }
+        }
+      };
+    } 
+  };
+
+  server.set = function(path, value) {
+    let done;
+    if (typeof path == 'string') {
+      setTimeout(() => {
+        data[path] = value;
+        if (typeof done == 'function') {
+          done();
+        }
+      }, 200);
+    }
+      
+    return {
+      then: function(cb) {
+        done = cb;
+      }
+    };
+  };
+
+  let Panel = Cope.views().class('Panel');    
+  Panel.dom(vu => [
+    { 'div.col-xs-12.col-sm-6': [
+      { 'div.col-xs-12': [
+        [ 'h3', 'Test Panel for Fake Server' ]]
+      },
+      { 'div.col-xs-12': [
+        [ 'input@key(type="text" placeholder=\'Enter any key, try "greet"\')', '' ]]
+      },
+      { 'div.col-xs-12': [
+        { 'textarea@value': '' }]
+      },
+      { 'div.col-xs-12': [
+        { 'button': 'Done' }]
+      }]
+    }
+  ]);
+
+  Panel.render(vu => {
+
+    vu.use('key').then(v => {
+      let key = vu.$el('@key').val().trim();
+      server.get(key).then(val => {
+        vu.$el('@value').val(val);
+      });
+    });
+
+    vu.$el('button').off('click').on('click', () => {
+      server.set(vu.$el('@key').val().trim(), vu.$el('@value').val().trim());
+    });
+
+    vu.$el('input').off('keyup').on('keyup', () => {
+      vu.$el('@value').val('');
+      server.get(vu.$el('@key').val().trim()).then(val => {
+        vu.$el('@value').val(val);
+
+        if (val) {
+          log.ok();
+        }
+      })
+    });
+  });
+
+  Panel.build({ 'sel': log.sel() });
+});
+
+// end Tests
 
 })(jQuery, Cope);

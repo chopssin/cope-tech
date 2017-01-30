@@ -36,8 +36,6 @@ Pages.use('/', params => {
     let logoObj = nav.get('@logo');
     logoObj.logoText = '<span style="font-size:20px">' + appName.replace(/\s/g, '') + '</span>';
     nav.val('@logo', logoObj);
-
-    console.log(appName);
   });
 
   // start secFooter

@@ -1319,7 +1319,7 @@
             // Add vu.id to the first children
             domArr = html.map(o => {
               let newO = {};
-              k = Object.keys(o)[0]; // TBD
+              k = Object.keys(o)[0];
               newO[k + '*' + vu.id] = o[k];
               return newO;
             });
@@ -1853,10 +1853,10 @@
       };
     }; // end of writeInbox
 
+    // TBD
     user.addPartner = function(_appId, _email, _toAdd) {
       let done = function() {};
       findUser(_email, function(_foundUser) {
-        // TBD
         getFB().then(function(_fb) {
           _fb.database().ref('cope_user_apps')
           .child(_appId)
@@ -1961,11 +1961,8 @@
   // Cope.Apps
   // -----------------------------
   Cope.Apps = {};
-  Cope.Apps.create = function(_id) {
-    // TBD
-  };
 
-  // App Interface
+  // Cope.app: App Interface
   Cope.Apps.get = Cope.app = function(_id) {
     if (typeof _id != 'string') return;
 
@@ -1976,6 +1973,50 @@
     let app = {};
     app.appId = _id;
     app.isOwner = false;
+
+    // TBD: Test with app.init
+    app.init = function() {
+      return new Promise(function(res, rej) {
+        Cope.user().then(user => {
+          user.cred('apps').then(v => {
+            let o = {};
+            o[user.uid] = true; 
+            Cope.app(app.appId).cred.set('owner', o).then(() => {
+              let u = v || {};
+              u[app.appId] = true;
+              user.cred('apps', u).then(() => {
+                res();
+              });  
+            }); // end of Cope.app()... cred.set...
+          }); // end of user.cred('apps')
+        }); // end of Cope.user().then  
+      }); // end of new Promise
+    }; // end of app.init
+
+    app.del = function(_confirm) {
+      return new Promise(function(res, rej) {
+        if (_confirm === true) {
+          Cope.user().then(user => {
+            user.cred('apps').then(v => {
+              // Remove the app from user's apps
+              let u = v || {};
+              u[app.appId] = null;
+              user.cred('apps', u).then(() => {
+
+                // TBD: Remove everything...
+                // Currently we just remove owner
+                Cope.app(app.appId).cred.set('owner', null).then(() => {
+                  res();
+                });
+              }); // end of using user.cred to set the app
+            }); // end of using user.cred to get apps
+          }); // end of Cope.user().then
+        } else {
+          console.warn('Lack of confirmation: failed to delete app ' + app.appId);
+          rej();
+        } 
+      }); // end of new Promise
+    }; // end of app.del
 
     // app.graph
     app.graph = function () {
@@ -2435,7 +2476,7 @@
 
     // Quick accessing data
     myGraph.val = function() {
-      // TBD
+      // TBD: Perhaps use App.val instead
       //...
     };
 
@@ -2473,7 +2514,7 @@
     }; // end of myGraph.populate
 
     return myGraph;
-  }; // end of Cope.appGraph
+  }; // end of Cope.graph
 
   window.Cope = Cope;
 

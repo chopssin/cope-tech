@@ -428,6 +428,7 @@ Test.go(log => {
     log('Delete the app');
     newApp.del(true).then(() => {
       log('Deleted');
+      log.ok();
     });
   });
 

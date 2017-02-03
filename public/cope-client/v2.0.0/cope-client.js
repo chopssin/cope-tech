@@ -1558,7 +1558,166 @@
     //   submodules: submodules
     // };
   }; // end of domToHtml
-  
+
+  // -----------------------------
+  // Cope.modal
+  // -----------------------------
+  Cope.modal = function() {
+
+    // Build the initial modal
+    let myModal = Cope.views().class('myModal');
+    myModal.dom(vu => [
+      { 'div@lightbox': [
+        { 'div@modal': '' }]
+      }
+    ]);
+    myModal.render(vu => {
+      vu.$el('@lightbox').css({
+        display: 'none',
+        position: 'fixed',
+        width: '100%',
+        height: '100vh',
+        margin: '0',
+        padding: '0',
+        'background-color': 'rgba(0,0,0, 0.88)',
+        'z-index': '10000'
+      }).off('click').on('click', e => {
+
+        // Fade out the modal, and unfreeze <body>
+        vu.$el('@lightbox').fadeOut(200);
+        $('body').css('overflow', 'auto');
+      });
+
+      vu.$el('@modal').css({
+        display: 'table',
+        position: 'relative',
+        width: '100%',
+        'max-width': '540px',
+        'min-height': '1px',
+        margin: '100px auto',
+        padding: '16px',
+        'background-color': '#fff'
+      }).off('click').on('click', e => {
+        e.stopPropagation();
+      });
+    }); // end of myModal.render
+    
+    myModal = myModal.build({
+      sel: 'body',
+      method: 'prepend'
+    });
+
+    let openModal = function() {
+      // Show the modal, and freeze <body>
+      myModal.$el().fadeIn(200);
+      $('body').css('overflow', 'hidden');
+    };
+
+    let closeModal = function() {
+      myModal.$el('@lightbox').click();
+    };
+
+
+    // Built-in Views
+    let modalViews = Cope.views(),
+        textInputView = modalViews.class('text');
+
+    // Cope styles
+    let css = {};
+    css.btn = {
+      'display': 'block',
+      'position': 'relative',
+      'min-width': '86px',
+      'text-align': 'center',
+      'font-size': '14px',
+      'font-weight': '400',
+      'padding': '8px',
+      'border': 'none',
+      'background-color': '#236eb6',
+      'color': '#fff',
+      'float': 'right',
+      'margin-top': '8px',
+      //'-webkit-box-shadow': '0px 4px 6px 0 rgba(0, 0, 0, .4)',
+      //'-moz-box-shadow': '0px 4px 6px 0 rgba(0, 0, 0, .4)',
+      'box-shadow': '0px 4px 6px 0 rgba(0, 0, 0, .4)'
+    };
+
+    // View - text input
+    // @value
+    // - type: string, "input" or "textarea"
+    // - label: string
+    // - value: string
+    // - btn: string, button text
+    textInputView.dom(vu => [
+      { 'div(style="font-size:16px;")': [
+        { 'label': '' },
+        ((vu.val('type') === 'textarea') 
+        ? { 'textarea@value(rows="1" style="line-height:16px")': '' }
+        : { 'input@value(type="text" style="line-height:16px"))': '' }),
+        { 'button': '' }] 
+      }
+    ]);
+    textInputView.render(vu => {
+
+      let $ta = vu.$el('@value'),
+          $btn = vu.$el('button');
+      
+      vu.use('label').then(v => {
+        vu.$el('label').text(v.label);
+      });
+      vu.use('value').then(v => {
+        $ta.val(v.value);
+      });
+
+      $ta.off('keyup').on('keyup', () => {
+        let n = $ta.val().match(/\n/g);
+        n = n ? n.length : 0;
+        console.log(n);
+        $ta[0].style.height = (32 + 16 * n) + 'px';
+      });
+
+      // Trigger a keyup event
+      $ta.keyup();
+
+      // Set the button
+      $btn.css(css.btn).html(vu.val('btn') || 'Done')
+        .off('mouseenter').on('mouseenter', e => {
+          $btn.css({
+            'box-shadow': '0px 6px 9px 0 rgba(0, 0, 0, .4)'
+          });
+        })
+        .off('mouseleave').on('mouseleave', e => {
+          $btn.css({
+            'box-shadow': '0px 4px 6px 0 rgba(0, 0, 0, .4)'
+          });
+        })
+        .off('click').on('click', e => {
+          vu.res('value', $ta.val().trim());
+          closeModal();
+        });
+
+    }); // end of "text"
+
+    let modal = function(name, params) {
+      // name: string, the desired View name
+      // params: object, the params to pass in
+      if (typeof name != 'string' || (params && typeof params != 'object')) {
+        return;
+      }
+
+      let Class = modalViews.class(name);
+      if (Class) {
+        openModal();
+        return Class.build({
+          sel: myModal.sel('@modal'),
+          data: params || {}
+        });
+      }
+    };
+
+    return modal;
+  }(); // end of Cope.modal
+
   // -----------------------------
   // Cope.pages
   // -----------------------------
@@ -1638,7 +1797,7 @@
       && typeof _node.key == 'string';
   };
 
-  // Get ot init firebase instance
+  // Get or init firebase instance
   let getFB = function() {
     return {
       then: function(_cb) {
@@ -1981,13 +2140,19 @@
           user.cred('apps').then(v => {
             let o = {};
             o[user.uid] = true; 
+
+            // Assign the user as the owner
             Cope.app(app.appId).cred.set('owner', o).then(() => {
-              let u = v || {};
-              u[app.appId] = true;
-              user.cred('apps', u).then(() => {
-                res();
-              });  
-            }); // end of Cope.app()... cred.set...
+              
+              // Also assign the user as one of the partners
+              Cope.app(app.appId).cred.set('partners', o).then(() => {
+                let u = v || {};
+                u[app.appId] = true;
+                user.cred('apps', u).then(() => {
+                  res();
+                });  
+              }); // add user to partners
+            }); // assign user as owner
           }); // end of user.cred('apps')
         }); // end of Cope.user().then  
       }); // end of new Promise
@@ -2082,24 +2247,24 @@
   }; // end of Cope.app
 
   // To list my apps
-  Cope.Apps.list = function() { 
-    return {
-      then: function(_cb) {
-        if (!isFunc(_cb)) return;
+  //Cope.Apps.list = function() { 
+  //  return {
+  //    then: function(_cb) {
+  //      if (!isFunc(_cb)) return;
 
-        getUser().then(user => {
-          user.val('own_apps').then(myApps => {
-            if (!myApps) {
-              return _cb([]);
-            } 
-            return _cb(Object.keys(myApps).map(appId => Cope.app(appId)));
-          }); // end of user.val('own_apps')
-        }); // end of getUser
-      }
-    };
-  }; // end of Cope.Apps.list
+  //      getUser().then(user => {
+  //        user.val('own_apps').then(myApps => {
+  //          if (!myApps) {
+  //            return _cb([]);
+  //          } 
+  //          return _cb(Object.keys(myApps).map(appId => Cope.app(appId)));
+  //        }); // end of user.val('own_apps')
+  //      }); // end of getUser
+  //    }
+  //  };
+  //}; // end of Cope.Apps.list
 
-  Cope.Apps.remove = {};
+  //Cope.Apps.remove = {};
 
   // -----------------------------
   // Cope.graph or Cope.appGraph

@@ -5,6 +5,7 @@ textarea {
   padding: 6px;
   border: 1px solid #aaa;
   resize: none;
+  outline: none;
 }
 
 /* Purely Default Theme */
@@ -205,9 +206,6 @@ textarea {
   margin: 0;
   padding: 16px;
 }
-
-
-
 
 /* Box */
 .view-box {

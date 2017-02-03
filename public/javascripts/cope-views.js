@@ -37,24 +37,34 @@ ViewAppCard.render(function() {
 // end of "AppCard"
 
 // "AccountCard"
-ViewAccountCard.dom(function() {
-  return '<div' + this.ID + '>' 
-    + '<h3 data-component="name">Cope User</h3>'
-    + '<p data-component="email"></p>'
-    + '<button data-component="signout" class="cope-card as-btn bg-blue color-w">Sign out</button>'
-    + '</div>';
-});
+ViewAccountCard.dom(vu => [
+  { 'div': [
+    { 'h3@name': '' },
+    { 'p@email': '' },
+    { 'button@signOut.cope-card.as-btn.bg-blue.color-w': 'Sign out' }]
+  }
+]);
+  //return '<div' + this.ID + '>' 
+  //  + '<h3 data-component="name">Cope User</h3>'
+  //  + '<p data-component="email"></p>'
+  //  + '<button data-component="signout" class="cope-card as-btn bg-blue color-w">Sign out</button>'
+  //  + '</div>';
+//});
 
-ViewAccountCard.render(function() {
-  var $signout = this.$el('@signout'),
-      email = this.val('email'),
-      that = this;
+ViewAccountCard.render(vu => {
+  var $signOut = vu.$el('@signOut'),
+      email = vu.val('email'),
+      name = vu.val('name');
 
-  if (email) this.$el('@email').html(email);
+  vu.$el('@name').text(name || 'Hello');
+  if (email) vu.$el('@email').html(email);
 
-  $signout.off('click').on('click', function() {
-    debug('Sign out');
-    that.res('sign out');
+  $signOut.off('click').on('click', function() {
+    vu.res('sign out');
+  });
+
+  vu.$el('@name').off('dblclick').on('dblclick', function() {
+    vu.res('change name', name || 'Cope User');
   });
 });
 // end of "AccountCard"
@@ -94,7 +104,7 @@ ViewAppPage.dom(vu => [
           { 'li': [ 
             { 'div.title': 'Partners' },
             { 'div@partners': '' },
-            { 'a@add-partner': 'Add partner' }]
+            { 'a@add-partner.hidden': 'Add partner' }]
           },
           { 'li': [ 
             { 'div.title': 'Status' },
@@ -110,18 +120,24 @@ ViewAppPage.render(vu => {
   let appName = vu.val('appName') || 'Untitled', // string
       appId = vu.val('appId'), // string
       url = vu.val('url'), // string
+      isOwner = vu.val('isOwner'),
       owner = vu.val('owner'), // string
       partners = vu.val('partners'), // string array
       stat = vu.val('stat'); // status
 
   vu.$el('@appName').html(appName.trim() || 'Untitled');
   vu.$el('@appId').html(appId);
+
+  if (isOwner || (owner == 'Me')) {
+    vu.$el('@add-partner').removeClass('hidden');
+  }
+
   if (owner) {
     vu.$el('@owner').html(owner);
   } 
   if (partners) {
     // TBD: partners
-    //this.$el('@partners').html('Me');
+    vu.$el('@partners').html(partners);
   }
 
   if (url) {
@@ -135,7 +151,7 @@ ViewAppPage.render(vu => {
   }
 
   // @appName click event
-  vu.$el('@appName').off('click').on('click', () => {
+  vu.$el('@appName').off('dblclick').on('dblclick', () => {
     vu.$el('@appName-edit').find('input')
       .val(vu.val('appName') || 'Untitled');
 
@@ -217,11 +233,11 @@ ViewAppPage.render(vu => { // draw the graph
   });
 
   $svgWrap.off('click').on('click', function() {
+    // Note: trigger click before the following
+    vu.$el('@renameCancel').click();
+
     $card.find('li').addClass('hidden');
     $li.removeClass('hidden');
-
-    console.log('ad');
-    vu.$el('@renameCancel').click();
   });
 
   // Set "add partner" link

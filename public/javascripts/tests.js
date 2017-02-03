@@ -950,7 +950,7 @@ Test.go(log => {
   });
 
   t2.val('01').$el().css({
-    'font-size': '16px',
+    'font-size': '20px',
     'color': '#fff'
   }).html('Box "01": Middle section with some texts');
 

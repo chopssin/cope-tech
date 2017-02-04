@@ -146,7 +146,8 @@ textarea {
 .view-nav .logo {
   font-weight: 300;
   width: auto;
-  letter-spacing: 0.125em
+  letter-spacing: 0.125em;
+  cursor: pointer;
 }
 .view-nav li {
   display: inline-block;

@@ -1,9 +1,12 @@
 (function($, Cope) {
 var debug = Cope.Util.setDebug('cope-views', false),
     //Editor = Cope.useEditor(),
+    PurelyViews = Cope.views('Purely'), // use Purely views
     
     Views = Cope.views('Cope'), // global views
     ViewAppCard = Views.class('AppCard'),
+    PurelyAppView = Views.class('PurelyApp'),
+    PurelySecView = Views.class('PurelySec'),
     ViewAppPage = Views.class('AppPage'),
     ViewDataGraph = Views.class('DataGraph'),
     ViewAccountCard = Views.class('AccountCard'),
@@ -69,6 +72,167 @@ ViewAccountCard.render(vu => {
 });
 // end of "AccountCard"
 
+// "Purely"
+PurelySecView.dom(vu => [
+  { 'div.cope-card.full.bg-w.touchable(style="margin-bottom:16px; padding:0;")': vu.val('sec') || 'Section' }
+]);
+
+PurelySecView.render(vu => {
+  vu.use('height').then(v => {
+    vu.$el().css('height', v.height);
+  });
+});
+
+PurelyAppView.dom(vu => [
+  { 'div.row': [
+    { 'div.col-xs-12.col-sm-7(style="margin-bottom:40px")': [
+      { 'div.row': [
+        { 'div@nav.col-xs-12(style="padding:0")': 'Nav' }] 
+      },
+      { 'div.row': [
+        { 'div@page.col-xs-12(style="padding:0")': '' }]
+      }]
+    },
+    { 'div@panel.col-xs-12.col-sm-5': 'Panel' }] 
+  }
+]);
+
+PurelyAppView.render(vu => {
+
+  let SAMPLE_TEXT = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nec est sed turpis tincidunt mollis. Duis nec justo tortor. Aliquam dictum dignissim molestie. Fusce maximus sit amet felis auctor pellentesque. <br><br>Sed dapibus nibh id rutrum elementum. Aliquam semper, ipsum in ultricies finibus, diam libero hendrerit felis, nec pharetra mi tellus at leo. Duis ultricies ultricies risus, sed convallis ex molestie at. Nulla facilisi. Ut sodales venenatis massa, nec venenatis quam semper eget.';
+ 
+  // Navigation
+  let navSec = PurelySecView.build({
+    sel: vu.$el('@nav')
+  });
+
+  PurelyViews.class('Nav').build({
+    sel: navSec.sel(),
+    data: {
+      logo: {
+        text: 'Logo'
+      }
+    }
+  });
+
+  // Sections
+  let coverSec = PurelySecView.build({
+    sel: vu.$el('@page'),
+    method: 'append'
+  }).val({ height: '400px' });
+
+  let aboutSec = PurelySecView.build({
+    sel: vu.$el('@page'),
+    method: 'append'
+  }).val({ height: '400px' });
+
+  let aboutSec2 = PurelySecView.build({
+    sel: vu.$el('@page'),
+    method: 'append'
+  }).val({ height: '400px' });
+
+  let contactSec = PurelySecView.build({
+    sel: vu.$el('@page'),
+    method: 'append'
+  }).val({ height: '400px' });
+  contactSec.$el().css('background', '#111111');
+
+  let footerSec = PurelySecView.build({
+    sel: vu.$el('@page'),
+    method: 'append'
+  });
+  footerSec.$el().css({
+    'background': '#111111',
+    'padding': '20px'
+  }).html('<div style="color:#222; width:100%; text-align:right;">Powered by Cope</div>');
+  
+  // Cover
+  let coverSlide = PurelyViews.class('Slide').build({
+    sel: coverSec.sel(),
+    data: {
+      data: [{
+        src: '/images/sample1.jpg',
+        link: '#',
+        caption: 'We share gifts'
+      }, {
+        src: '/images/sample2.jpg',
+        link: '#',
+        caption: 'And happiness'
+      }],
+      container: {
+        width: '100%',
+        height: '100%'
+      },
+      showArrow: false,
+      captionFontCSS: {
+        'color': '#fff',
+        'text-align': 'left'
+      },
+      mode: 'center'
+    }
+  });
+
+  // About
+  let aboutTiles = PurelyViews.class('Tiles').build({
+    sel: aboutSec.sel(),
+    data: {
+      w: '100%',
+      h: '400px',
+      cut: {
+        r: 'x60'
+      }
+    }
+  });
+  
+  aboutTiles.val('r').$el().addClass('bg')
+    .css({ 'background-image': 'url("/images/sample3.jpg")' })
+  aboutTiles.val('0').$el().css({ 'background': 'transparent' });
+  aboutTiles.val('1').$el().css({ 
+    'color': '#fff',
+    'background': 'rgba(0, 0, 0, 0.8)',
+    'padding': '12px'
+  }).html('<h3>Our Brand Story</h3><p style="font-size:16px">' + SAMPLE_TEXT + '</p>');
+
+  let aboutTiles2 = PurelyViews.class('Tiles').build({
+    sel: aboutSec2.sel(),
+    data: {
+      w: '100%',
+      h: '400px',
+      cut: {
+        r: 'x40'
+      }
+    }
+  });
+  
+  aboutTiles2.val('r').$el().addClass('bg')
+    .css({ 'background-image': 'url("/images/sample1.jpg")' })
+  aboutTiles2.val('1').$el().css({ 'background': 'transparent' });
+  aboutTiles2.val('0').$el().css({ 
+    'color': '#fff',
+    'background': 'rgba(0, 0, 0, 0.8)',
+    'padding': '8px'
+  }).html('<h3>Our Brand Story</h3><p style="font-size:16px">' + SAMPLE_TEXT + '</p>');
+
+  // Contact
+  let contactBox = PurelyViews.class('Box').build({
+    sel: contactSec.sel()
+  });
+
+  contactBox.$el().css({
+    'width': '80%',
+    'max-width': '540px',
+    'padding': '70px',
+    'position': 'relative',
+    'margin': '0 auto',
+    'text-align': 'center',
+    'font-size': '20px',
+    'color': '#222',
+    'background': '#000',
+    'top': '30%'
+  }).html('Contact us');
+
+});
+
 // "AppPage"
 // "rename app" <= string, the new name
 ViewAppPage.dom(vu => [
@@ -110,6 +274,13 @@ ViewAppPage.dom(vu => [
             { 'div.title': 'Status' },
             { 'div@stat': '' }]
           }]
+        }] 
+      },
+      { 'div.cope-card.touchable.wrap.bg-w(style="text-align:left")': [
+        { 'ul': [
+          { 'li': [
+            { 'div': 'Purely' }] 
+          }] 
         }] 
       }]
     }] 
@@ -394,7 +565,7 @@ ToggleView.dom(vu => `
     </div>` // end of dashborad
     + `<div data-component="sec-app" class="row hidden">
       <div data-component="app" class="col-xs-12"></div>
-      <div data-component="app-purely" class="col-xs-12">Purely Live Editor</div>
+      <div data-component="app-purely" class="col-xs-12"></div>
     </div>
   </div> 
 `);

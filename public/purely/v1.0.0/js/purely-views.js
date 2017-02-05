@@ -316,15 +316,17 @@ TilesView.render(vu => {
     let css = [];
     for (let i = 0; i < total; i++) {
       css.push({ 
-        display: 'inline-block',
+        display: 'block',
         position: 'relative',
+        float: 'left',
         width: '100%', 
         height: '100%',
         padding: '0',
         margin: '0',
         border: '0',
         'background-color': '#' + Math.floor(Math.random() * 1000),
-        overflow: 'scroll'
+        overflow: 'scroll',
+        'box-sizing': 'border-box'
       }); 
     }
 

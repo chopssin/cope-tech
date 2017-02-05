@@ -5,6 +5,7 @@ textarea {
   padding: 6px;
   border: 1px solid #aaa;
   resize: none;
+  outline: none;
 }
 
 /* Purely Default Theme */
@@ -100,13 +101,19 @@ textarea {
 .view-nav {
   display: block;
   width: 100%;
-  min-height: 2.85em;
-  line-height:  2.85em;
+  /*height: 2.85em;
+  line-height:  2.85em;*/
+  min-height: 1px;
+  height: 100%;
+  line-height: 100%;
   position: relative;
-  padding: 0;
+  padding: 10px;
   margin: 0;
   top: 0;
   left: 0;
+}
+.view-nav .glyphicon {
+  top: 0;
 }
 .view-nav div,
 .view-nav nav,
@@ -122,70 +129,50 @@ textarea {
   display: inline-block;
   list-style: none;
 }
+.view-nav ul li {
+  vertical-align: top;
+}
 .view-nav .float-right {
   display: block;
   position: relative;
   float: right;
 }
-.view-nav .logo,
-.view-nav .float-right{
-  height: 100%;
-}
 .view-nav > .logo,
-.view-nav > nav{
+.view-nav > nav {
   display: inline-block;
-  margin: 0px 10px;
-  padding: 0px;
+  margin: 0 10px;
+  padding: 0;
 }
 .view-nav .logo {
-  font-size: 1.2em;
   font-weight: 300;
-  width: 100px;
-  letter-spacing: 0.125em
-  /*background-color: #ddd;*/
+  width: auto;
+  letter-spacing: 0.125em;
+  cursor: pointer;
 }
 .view-nav li {
   display: inline-block;
-  margin: 0px 10px;
+  margin: 0 10px;
 }
 .view-nav a {
   text-decoration: none;
-  margin: 0px;
+  margin: 0;
 }
 .view-nav .menu-icon {
-  top: 6px;
-  font-size: 1.5em;
   cursor: pointer;
 }
 .view-nav .remove-icon {
-  top: 8px;
   right: 8px;
-  font-size: 2em;
   cursor: pointer;
   color: #fff;
 }
 
 .view-nav .user {
-    -moz-appearance: none;
-    -webkit-appearance: none;
-    -o-appearance: none;
-    -ms-appearance: none;
-    appearance: none;
-    -moz-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-    -webkit-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-    -o-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-    -ms-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-    border: 0;
-    color: #333;
-    font-weight: 300;
-    letter-spacing: 0.125em;
-    font-size: 0.9em;
-    text-align: center;
-    text-decoration: none;
-    white-space: nowrap;
-    text-indent: 0.25em;
-    cursor: pointer;
+  color: #333;
+  font-weight: 300;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
 .view-nav .view-nav-items {
@@ -201,19 +188,14 @@ textarea {
 }
 .view-nav-items li {
   display: block;
-  height: 50px;
+  height: 100%; /*50px;*/
   margin: 0;
   padding: 16px;
 }
 
-
-
-
 /* Box */
 .view-box {
   position: relative;
-  font-size: 0;
-  vertical-align: top;
 }
 
 /* Textarea */

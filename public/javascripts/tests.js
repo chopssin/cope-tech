@@ -417,6 +417,25 @@ setTimeout(function() {
   });
 }, 1000);
 
+// Test - Create an app and del it
+Test.go(log => {
+  log.title('Create an app and del it');
+
+  log('Initiate app "some_doomed_app"');
+  let newApp = Cope.app('some_doomed_app');
+  newApp.init().then(() => {
+    log('Initiated');
+    log('Delete the app');
+    newApp.del(true).then(() => {
+      log('Deleted');
+      log.ok();
+    });
+  });
+
+  //let otherApp = Cope.app('has_not_been_init');
+  //otherApp.set('try', 'access it');
+});
+
 // Test - appGraph: node
 Test.go(log => {
   log.title('AppGraph Nodes');
@@ -931,7 +950,7 @@ Test.go(log => {
   });
 
   t2.val('01').$el().css({
-    'font-size': '16px',
+    'font-size': '20px',
     'color': '#fff'
   }).html('Box "01": Middle section with some texts');
 

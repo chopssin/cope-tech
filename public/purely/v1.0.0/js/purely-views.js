@@ -14,37 +14,14 @@ let NavView = Views.class('Nav'),
   SelectView = Views.class('Select'),
   UListView = Views.class('Ulist'),
   FormView = Views.class('Form'),
-  MyPurelyView = Views.class('MyPurely');
+  PurelyEditNavView = Views.class('Purely.Edit.Nav');
+
 
 // Nav
 // "logo clicked" <- null, callback when @logo being clicked
-// NavView.dom(vu => `
-//  <header ${vu.ID} class="view-nav">
-//     <div data-component="logo" class="logo bg"></div>
-//     <div class="float-right">
-//       <nav>
-//         <ul data-component="main-items">
-//         </ul>
-//       </nav>
-//     </div>
-//     <div class="view-nav-items bg-w" data-component="menu" >
-//       <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
-//       <nav style="text-align: center;">
-//         <ul data-component="nav-items" >
-//         </ul>
-//       </nav>
-//     </div>
-//     <div style="z-index: 2;" class="view-nav-items  bg-w" data-component="user-menu">
-//       <div class="glyphicon glyphicon-remove float-right remove-icon" data-component="close-button"></div>
-//       <nav style="text-align: center;">
-//         <ul data-component="user-items"></ul>
-//       </nav>
-//     </div>
-//   </header>
-// `);
 
 
-NavView.dom(vu=>[
+NavView.dom( vu => [
   { 'header.view-nav': [
     { 'div@logo.logo.bg': '' },
     { 'div.float-right': [
@@ -54,7 +31,7 @@ NavView.dom(vu=>[
     ]},
     { 'div.view-nav-items.bg-w@menu': [
       { 'div.glyphicon.glyphicon-remove.float-right.remove-icon@close-button': '' },
-      { 'nav (style = "text-align:center;")': [
+      { 'nav(style = "text-align:center;")': [
         {'ul@nav-items': ''}
       ]}
     ]},
@@ -67,7 +44,7 @@ NavView.dom(vu=>[
   ]}
 ]);
 
-NavView.render(vu=> {
+NavView.render( vu=> {
 
   // Reset items
   vu.$el('@main-items').html(`
@@ -88,7 +65,7 @@ NavView.render(vu=> {
   vu.$el().css(defaultCss);
   
   // @logo
-  vu.use('logo').then(v => {
+  vu.use('logo').then( v => {
     if (v.logo.imgsrc) {
       vu.$el('@logo').css('background-image',v.logo.imgsrc);
     }else {
@@ -101,7 +78,7 @@ NavView.render(vu=> {
   });
   
   // @items
-  vu.use('items').then(v => {
+  vu.use('items').then( v => {
     let  navItems = [];
     function pend(item){
       
@@ -133,7 +110,7 @@ NavView.render(vu=> {
     v.items.forEach(pend);
 
     //setting click event
-    vu.use('items').then(v =>{
+    vu.use('items').then( v =>{
       v.items.forEach(item => { 
       if (item.comp) {
         vu.$el(`@${item.comp}`).off('click').on('click',() => {
@@ -190,13 +167,15 @@ NavView.render(vu=> {
 //UList
 //-comp: str, set element data-component
 //-items: array, input for list
-UListView.dom(vu => (`
-  <div ${vu.ID}>
-    <ul></ul>
-  </div>
-`));
-UListView.render(vu => {
-  vu.use('items').then(v =>{
+
+UListView.dom( vu => [
+  { 'div': [
+    { 'ul': ''}
+  ]}
+]);
+
+UListView.render( vu => {
+  vu.use('items').then( v =>{
     v.items.forEach( obj =>{ 
       if(obj.comp && obj.href ){
         vu.$el('ul').append(`<li class="user" data-component=${obj.comp}><a href=${obj.href}>${obj.title}</a></li>`);
@@ -219,40 +198,34 @@ UListView.render(vu => {
   });
 })
 
-let UListDom = [
-  { 'div': [
-    { 'ul': ''}
-  ]}
-];
 // BoxView
 // @box
 // -css: object, @box's style
-BoxView.dom( vu => (`
-	<div ${vu.ID} data-component="box" class="view-box">
-	</div>
-`));
 
-BoxView.render(vu => {
-  vu.use('css').then(v => {
+BoxView.dom( vu => [
+  { 'div.view-box@box': ''}
+]);
+
+BoxView.render( vu => {
+  vu.use('css').then( v => {
     vu.$el('@box').css(v.css);
   });
-  vu.use('text').then(v=> {
+  vu.use('text').then( v=> {
     vu.$el().html(v.text.join(' '));
   });
 });
 
-let BoxDom = [
-  { 'div.view-box@box': ''}
-];
 
 // Tiles
 // -cut: obj, cut sequence
 // -box: string, seq number of a boxView
-TilesView.dom(vu => {
-  return `<div ${vu.ID}></div>`;
-});
 
-TilesView.render(vu => {
+
+TilesView.dom( vu => [
+  { 'div': ''}
+]);
+
+TilesView.render( vu => {
   let w = vu.get('w'),
       h = vu.get('h'),
       cutObj = vu.get('cut');
@@ -382,12 +355,12 @@ TilesView.render(vu => {
 
 // Textarea
 // @textarea
-TextareaView.dom( vu => {
-	return `<textarea rows="1" ${vu.ID} class="view-textarea">
-    </textarea>`;
-});
 
-TextareaView.render(vu => {
+TextareaView.dom( vu => [
+  { 'textarea(row="1").view-textarea': ''}
+]);
+
+TextareaView.render( vu => {
   let height, 
       $this = vu.$el('textarea'),
       value = vu.get('value'),
@@ -444,49 +417,53 @@ TextareaView.render(vu => {
 });
 
 
-let TextareaDom = [
-  { 'textarea(row="1").view-textarea': ''}
-];
-
 // ImageUploader
 // @preview
 // @button 
 // @files: a file input
 // done <- files: array, an array of files 
-ImageUploaderView.dom( vu => (`
-	<div ${vu.ID} class="view-image-uploader">
-		<div data-component="preview"></div>
-		<button data-component="button">上傳</button>
-		<button data-component="done" style="float: right">完成</button>
-		<input data-component="files" type="file" name="img[]" multiple class="hidden" >
-	</div>
-`));
+
+ImageUploaderView.dom( vu => [
+  { 'div.view-image-uploader.uploader': [
+    { 'div@preview.preview': '' },
+    { 'div.glyphicon.glyphicon-upload.upload-icon': '' },
+    { 'button.btn-left@button': 'Upload'},
+    { 'button.btn-right@done': 'Done'},
+    { 'input@files.hidden(type="file" name="img[]" multiple)': ''}
+  ]}
+]);
 
 ImageUploaderView.render( vu => {
 	let $files = vu.$el('@files');
 			$preview = vu.$el('@preview'),
 			$button = vu.$el('@button'),
 			$done = vu.$el('@done'),
-			files = [];
+			files = [],
+      srcs = [];
 	$button.off('click').on('click', () => {
     $files.click();
 	});
 
 	$done.off('click').on('click', e => {
-		vu.res('done', files);	
+		if(files) {
+    vu.res('done', files);
+    console.log(files);
+    }
 	});
 	$files.off('change').on('change', e => {
 		if ($files[0].files && $files[0].files[0]){
 			for (let i = 0; i<e.target.files.length; i++) {
 				let reader = new FileReader();
 				reader.readAsDataURL($files[0].files[i]);
+        files.push($files[0].files[i]);
+
 				reader.onload = e => {
-					files.push(e.target.result);
+					srcs.push(e.target.result);
 					//vu.$el(`@img-${i}`).append(`<img src="$e.target.result}" class="img-responsive">`);
 					GridView.build({
 						sel: vu.sel(`@preview`)   
 					}).val({
-						src: files//e.target.result
+						src: srcs//e.target.result
 					});
           vu.set('files',files);
 				};
@@ -496,22 +473,21 @@ ImageUploaderView.render( vu => {
 	});// end of change-event
 });
 
-let ImageUploaderDom = [
-  { 'div.view-image-uploader': [
-    { 'div@preview': ''},
-    { 'button@button': '上傳'},
-    { 'button@done(style = "float:right;")': '完成'},
-    { 'input@files.hidden(type="file" name="img[]" multiple)': ''}
-  ]}
-];
+
 // FormView
-FormView.dom(vu =>`
-  <div ${vu.ID}>
-    <div class="view-form">
-      <ul data-component="inputs"></ul>
-    </div>
-  </div>
-`);
+// FormView.dom(vu =>`
+//   <div ${vu.ID}>
+//     <div class="view-form">
+//       <ul data-component="inputs"></ul>
+//     </div>
+//   </div>
+// `);
+
+FormView.dom( vu => [
+  { 'div.view-form': [
+    { 'ul@inputs': ''}
+  ]}
+]);
 
 FormView.render(vu => {
   if (!vu.get('values')) {
@@ -548,14 +524,6 @@ FormView.render(vu => {
   });// end of vu.use
 });
 
-let FromDom = [
-  { 'div': [
-    { 'div': [
-      { 'ul@inputs': ''}
-    ]}
-  ]}
-];
-
 
 // PhotoView
 // @img: for photo src
@@ -566,19 +534,8 @@ let FromDom = [
 // -css: object, css for decoration the outer div
 // -css['@img']: object, css for decoration the img
 // -css['@caption']: object, css for decoration the caption
-PhotoView.dom(vu =>
-  `<div ${vu.ID}>
-    <a href="#">
-      <img data-component="img" class="img-responsive" src="">
-    </a>
-    <div data-component="caption">
-      <a href="#" class="text">
-      </a>
-    </div>
-  </div>`
-);
 
-let PhotoDom = [
+PhotoView.dom( vu => [
   { 'div': [
     { 'a(href="#")': [
       { 'img@img.img-responsive(src="")': ''}
@@ -587,7 +544,7 @@ let PhotoDom = [
       { 'a.text(href="")': ''}
     ]}
   ]}
-];
+]);
 
 PhotoView.render(vu => {
 
@@ -638,18 +595,18 @@ PhotoView.render(vu => {
 // }
 // -src: array, contain url as value, loading [src] if no [data] import
 // -css: object, decoration for the grid
-GridView.dom(vu =>
-  `<div class='view-grid' ${vu.ID}>
-      <div class='row clear-margin' data-component="grid"></div>
-    </div>
-  </div>`
-);
+// GridView.dom(vu =>
+//   `<div class='view-grid' ${vu.ID}>
+//       <div class='row clear-margin' data-component="grid"></div>
+//     </div>
+//   </div>`
+// );
 
-let GridDom = [
+GridView.dom( vu => [
   { 'div.view-grid': [
     { 'div.row.clear-margin@grid': ''}
   ]}
-];
+]);
 
 GridView.render(vu => {
 
@@ -707,30 +664,12 @@ GridView.render(vu => {
 // -changeTime: numnber, set the time for slide auto-changing
 // -showArrow: boolean, set whether showing arrow or not with default value: true
 // -mode: string, set slide mode 'slide' or 'center' with default value: slide
-SlideView.dom(vu =>
-  `<div class="view-slide" ${vu.ID}>
-    <div class="slide">
-      <i class="slideButton slideButtonLeft glyphicon glyphicon-chevron-left"></i>
-      <i class="slideButton slideButtonRight glyphicon glyphicon-chevron-right"></i>
-      <div class="banner" data-component="slideItem">
-      </div>
-      <div class="caption">
-        <ul data-component="slideCaption">
-        </ul>
-      </div>
-      <div class="slideNav">
-        <ul data-component="slideNav">          
-        </ul>
-      </div>
-    </div>
-  </div>`
-);
 
-let SlideDom = [
+SlideView.dom( vu => [
   { 'div.view-slide': [
     { 'div.slide': [
-      { 'i.slideButtonLeft.glyphicon.glyphicon-chevron-left': ''},
-      { 'i.slideButtonRight.glyphicon.glyphicon-chevron-right': ''},
+      { 'i.slideButton.slideButtonLeft.glyphicon.glyphicon-chevron-left': ''},
+      { 'i.slideButton.slideButtonRight.glyphicon.glyphicon-chevron-right': ''},
       { 'div.banner@slideItem': ''},
       { 'div.caption': [
         { 'ul@slideCaption': ''}
@@ -740,10 +679,10 @@ let SlideDom = [
       ]}
     ]}
   ]}
-];
+]);
 
 
-SlideView.render(vu => {
+SlideView.render( vu => {
 
   // Default CSS Setting
   let containerCSS = {
@@ -751,7 +690,7 @@ SlideView.render(vu => {
     height: '390px'
   };
 
-  vu.use('container').then(v => {
+  vu.use('container').then( v => {
     containerCSS.width = v.container.width;
     containerCSS.height = v.container.height;
   })
@@ -759,7 +698,7 @@ SlideView.render(vu => {
   vu.$el('.view-slide').css(containerCSS);
 
   //  Loading Data
-  vu.use('data').then(v => {
+  vu.use('data').then( v => {
 
     if(Array.isArray(v.data)){
       let currentNumber = 0;
@@ -869,12 +808,12 @@ SlideView.render(vu => {
     }
   })
 
-  vu.use('showArrow').then(v => {
+  vu.use('showArrow').then( v => {
     if(v.showArrow === false) vu.$el('.slideButton').remove();
   })
 
   //  setting customer caption font
-  vu.use('captionFontCSS').then(v => {
+  vu.use('captionFontCSS').then( v => {
     delete v.captionFontCSS.width;
     vu.$el('.caption').find('li').css(v.captionFontCSS);
   })
@@ -889,20 +828,15 @@ SlideView.render(vu => {
 //   -value: number or string
 //   -payload: string, the content of the option
 // "value" <- string, number or boolean, the value of the selected option 
-SelectView.dom(vu => 
-  `<div ${vu.ID} class="view-select">
-    <select data-component="select">
-    </select>
-  </div>`
-);
 
-let SelectDom = [
+
+SelectView.dom( vu => [
   { 'div.view-select': [
     { 'select@select' : ''}
   ]}
-];
+]);
 
-SelectView.render(vu => {
+SelectView.render( vu => {
   vu.use('options').then(v => {
     if(Array.isArray(v.options)){
       v.options.forEach((o, i) =>{
@@ -921,72 +855,57 @@ SelectView.render(vu => {
   })  
 });
 
-MyPurelyView.dom(vu => `
- <div ${vu.ID} class="row viewport">
-      <div class="hidden-xs" style="float:right; padding: 20px;">
-        <button class="btn btn-primary" data-component="mobileBtn">mobile</button>
-        <button class="btn btn-primary" data-component="windowBtn">window</button>
+PurelyEditNavView.dom(vu => `
+  <div ${vu.ID} class="row viewport">
+    <div data-component="form" class="col-md-6 col-xs-12" style="clear:right;">
+      <div data-component="form-view"></div>
+      <div style="text-align: center">Logo</div>
+      <div data-component="image-uploader"></div>
+      <div>
+        <div class="glyphicon glyphicon-plus-sign" style="font-size:2em; margin:10px 17px;"></div>
       </div>
-      <div data-component="form" class="col-md-6 col-xs-12" style="clear:right;">
-        <div id="form-view"></div>
-        <div>Logo</div>
-        <div class="uploader">
-          <div class="glyphicon glyphicon-upload" style="font-size:2.5em;"></div>
-        </div>
-        <div id="imageuploader"></div>
-        <div>
-          <div class="glyphicon glyphicon-plus-sign" style="font-size:2em; margin:10px 17px;"></div>
-        </div>
-        <div id="form-list"></div>
-        <div id="save-btn" class="btn btn-primary">Save</div>
-      </div>
-      <div data-component="viewport" class="col-md-6 col-xs-12">
-      </div>
-    </div>` 
+      <div data-component="form-list"></div>
+      <div data-component="save-btn" class="btn btn-primary" style="margin:10px;">Save</div>
+    </div>
+    <div data-component="viewport" class="col-md-6 col-xs-12">
+    </div>
+  </div>` 
 );
 
-MyPurelyView.render(vu => {
+// MyPurelyView.dom( vu => [
+//   { 'div.row.viewport': [
+//     { 'div.hidden-xs(style = "float:right; padding:20px;")': [
+//       { 'button.btn.btn-primary@mobileBtn': 'mobile'},
+//       { 'button.btn.btn-primary@windowBtn': 'window'}
+//     ]}
+//   ]}
+// ]);
+
+PurelyEditNavView.render(vu => {
   
-//form
+  // Form
   let inputs = [{type: "text", label: "App Name", value: 'uuu' },{type: "text", label: "Company Name",value: 'hello'}]; 
   let formview = FormView.build({
-    sel: '#form-view',
+    sel: vu.sel('@form-view'),
     method: 'append',
     data:{
       inputs: inputs
     }
   });
 
-  let formlist = UListView.build({
-    sel: '#form-list',
-    method: 'append',
-    data:{
-      items:[{title:'Product'},{title:'Blog'}]
-    }
-  });
 
-  $('#save-btn').click(() => {
+  vu.$el('@save-btn').off('click').on('click',() => {
     let values = formview.val('values');
     console.log(values);
 
     vu.res('save', values);
 
   });
-  //toggle RWD
   
-  let mobileBtn = vu.$el('@mobileBtn'),
-      windowBtn = vu.$el('@windowBtn'),
-      form = vu.$el('@form'),
-      vp = vu.$el('@viewport');
-  mobileBtn.off('click').on('click',() =>{
-    console.log('mobileBtn onclick!');
-    form.addClass('col-md-6');
-    vp.addClass('col-md-6');
-  });
-  windowBtn.off('click').on('click',() =>{
-    console.log('windowBtn onclick!');
-    form.removeClass('col-md-6');
-    vp.removeClass('col-md-6');
+
+  // Image Uploader
+  ImageUploaderView.build({
+    sel: vu.sel('@image-uploader')
   });
 });
 

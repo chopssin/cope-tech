@@ -624,7 +624,7 @@ Test.go(log => {
 // View
 
 // >>>>>>>>>>>> build: sel: viewport.sel('@purely')
-  MyPurelyView.build({
+  PurelyEditNavView.build({
     sel: viewport.sel('@purely')
   }).res('save',values => {
     app.set('appName', values[0]).then(() => {
@@ -1116,16 +1116,8 @@ Test.go(log => {
   });
 
   //ImageUploader 
-
   let ImageUploaderA = ImageUploaderView.build({
     sel: '#imageUploader',
-    method: 'append'
-  }).res('value', val => {
-    console.log(val);
-  });
-
-  let ImageUploaderB = ImageUploaderView.build({
-    sel: '#imageuploader',
     method: 'append'
   }).res('value', val => {
     console.log(val);
@@ -1326,7 +1318,7 @@ Test.go(log => {
   log.ok();
 });
 
-// Fake server
+// Test - Fake server
 Test.go(log => {
   log.title('Fake server');
 
@@ -1414,6 +1406,15 @@ Test.go(log => {
   Panel.build({ 'sel': log.sel() });
 });
 
+// Test - Purely: App name, Logo and Nav
+Test.go(log => {
+  Vbox.append('PurelyEditNav');
+  let MyPure = Views.class('Purely.Edit.Nav').build({
+    sel: '#PurelyEditNav'
+  }).res('save',values => {
+    console.log(values);
+  });
+});
 // end Tests
 
 })(jQuery, Cope);

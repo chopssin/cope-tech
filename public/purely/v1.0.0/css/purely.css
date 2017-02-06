@@ -231,16 +231,45 @@ textarea {
 
 /* ImageUploader*/
 .view-image-uploader {
+  position: relative;
   width: 540px;
+  height: 200px;
+  line-height: 1;
   max-width: 100%;
   border: 1px solid #111;
   padding: 0 20px;
+  margin: auto;
+  background-color: #eee;
 }
+
+.view-image-uploader .btn-right {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+}
+.view-image-uploader .btn-left {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+}
+.view-image-uploader .upload-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  -moz-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  font-size: 3em;
+}
+.view-image-uploader .preview {
+  z-index: 1;
+}
+
 
 /* Form */
 .view-form ul {
   list-style: none;
-  padding: 0px;
+  padding: 0;
 }
 
 /* Photo */
@@ -378,8 +407,8 @@ textarea {
 }
 
 /* viewport */
-.viewport .uploader {
-  width: 211px;
+._viewport .uploader {
+  width: 100%;
   height: 150px;
   line-height: 170px;
   background-color: #bbb;
@@ -387,10 +416,10 @@ textarea {
   cursor: pointer;
   opacity: 0.55;
 }
-.viewport .uploader:hover {
+._viewport .uploader:hover {
   opacity: 0.87;
 }
-.viewport li {
+._viewport li {
   font-family: monospace;
   -moz-appearance: none;
   -webkit-appearance: none;

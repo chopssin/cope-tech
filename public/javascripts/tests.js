@@ -924,6 +924,7 @@ Test.go(log => {
     data: {
       w: '200px',
       h: '200px',
+      colored: true,
       cut: {
         'r': 'x70 x80 x83 y60',
         '0': 'x50 y50',
@@ -942,6 +943,7 @@ Test.go(log => {
     data: {
       w: '300px',
       h: '200px',
+      colored: true,
       cut: {
         'r': 'y70',
         '0': 'x33.3333 x66.6666'
@@ -960,6 +962,7 @@ Test.go(log => {
     data: {
       w: '100%',
       h: '400px',
+      colored: true,
       cut: {
         'r': 'x33.3333 x66.6666',
         '0': 'y50 y80',

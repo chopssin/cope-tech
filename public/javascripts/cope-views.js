@@ -84,8 +84,8 @@ PurelySecView.render(vu => {
 });
 
 PurelyAppView.dom(vu => [
-  { 'div.row': [
-    { 'div.col-xs-12.col-sm-7(style="margin-bottom:40px")': [
+  { 'div.purely-app': [
+    { 'div.sim-wrap': [
       { 'div.row': [
         { 'div@nav.col-xs-12(style="padding:0")': 'Nav' }] 
       },
@@ -93,13 +93,24 @@ PurelyAppView.dom(vu => [
         { 'div@page.col-xs-12(style="padding:0")': '' }]
       }]
     },
-    { 'div@panel.col-xs-12.col-sm-5': 'Panel' }] 
+    { 'div.sim-panel.cope-card.wider.bg-w': [
+      { 'div@back.hidden': 'Go back to settings' },
+      { 'div@settings': 'Settings' },
+      { 'div@panel.hidden': 'Panel' }]
+    }] 
   }
 ]);
 
 PurelyAppView.render(vu => {
 
   let SAMPLE_TEXT = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nec est sed turpis tincidunt mollis. Duis nec justo tortor. Aliquam dictum dignissim molestie. Fusce maximus sit amet felis auctor pellentesque. <br><br>Sed dapibus nibh id rutrum elementum. Aliquam semper, ipsum in ultricies finibus, diam libero hendrerit felis, nec pharetra mi tellus at leo. Duis ultricies ultricies risus, sed convallis ex molestie at. Nulla facilisi. Ut sodales venenatis massa, nec venenatis quam semper eget.';
+
+  // Panel routing
+  vu.$el('@back').off('click').on('click', e => {
+    vu.$el('@back').addClass('hidden');
+    vu.$el('@settings')
+    vu.$el('@settings')
+  });
  
   // Navigation
   let navSec = PurelySecView.build({
@@ -144,7 +155,7 @@ PurelyAppView.render(vu => {
   footerSec.$el().css({
     'background': '#111111',
     'padding': '20px'
-  }).html('<div style="color:#222; width:100%; text-align:right;">Powered by Cope</div>');
+  }).html('<div style="color:#777; width:100%; text-align:right;">Powered by Cope</div>');
   
   // Cover
   let coverSlide = PurelyViews.class('Slide').build({
@@ -179,19 +190,20 @@ PurelyAppView.render(vu => {
       w: '100%',
       h: '400px',
       cut: {
-        r: 'x60'
+        'r': 'x60 x90',
+        '1': 'y40 y80'
       }
     }
   });
   
   aboutTiles.val('r').$el().addClass('bg')
-    .css({ 'background-image': 'url("/images/sample3.jpg")' })
-  aboutTiles.val('0').$el().css({ 'background': 'transparent' });
-  aboutTiles.val('1').$el().css({ 
+    .css({ 'background-image': 'url("/images/sample3.jpg")' });
+
+  aboutTiles.val('11').$el().css({ 
     'color': '#fff',
     'background': 'rgba(0, 0, 0, 0.8)',
     'padding': '12px'
-  }).html('<h3>Our Brand Story</h3><p style="font-size:16px">' + SAMPLE_TEXT + '</p>');
+  }).html('<h3>Our Brand</h3><p style="font-size:16px">' + SAMPLE_TEXT + '</p>');
 
   let aboutTiles2 = PurelyViews.class('Tiles').build({
     sel: aboutSec2.sel(),
@@ -199,19 +211,24 @@ PurelyAppView.render(vu => {
       w: '100%',
       h: '400px',
       cut: {
-        r: 'x40'
+        'r': 'y15 y25 y30 y70',
+        '1': 'x15 x20 x22',
+        '3': 'x15 x45'
       }
     }
   });
   
   aboutTiles2.val('r').$el().addClass('bg')
     .css({ 'background-image': 'url("/images/sample1.jpg")' })
-  aboutTiles2.val('1').$el().css({ 'background': 'transparent' });
-  aboutTiles2.val('0').$el().css({ 
-    'color': '#fff',
-    'background': 'rgba(0, 0, 0, 0.8)',
+  aboutTiles2.val('11').$el().css({ 
+    'border': '4px solid #333' 
+  });
+  aboutTiles2.val('13').$el().html('<div style="font-size:20px">Story</div>');
+  aboutTiles2.val('31').$el().css({ 
+    'color': '#333',
+    'background': 'rgba(255, 255, 255, 0.8)',
     'padding': '8px'
-  }).html('<h3>Our Brand Story</h3><p style="font-size:16px">' + SAMPLE_TEXT + '</p>');
+  }).html('<p style="font-size:16px">' + SAMPLE_TEXT + '</p>');
 
   // Contact
   let contactBox = PurelyViews.class('Box').build({
@@ -221,16 +238,26 @@ PurelyAppView.render(vu => {
   contactBox.$el().css({
     'width': '80%',
     'max-width': '540px',
-    'padding': '70px',
+    'padding': '10px',
     'position': 'relative',
     'margin': '0 auto',
     'text-align': 'center',
-    'font-size': '20px',
+    'font-size': '14px',
     'color': '#222',
     'background': '#000',
     'top': '30%'
-  }).html('Contact us');
+  });
 
+  let contact = PurelyViews.class('Contact').build({
+    sel: contactBox.sel(),
+    data: {
+      title: 'Contact us',
+      items: [
+        'support@myapp.cope.tech',
+        '+886 987 654 321'
+      ]
+    }
+  });
 });
 
 // "AppPage"
@@ -563,7 +590,7 @@ ToggleView.dom(vu => `
         
       </div>
     </div>` // end of dashborad
-    + `<div data-component="sec-app" class="row hidden">
+    + `<div data-component="sec-app" class="hidden">
       <div data-component="app" class="col-xs-12"></div>
       <div data-component="app-purely" class="col-xs-12"></div>
     </div>
@@ -575,11 +602,13 @@ ToggleView.render(vu => {
     case 'app':
       vu.$el('@sec-dashboard').addClass('hidden');
       vu.$el('@sec-app').removeClass('hidden');
+      vu.$el().removeClass('container');
       break;
     case 'home':
     default:
       vu.$el('@sec-app').addClass('hidden');
       vu.$el('@sec-dashboard').removeClass('hidden');
+      vu.$el().addClass('container');
       break;
   } 
 });

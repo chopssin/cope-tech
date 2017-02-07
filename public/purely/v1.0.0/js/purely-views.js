@@ -14,6 +14,7 @@ let NavView = Views.class('Nav'),
   SelectView = Views.class('Select'),
   UListView = Views.class('Ulist'),
   FormView = Views.class('Form'),
+  ContactView = Views.class('Contact'),
   MyPurelyView = Views.class('MyPurely');
 
 // Nav
@@ -246,8 +247,10 @@ let BoxDom = [
 ];
 
 // Tiles
-// -cut: obj, cut sequence
-// -box: string, seq number of a boxView
+// - w: string, total width
+// - h: string, total height
+// - cut: obj, cut sequences
+// - colored: boolean, true to color automatically
 TilesView.dom(vu => {
   return `<div ${vu.ID}></div>`;
 });
@@ -255,6 +258,7 @@ TilesView.dom(vu => {
 TilesView.render(vu => {
   let w = vu.get('w'),
       h = vu.get('h'),
+      colored = vu.get('colored') || false,
       cutObj = vu.get('cut');
 
   vu.set('r', BoxView.build({
@@ -267,7 +271,7 @@ TilesView.render(vu => {
         padding: '0',
         margin: '0',
         border: '0',
-        'background-color': '#' + Math.floor(Math.random() * 1000)
+        'background-color': 'transparent'//'#' + Math.floor(Math.random() * 1000)
       }
     }
   }));
@@ -315,7 +319,7 @@ TilesView.render(vu => {
     let total = (xs.length + 1) * (ys.length + 1);
     let css = [];
     for (let i = 0; i < total; i++) {
-      css.push({ 
+      let eachCSS = {
         display: 'block',
         position: 'relative',
         float: 'left',
@@ -324,10 +328,13 @@ TilesView.render(vu => {
         padding: '0',
         margin: '0',
         border: '0',
-        'background-color': '#' + Math.floor(Math.random() * 1000),
         overflow: 'scroll',
         'box-sizing': 'border-box'
-      }); 
+      };
+      if (colored) {
+        eachCSS['background-color'] = '#' + Math.floor(Math.random() * 1000);
+      }
+      css.push(eachCSS);
     }
 
     css = css.map((s, i) => {
@@ -988,6 +995,32 @@ MyPurelyView.render(vu => {
     console.log('windowBtn onclick!');
     form.removeClass('col-md-6');
     vp.removeClass('col-md-6');
+  });
+});
+
+// Contact
+// @title: h3
+// @list: ul
+// - title: string
+// - items: array of strings
+ContactView.dom(vu => [
+  { 'h3@title': '' },
+  { 'ul@list': '' }
+]);
+
+ContactView.render(vu => {
+  vu.use('title').then(v => {
+    vu.$el('@title').text(v.title);
+  });
+
+  vu.use('items').then(v => {
+    if (!Array.isArray(v.items)) {
+      return;
+    }
+    let items = v.items.map(item => {
+      return '<li>' + item + '</li>';
+    }).join('');
+    vu.$el('@list').html(items);
   });
 });
 

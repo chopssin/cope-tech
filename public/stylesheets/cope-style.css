@@ -308,6 +308,33 @@
   font-size: 0.8em;
 }
 
+/* Purely Simulator */
+.purely-app {
+  display: block;
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.purely-app .sim-wrap {
+  display: block;
+  position: relative;
+  width: 100%;
+  padding: 0 30px;
+}
+
+.purely-app .sim-panel {
+  display: block;
+  position: relative;
+  width: 100%;
+  padding: 0 15px;
+  margin: 20px 0;
+}
+.purely-app .sim-panel > div {
+  padding: 16px 0;
+}
+
 /* Graph */
 .svg-wrap {
   display: block;
@@ -347,6 +374,18 @@
 @media only screen and (min-width : 992px) {
   .cope-card {
     padding: 16px;
+  }
+  .purely-app .sim-wrap {
+    width: 50%;
+  }
+  .purely-app .sim-panel {
+    position: fixed;
+    width: 100%;
+    max-width: 500px;
+    padding: 0 15px;
+    left: 50%;
+    top: 100px;
+    margin: 0;
   }
 }
 

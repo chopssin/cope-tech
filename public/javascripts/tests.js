@@ -1411,8 +1411,16 @@ Test.go(log => {
   Vbox.append('PurelyEditNav');
   let MyPure = Views.class('Purely.Edit.Nav').build({
     sel: '#PurelyEditNav'
-  }).res('save',values => {
-    console.log(values);
+  }).res('save',obj => {
+    console.log(obj);
+  });
+});
+
+// Test - Purely: Single Block
+Test.go(log => {
+  Vbox.append('SingleBlock');
+  let SingleBlock = Views.class('Purely.Edit.Single').build({
+    sel: '#SingleBlock'
   });
 });
 // end Tests

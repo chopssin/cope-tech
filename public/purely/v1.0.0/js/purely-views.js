@@ -14,13 +14,12 @@ let NavView = Views.class('Nav'),
   SelectView = Views.class('Select'),
   UListView = Views.class('Ulist'),
   FormView = Views.class('Form'),
-  PurelyEditNavView = Views.class('Purely.Edit.Nav');
+  PurelyEditNavView = Views.class('Purely.Edit.Nav'),
+  PurelyEditSingleView = Views.class('Purely.Edit.Single');
 
 
 // Nav
 // "logo clicked" <- null, callback when @logo being clicked
-
-
 NavView.dom( vu => [
   { 'header.view-nav': [
     { 'div@logo.logo.bg': '' },
@@ -106,7 +105,6 @@ NavView.render( vu=> {
       }
     }
     //navItems.forEach(pend);
-
     v.items.forEach(pend);
 
     //setting click event
@@ -167,7 +165,6 @@ NavView.render( vu=> {
 //UList
 //-comp: str, set element data-component
 //-items: array, input for list
-
 UListView.dom( vu => [
   { 'div': [
     { 'ul': ''}
@@ -201,7 +198,6 @@ UListView.render( vu => {
 // BoxView
 // @box
 // -css: object, @box's style
-
 BoxView.dom( vu => [
   { 'div.view-box@box': ''}
 ]);
@@ -219,8 +215,6 @@ BoxView.render( vu => {
 // Tiles
 // -cut: obj, cut sequence
 // -box: string, seq number of a boxView
-
-
 TilesView.dom( vu => [
   { 'div': ''}
 ]);
@@ -355,9 +349,8 @@ TilesView.render( vu => {
 
 // Textarea
 // @textarea
-
 TextareaView.dom( vu => [
-  { 'textarea(row="1").view-textarea': ''}
+  { 'textarea(rows="1").view-textarea': ''}
 ]);
 
 TextareaView.render( vu => {
@@ -421,15 +414,18 @@ TextareaView.render( vu => {
 // @preview
 // @button 
 // @files: a file input
-// done <- files: array, an array of files 
-
+// - files: array, an array of image files
+// - multi: boolean
 ImageUploaderView.dom( vu => [
   { 'div.view-image-uploader.uploader': [
     { 'div@preview.preview': '' },
-    { 'div.glyphicon.glyphicon-upload.upload-icon': '' },
-    { 'button.btn-left@button': 'Upload'},
-    { 'button.btn-right@done': 'Done'},
-    { 'input@files.hidden(type="file" name="img[]" multiple)': ''}
+    { 'div.control': [
+      { 'div.btn-upload@button': 'Upload'}]
+    },
+    //{ 'div.glyphicon.glyphicon-upload.upload-icon': '' },
+    [ 'input@files.hidden(type="file" name="img[]" ' 
+       + (vu.get('multi') ? 'multiple' : '')
+       + ')', '']
   ]}
 ]);
 
@@ -444,18 +440,15 @@ ImageUploaderView.render( vu => {
     $files.click();
 	});
 
-	$done.off('click').on('click', e => {
-		if(files) {
-    vu.res('done', files);
-    console.log(files);
-    }
-	});
 	$files.off('change').on('change', e => {
 		if ($files[0].files && $files[0].files[0]){
 			for (let i = 0; i<e.target.files.length; i++) {
 				let reader = new FileReader();
 				reader.readAsDataURL($files[0].files[i]);
         files.push($files[0].files[i]);
+
+        // Update files array
+        vu.set('files', files);
 
 				reader.onload = e => {
 					srcs.push(e.target.result);
@@ -482,7 +475,6 @@ ImageUploaderView.render( vu => {
 //     </div>
 //   </div>
 // `);
-
 FormView.dom( vu => [
   { 'div.view-form': [
     { 'ul@inputs': ''}
@@ -534,7 +526,6 @@ FormView.render(vu => {
 // -css: object, css for decoration the outer div
 // -css['@img']: object, css for decoration the img
 // -css['@caption']: object, css for decoration the caption
-
 PhotoView.dom( vu => [
   { 'div': [
     { 'a(href="#")': [
@@ -601,7 +592,6 @@ PhotoView.render(vu => {
 //     </div>
 //   </div>`
 // );
-
 GridView.dom( vu => [
   { 'div.view-grid': [
     { 'div.row.clear-margin@grid': ''}
@@ -664,7 +654,6 @@ GridView.render(vu => {
 // -changeTime: numnber, set the time for slide auto-changing
 // -showArrow: boolean, set whether showing arrow or not with default value: true
 // -mode: string, set slide mode 'slide' or 'center' with default value: slide
-
 SlideView.dom( vu => [
   { 'div.view-slide': [
     { 'div.slide': [
@@ -828,8 +817,6 @@ SlideView.render( vu => {
 //   -value: number or string
 //   -payload: string, the content of the option
 // "value" <- string, number or boolean, the value of the selected option 
-
-
 SelectView.dom( vu => [
   { 'div.view-select': [
     { 'select@select' : ''}
@@ -855,59 +842,99 @@ SelectView.render( vu => {
   })  
 });
 
-PurelyEditNavView.dom(vu => `
-  <div ${vu.ID} class="row viewport">
-    <div data-component="form" class="col-md-6 col-xs-12" style="clear:right;">
-      <div data-component="form-view"></div>
-      <div style="text-align: center">Logo</div>
-      <div data-component="image-uploader"></div>
-      <div>
-        <div class="glyphicon glyphicon-plus-sign" style="font-size:2em; margin:10px 17px;"></div>
-      </div>
-      <div data-component="form-list"></div>
-      <div data-component="save-btn" class="btn btn-primary" style="margin:10px;">Save</div>
-    </div>
-    <div data-component="viewport" class="col-md-6 col-xs-12">
-    </div>
-  </div>` 
-);
 
-// MyPurelyView.dom( vu => [
-//   { 'div.row.viewport': [
-//     { 'div.hidden-xs(style = "float:right; padding:20px;")': [
-//       { 'button.btn.btn-primary@mobileBtn': 'mobile'},
-//       { 'button.btn.btn-primary@windowBtn': 'window'}
-//     ]}
-//   ]}
-// ]);
+//PurelyEditNavView
+PurelyEditNavView.dom( vu => [
+  { 'div.view-purely-edit-nav': [
+    { 'div@form.col-xs-12': [
+      { 'h5': 'Site Title'},
+      { 'input(type="text")@site-title': ''},
+      { 'h5': 'Hosted By'},
+      { 'input(type="text")@hosted-by': ''},
+      { 'h5': 'Logo'},
+      { 'div@image-uploader': ''},
+      { 'div@save-btn(style="float: right; margin: 10px 0px; cursor: pointer;")': 'Save'}
+    ]},
+    { 'div@viewport.col-xs-12': ''}
+  ]}
+]);
 
 PurelyEditNavView.render(vu => {
   
-  // Form
-  let inputs = [{type: "text", label: "App Name", value: 'uuu' },{type: "text", label: "Company Name",value: 'hello'}]; 
-  let formview = FormView.build({
-    sel: vu.sel('@form-view'),
-    method: 'append',
-    data:{
-      inputs: inputs
-    }
-  });
-
-
-  vu.$el('@save-btn').off('click').on('click',() => {
-    let values = formview.val('values');
-    console.log(values);
-
-    vu.res('save', values);
-
-  });
-  
 
   // Image Uploader
-  ImageUploaderView.build({
+  let imageuploaderview = ImageUploaderView.build({
     sel: vu.sel('@image-uploader')
+  });
+  
+  // @save-btn Click Event
+  vu.$el('@save-btn').off('click').on('click',() => {
+    let obj = {}
+    obj.appName = vu.$el('@site-title').val().trim();
+    obj.hostedBy = vu.$el('@hosted-by').val().trim();
+    obj.images = imageuploaderview.val('files');
+    console.log(obj);
+    vu.res('save', obj);
   });
 });
 
+//PurelyEditSingle
+PurelyEditSingleView.dom( vu => [
+  { 'div.view-purely-edit-single': [
+    { 'div@textarea.col-xs-12': [
+      { 'h5': 'Title'},
+      { 'div@title.title': ''},
+      { 'h5': 'Content'},
+      { 'div@content.content': ''},
+      { 'div@image-uploader': ''},
+      { 'div@save-btn(style="float: right; margin: 10px 0; cursor: pointer;")': 'Save'}
+    ]}
+  ]}
+]);
+
+PurelyEditSingleView.render( vu => {
+
+  // Title textarea
+  let title = TextareaView.build({
+    sel: vu.sel('@title'),
+    data: {
+      value: 'Title'
+    }
+  });
+
+  title.$el().css({
+    'width': '100%',
+    'border': '1px solid #aaa',
+    'font-size': '14px'
+  });
+
+  // Content textarea
+  let content = TextareaView.build({
+    sel: vu.sel('@content'),
+    data: {
+      value: 'Content'
+    }
+  });
+  content.$el().css({
+    'margin-bottom': '16px',
+    'border': '1px solid #aaa',
+    'font-size': '14px'
+  });
+
+  // Image UpLoader
+  let imageuploaderview = ImageUploaderView.build({
+    sel: vu.sel('@image-uploader')
+  });
+
+  //@save-btn Click Event
+  vu.$el('@save-btn').off('click').on('click',() => {
+    let obj = {}
+    obj.title = title.val('value');
+    obj.content = content.val('value');
+    obj.images = imageuploaderview.val('files');
+    console.log(obj);
+    vu.res('save', obj);
+  });
+});
 // -----
 })(jQuery, Cope);

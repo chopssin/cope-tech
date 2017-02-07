@@ -14,14 +14,10 @@ let NavView = Views.class('Nav'),
   SelectView = Views.class('Select'),
   UListView = Views.class('Ulist'),
   FormView = Views.class('Form'),
-<<<<<<< HEAD
   ContactView = Views.class('Contact'),
   MyPurelyView = Views.class('MyPurely');
-=======
   PurelyEditNavView = Views.class('Purely.Edit.Nav'),
   PurelyEditSingleView = Views.class('Purely.Edit.Single');
-
->>>>>>> 0623e8db50eaf68ba2b741b22cd206041bf62c95
 
 // Nav
 // "logo clicked" <- null, callback when @logo being clicked
@@ -218,21 +214,13 @@ BoxView.render( vu => {
 
 
 // Tiles
-<<<<<<< HEAD
 // - w: string, total width
 // - h: string, total height
 // - cut: obj, cut sequences
 // - colored: boolean, true to color automatically
-TilesView.dom(vu => {
-  return `<div ${vu.ID}></div>`;
-});
-=======
-// -cut: obj, cut sequence
-// -box: string, seq number of a boxView
 TilesView.dom( vu => [
   { 'div': ''}
 ]);
->>>>>>> 0623e8db50eaf68ba2b741b22cd206041bf62c95
 
 TilesView.render( vu => {
   let w = vu.get('w'),
@@ -955,7 +943,6 @@ PurelyEditSingleView.render( vu => {
     vu.res('save', obj);
   });
 });
-<<<<<<< HEAD
 
 // Contact
 // @title: h3
@@ -983,7 +970,5 @@ ContactView.render(vu => {
   });
 });
 
-=======
->>>>>>> 0623e8db50eaf68ba2b741b22cd206041bf62c95
 // -----
 })(jQuery, Cope);

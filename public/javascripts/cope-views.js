@@ -74,12 +74,16 @@ ViewAccountCard.render(vu => {
 
 // "Purely"
 PurelySecView.dom(vu => [
-  { 'div.cope-card.full.bg-w.touchable(style="margin-bottom:16px; padding:0;")': vu.val('sec') || 'Section' }
+  { 'div(style="margin-bottom:16px; padding:0;")': [
+    { 'div': '+' },
+    { 'div@sec.cope-card.full.bg-w.touchable(style="padding:0")': '' },
+    { 'div': '+' }]
+  }
 ]);
 
 PurelySecView.render(vu => {
   vu.use('height').then(v => {
-    vu.$el().css('height', v.height);
+    vu.$el('@sec').css('height', v.height);
   });
 });
 
@@ -94,7 +98,7 @@ PurelyAppView.dom(vu => [
       }]
     },
     { 'div.sim-panel.cope-card.wider.bg-w': [
-      { 'div@back.hidden': 'Go back to settings' },
+      { 'div@back.hidden': '<-' },
       { 'div@settings': 'Settings' },
       { 'div@panel.hidden': 'Panel' }]
     }] 
@@ -108,8 +112,8 @@ PurelyAppView.render(vu => {
   // Panel routing
   vu.$el('@back').off('click').on('click', e => {
     vu.$el('@back').addClass('hidden');
-    vu.$el('@settings')
-    vu.$el('@settings')
+    vu.$el('@settings').removeClass('hidden');
+    vu.$el('@panel').addClass('hidden');
   });
  
   // Navigation
@@ -118,7 +122,7 @@ PurelyAppView.render(vu => {
   });
 
   PurelyViews.class('Nav').build({
-    sel: navSec.sel(),
+    sel: navSec.sel('@sec'),
     data: {
       logo: {
         text: 'Logo'
@@ -146,20 +150,28 @@ PurelyAppView.render(vu => {
     sel: vu.$el('@page'),
     method: 'append'
   }).val({ height: '400px' });
-  contactSec.$el().css('background', '#111111');
+  contactSec.$el('@sec').css('background', '#111111');
 
   let footerSec = PurelySecView.build({
     sel: vu.$el('@page'),
     method: 'append'
   });
-  footerSec.$el().css({
+  footerSec.$el('@sec').css({
     'background': '#111111',
     'padding': '20px'
   }).html('<div style="color:#777; width:100%; text-align:right;">Powered by Cope</div>');
+
+  // Test with about
+  aboutSec.$el().off('click').on('click', function() {
+    console.log(aboutSec.val());
+    vu.$el('@back').removeClass('hidden');
+    vu.$el('@settings').addClass('hidden');
+    vu.$el('@panel').removeClass('hidden');
+  });
   
   // Cover
   let coverSlide = PurelyViews.class('Slide').build({
-    sel: coverSec.sel(),
+    sel: coverSec.sel('@sec'),
     data: {
       data: [{
         src: '/images/sample1.jpg',
@@ -185,7 +197,7 @@ PurelyAppView.render(vu => {
 
   // About
   let aboutTiles = PurelyViews.class('Tiles').build({
-    sel: aboutSec.sel(),
+    sel: aboutSec.sel('@sec'),
     data: {
       w: '100%',
       h: '400px',
@@ -206,7 +218,7 @@ PurelyAppView.render(vu => {
   }).html('<h3>Our Brand</h3><p style="font-size:16px">' + SAMPLE_TEXT + '</p>');
 
   let aboutTiles2 = PurelyViews.class('Tiles').build({
-    sel: aboutSec2.sel(),
+    sel: aboutSec2.sel('@sec'),
     data: {
       w: '100%',
       h: '400px',
@@ -232,7 +244,7 @@ PurelyAppView.render(vu => {
 
   // Contact
   let contactBox = PurelyViews.class('Box').build({
-    sel: contactSec.sel()
+    sel: contactSec.sel('@sec')
   });
 
   contactBox.$el().css({

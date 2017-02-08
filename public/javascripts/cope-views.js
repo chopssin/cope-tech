@@ -289,7 +289,7 @@ PurelyAppView.render(vu => {
   });
 
   //Sections 
-  let secs = data.map(x => {
+  let secs = data.map((x, idx) => {
 
     let viewClass, view, // PurelyViews.class(<className>) 
         buildSettings = {};
@@ -371,12 +371,36 @@ PurelyAppView.render(vu => {
     //if (buildSettings.css) {
     //  view.$el().css(buildSettings.css);
     //}
-
+    
     return {
       role: x.role || '',
       view: view,
       section: wrap
     };
+  });
+
+  secs.map((sec, idx) => {
+    sec.section.$el().off('click').on('click', function() {
+      console.log(sec.view.val());
+      console.log(idx);
+
+      vu.$el('@panel').html(idx);
+
+      vu.$el('@back').removeClass('hidden');
+      vu.$el('@settings').addClass('hidden');
+      vu.$el('@panel').removeClass('hidden');
+    });
+    sec.section.res('mask clicked', () => {
+      // Fade out all sections except for self
+      // secs.about.val('fadeOut', true);
+      secs.map((x, i) => {
+        if (idx != i) {
+          x.section.val('fadeOut', true);
+        }
+      });
+      // Fade in the current section
+      sec.section.val('fadeIn', true);
+    });
   });
   return;
 

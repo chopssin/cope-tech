@@ -74,17 +74,53 @@ ViewAccountCard.render(vu => {
 
 // "Purely"
 PurelySecView.dom(vu => [
-  { 'div(style="margin-bottom:16px; padding:0;")': [
-    { 'div': '+' },
-    { 'div@sec.cope-card.full.bg-w.touchable(style="padding:0")': '' },
-    { 'div': '+' }]
-  }
+  { 'div.purely-sec(style="margin-bottom:16px; padding:0;")': [
+    { 'div.plus': [
+      { 'div': '+'}
+    ]},
+    { 'div@wrap.wrap':[
+      { 'div@sec.cope-card.full.bg-w.touchable(style="padding:0")': '' },
+      { 'div@mask.mask': ''}
+    ]},
+    { 'div.plus': [
+      { 'div': '+'}
+    ]}
+  ]}
 ]);
 
 PurelySecView.render(vu => {
+
+  let showPlus = vu.val('showPlus') || true,
+      fadeIn = vu.val('fadeIn'),
+      fadeOut = vu.val('fadeOut'),
+      hasFadedIn = vu.val('hasFadedIn');
+
+  if (fadeIn && !hasFadedIn) {
+    vu.set('hasFadedIn', true);
+    vu.$el('.plus').fadeIn(300);
+    vu.set('fadeIn', false);
+    vu.set('fadeOut', false);
+  }
+  if (fadeOut && hasFadedIn) {
+    vu.set('hasFadedIn', false);
+    vu.$el('.plus').fadeOut(300);
+    vu.set('fadeIn', false);
+    vu.set('fadeOut', false);
+  }
+
   vu.use('height').then(v => {
+    vu.$el('@wrap').css('height', v.height);
     vu.$el('@sec').css('height', v.height);
   });
+
+  //@mask click showPlus
+  vu.$el('@mask').off('click').on('click', () => {
+    if(showPlus){
+      //vu.val('fadeIn', true);
+      vu.res('mask clicked');
+    }
+  })
+
 });
 
 PurelyAppView.dom(vu => [
@@ -106,8 +142,51 @@ PurelyAppView.dom(vu => [
 ]);
 
 PurelyAppView.render(vu => {
-
   let SAMPLE_TEXT = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nec est sed turpis tincidunt mollis. Duis nec justo tortor. Aliquam dictum dignissim molestie. Fusce maximus sit amet felis auctor pellentesque. <br><br>Sed dapibus nibh id rutrum elementum. Aliquam semper, ipsum in ultricies finibus, diam libero hendrerit felis, nec pharetra mi tellus at leo. Duis ultricies ultricies risus, sed convallis ex molestie at. Nulla facilisi. Ut sodales venenatis massa, nec venenatis quam semper eget.';
+
+  let data = [
+    {
+      role: 'cover',
+      layout: 'slide',
+      value: [{
+        title: 'We share gifts',
+        link: '#',
+        src: '/images/sample1.jpg'
+      },
+      {
+        title: 'And happiness',
+        link: '#',
+        src: '/images/sample2.jpg'
+      }] 
+    },
+    {
+      role: 'about',
+      layout: 'single',
+      value: {
+        title: 'Story',
+        content: SAMPLE_TEXT
+      }
+    },
+    {
+      role: 'about',
+      layout: 'single',
+      value: {
+        title: 'Our Brand',
+        content: SAMPLE_TEXT
+      }
+    },
+    {
+      role: 'contacts',
+      title: 'Contact us',
+      value: [
+        'support@myapp.cope.tech',
+        '+886 987 654 321'
+      ]
+    },
+    {
+      role: 'footer'
+    }
+  ];
 
   // Panel routing
   vu.$el('@back').off('click').on('click', e => {
@@ -130,58 +209,160 @@ PurelyAppView.render(vu => {
     }
   });
 
-  // Sections
-  let coverSec = PurelySecView.build({
+  //Sections 
+  let secs = data.map(x => {
+
+    let viewClass, view, // PurelyViews.class(<className>) 
+        buildSettings = {};
+    
+    buildSettings.method = 'append';
+
+    let wrap = PurelySecView.build({
+      sel: vu.sel('@page'),
+      method: 'append',
+      data: {
+        height: '400px'
+      }
+    });
+
+    buildSettings.sel = wrap.sel('@sec');
+    buildSettings.data = {};
+
+    // Customed settings for data and css
+    switch (x.role) {
+      case 'cover':  
+        break;
+
+      case 'about':
+
+        break;
+      case 'contacts': 
+        viewClass = PurelyViews.class('Contacts');
+        buildSettings.data.title = x.title;
+        buildSettings.data.items = x.value;
+        break;
+      case 'footer': 
+        //buildSettings.css = {};
+        break
+      default: 
+    }
+    
+    switch (x.layout) {
+      case 'single':
+        viewClass = PurelyViews.class('Purely.Layout.Single');
+        buildSettings.data.title = x.value.title;
+        buildSettings.data.content = x.value.content;
+        break;
+      case 'slide':
+        viewClass = PurelyViews.class('Slide');
+        buildSettings.data.data = x.value.map(s => {
+          return {
+            src: s.src,
+            link: s.link,
+            caption: s.title
+          }
+        });
+        buildSettings.data.container = {
+          width: '100%',
+          height: '100%'
+        };
+        buildSettings.data.showArrow = false;
+        buildSettings.data.captionFontCSS = {
+          'color': '#fff',
+          'text-align': 'left'
+        };
+        buildSettings.data.mode = 'center';
+        break; 
+      case 'grid':
+
+        break;
+      case 'waterfall':
+
+        break;
+      case 'Tiles': 
+        viewClass = PurelySecView.class('Tiles');
+        break;
+      default:
+    }
+
+    if (viewClass) {
+      view = viewClass.build(buildSettings);
+    }
+
+    //if (buildSettings.css) {
+    //  view.$el().css(buildSettings.css);
+    //}
+
+    return {
+      role: x.role || '',
+      view: view,
+      section: wrap
+    };
+  });
+  return;
+
+  secs = {};
+  secs.cover = PurelySecView.build({
     sel: vu.$el('@page'),
     method: 'append'
   }).val({ height: '400px' });
 
-  let aboutSec = PurelySecView.build({
+  secs.about = PurelySecView.build({
     sel: vu.$el('@page'),
     method: 'append'
   }).val({ height: '400px' });
 
-  let aboutSec2 = PurelySecView.build({
+  secs.about2 = PurelySecView.build({
     sel: vu.$el('@page'),
     method: 'append'
   }).val({ height: '400px' });
 
-  let contactSec = PurelySecView.build({
+  secs.contacts = PurelySecView.build({
     sel: vu.$el('@page'),
     method: 'append'
   }).val({ height: '400px' });
-  contactSec.$el('@sec').css('background', '#111111');
+  secs.contacts.$el('@sec').css('background', '#111111');
 
-  let footerSec = PurelySecView.build({
+  secs.footer = PurelySecView.build({
     sel: vu.$el('@page'),
     method: 'append'
   });
-  footerSec.$el('@sec').css({
+  secs.footer.$el('@sec').css({
     'background': '#111111',
     'padding': '20px'
   }).html('<div style="color:#777; width:100%; text-align:right;">Powered by Cope</div>');
 
-  // Test with about
-  aboutSec.$el().off('click').on('click', function() {
-    console.log(aboutSec.val());
-    vu.$el('@back').removeClass('hidden');
-    vu.$el('@settings').addClass('hidden');
-    vu.$el('@panel').removeClass('hidden');
+  // Assign click events
+  Object.keys(secs).map( view => {
+    secs[view].$el().off('click').on('click', function() {
+      console.log(secs[view].val());
+      console.log(view);
+
+      vu.$el('@panel').html(view);
+
+      vu.$el('@back').removeClass('hidden');
+      vu.$el('@settings').addClass('hidden');
+      vu.$el('@panel').removeClass('hidden');
+    });
+    secs[view].res('mask clicked', () => {
+    // Fade out all sections except for self
+    // secs.about.val('fadeOut', true);
+      Object.keys(secs).map( key => {
+        if (key != view) {
+          secs[key].val('fadeOut', true);
+        }
+      });
+    // Fade in the current section
+      secs[view].val('fadeIn', true);
+    });
   });
+
   
   // Cover
   let coverSlide = PurelyViews.class('Slide').build({
-    sel: coverSec.sel('@sec'),
+    sel: secs.cover.sel('@sec'),
     data: {
-      data: [{
-        src: '/images/sample1.jpg',
-        link: '#',
-        caption: 'We share gifts'
-      }, {
-        src: '/images/sample2.jpg',
-        link: '#',
-        caption: 'And happiness'
-      }],
+      data: data[0].value,
       container: {
         width: '100%',
         height: '100%'
@@ -197,7 +378,7 @@ PurelyAppView.render(vu => {
 
   // About
   let aboutTiles = PurelyViews.class('Tiles').build({
-    sel: aboutSec.sel('@sec'),
+    sel: secs.about.sel('@sec'),
     data: {
       w: '100%',
       h: '400px',
@@ -218,7 +399,7 @@ PurelyAppView.render(vu => {
   }).html('<h3>Our Brand</h3><p style="font-size:16px">' + SAMPLE_TEXT + '</p>');
 
   let aboutTiles2 = PurelyViews.class('Tiles').build({
-    sel: aboutSec2.sel('@sec'),
+    sel: secs.about2.sel('@sec'),
     data: {
       w: '100%',
       h: '400px',
@@ -244,7 +425,7 @@ PurelyAppView.render(vu => {
 
   // Contact
   let contactBox = PurelyViews.class('Box').build({
-    sel: contactSec.sel('@sec')
+    sel: secs.contacts.sel('@sec')
   });
 
   contactBox.$el().css({

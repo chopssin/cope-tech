@@ -309,6 +309,44 @@
 }
 
 /* Purely Simulator */
+.purely-sec {
+
+}
+.purely-sec .wrap {
+  display: block;
+  position: relative;
+  width: 100%;
+}
+.purely-sec .mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 50;
+  cursor: pointer;
+}
+.purely-sec .plus {
+  display: none;
+  width: 100%;
+  padding: 16px;
+  text-align: center;
+}
+.purely-sec .plus div {
+  position: relative;
+  font-size: 20px;
+  width: 30px;
+  height: 30px;
+  line-height: 25px;
+  margin: 0 auto;
+  border-radius: 30px;
+  background-color: #fff;
+  -webkit-box-shadow: 0px 6px 9px 0 rgba(0, 0, 0, .4);
+  -moz-box-shadow: 0px 6px 9px 0 rgba(0, 0, 0, .4);
+  box-shadow: 0px 6px 9px 0 rgba(0, 0, 0, .4);
+  cursor: pointer; 
+}
+
 .purely-app {
   display: block;
   position: relative;

@@ -14,10 +14,16 @@ let NavView = Views.class('Nav'),
   SelectView = Views.class('Select'),
   UListView = Views.class('Ulist'),
   FormView = Views.class('Form'),
-  ContactView = Views.class('Contact'),
+  ContactsView = Views.class('Contacts'),
   MyPurelyView = Views.class('MyPurely');
   PurelyEditNavView = Views.class('Purely.Edit.Nav'),
-  PurelyEditSingleView = Views.class('Purely.Edit.Single');
+  PurelyEditSingleView = Views.class('Purely.Edit.Single'),
+
+  // Purely Layouts
+  PurelyLayoutSingleView = Views.class('Purely.Layout.Single'),
+  PurelyLayoutSlideView = Views.class('Purely.Layout.Slide'),
+  PurelyLayoutGridView = Views.class('Purely.Layout.Grid'),
+  PurelyLayoutWaterfallView = Views.class('Purely.Layout.Waterfall');
 
 // Nav
 // "logo clicked" <- null, callback when @logo being clicked
@@ -949,12 +955,12 @@ PurelyEditSingleView.render( vu => {
 // @list: ul
 // - title: string
 // - items: array of strings
-ContactView.dom(vu => [
+ContactsView.dom(vu => [
   { 'h3@title': '' },
   { 'ul@list': '' }
 ]);
 
-ContactView.render(vu => {
+ContactsView.render(vu => {
   vu.use('title').then(v => {
     vu.$el('@title').text(v.title);
   });
@@ -970,5 +976,19 @@ ContactView.render(vu => {
   });
 });
 
+// Purely.Layout.Single
+PurelyLayoutSingleView.dom( vu => [
+  { 'h5@title': ''},
+  { 'p@content': ''}
+]);  
+
+PurelyLayoutSingleView.render( vu => {
+  vu.use('title').then(v => {
+    vu.$el('@title').text(v.title);
+  })
+  vu.use('content').then(v => {
+    vu.$el('@content').text(v.content);
+  })
+});
 // -----
 })(jQuery, Cope);

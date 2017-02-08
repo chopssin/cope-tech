@@ -100,9 +100,12 @@ Pages.use('/', params => {
           toggle.val('sec', 'app');
 
           // Build the app page
-          let purelyApp = CopeViews.class('PurelyApp').build({
-            sel: toggle.sel('@app')
+          let purelyApp = CopeViews.class('Purely.App').build({
+            sel: toggle.sel('@app'),
+            data: appCard.val()
           });
+          
+          appCard.ds().enroll(purelyApp);
 
           return;
           // Build the app page

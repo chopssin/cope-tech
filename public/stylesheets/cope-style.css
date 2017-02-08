@@ -206,6 +206,10 @@
   color: #236eb6;
 }
 
+.color-orange {
+  color: #dc5519;
+}
+
 .color-b {
   color: #333;
 }
@@ -216,6 +220,10 @@
 
 .bg-blue {
   background-color: #236eb6;
+}
+
+.bg-orange {
+  background-color: #dc5519;
 }
 
 .nav-top {
@@ -308,7 +316,34 @@
   font-size: 0.8em;
 }
 
-/* Purely Simulator */
+.cope-list-item {
+  display: block;
+  position: relative;
+  width: 100%;
+  padding: 0;
+  font-size: 18px;
+}
+.cope-list-item > * {
+  display: block;
+  padding: 4px;
+  margin: 4px;
+}
+.cope-list-item > label {
+  height: 16px;
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 0;
+}
+.cope-list-item > p,
+.cope-list-item > input {
+  margin-top: 0;
+}
+.cope-list-item > input {
+  border: none;
+  outline: none;
+}
+
+/* Purely App Simulator */
 .purely-app {
   display: block;
   position: relative;
@@ -328,8 +363,10 @@
   display: block;
   position: relative;
   width: 100%;
+  max-height: 80vh;
   padding: 0 15px;
   margin: 20px 0;
+  overflow: scroll;
 }
 .purely-app .sim-panel > div {
   padding: 16px 0;
@@ -385,7 +422,7 @@
     padding: 0 15px;
     left: 50%;
     top: 100px;
-    margin: 0;
+    margin-bottom: 40px;
   }
 }
 

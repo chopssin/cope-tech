@@ -5,8 +5,10 @@ var debug = Cope.Util.setDebug('cope-views', false),
     
     Views = Cope.views('Cope'), // global views
     ViewAppCard = Views.class('AppCard'),
-    PurelyAppView = Views.class('PurelyApp'),
-    PurelySecView = Views.class('PurelySec'),
+    ListItemView = Views.class('ListItem'),
+    PurelyAppView = Views.class('Purely.App'),
+    PurelySecView = Views.class('Purely.Sec'),
+    PurelySettingsView = Views.class('Purely.Settings'),
     ViewAppPage = Views.class('AppPage'),
     ViewDataGraph = Views.class('DataGraph'),
     ViewAccountCard = Views.class('AccountCard'),
@@ -72,7 +74,44 @@ ViewAccountCard.render(vu => {
 });
 // end of "AccountCard"
 
-// "Purely"
+// ListItem
+ListItemView.dom(vu => [
+  { 'div.cope-list-item': [ 
+    { 'label': '' },
+    { 'p': '' },
+    { 'input.hidden(type="text")': '' }] 
+  }
+]);
+
+ListItemView.render(vu => {
+  vu.use('label').then(v => {
+    vu.$el('label').text(v.label);
+  });
+  vu.use('value').then(v => {
+    vu.$el('p').html(v.value);
+    vu.$el('input').val(v.value);
+  });
+
+  if (vu.val('edit')) {
+    vu.$el('p').addClass('hidden');
+    vu.$el('input').removeClass('hidden');
+  } else {
+    vu.$el('p').removeClass('hidden');
+    vu.$el('input').addClass('hidden');
+  }
+
+  vu.$el('input').off('keyup').on('keyup', e => {
+    let newVal = vu.$el('input').val().trim();
+    vu.$el('p').html(newVal);
+    vu.set('value', newVal);
+
+    if (e.which == 13) {
+      vu.val('edit', false);
+    }
+  });
+});
+
+// Purely - Purely.Sec
 PurelySecView.dom(vu => [
   { 'div(style="margin-bottom:16px; padding:0;")': [
     { 'div': '+' },
@@ -87,6 +126,7 @@ PurelySecView.render(vu => {
   });
 });
 
+// Purely - Purely.App
 PurelyAppView.dom(vu => [
   { 'div.purely-app': [
     { 'div.sim-wrap': [
@@ -99,7 +139,7 @@ PurelyAppView.dom(vu => [
     },
     { 'div.sim-panel.cope-card.wider.bg-w': [
       { 'div@back.hidden': '<-' },
-      { 'div@settings': 'Settings' },
+      { 'div@settings': '' },
       { 'div@panel.hidden': 'Panel' }]
     }] 
   }
@@ -115,7 +155,46 @@ PurelyAppView.render(vu => {
     vu.$el('@settings').removeClass('hidden');
     vu.$el('@panel').addClass('hidden');
   });
+
+  // Settings
+  let vals = vu.val();
+  let settingItems = [];
+  if (vals) {
+    settingItems = [{
+      'label': 'App Name',
+      'value': vals.appName || 'Untitled'
+    }, {
+      'label': 'App ID',
+      'value': vals.appId
+    }, {
+      'label': 'URL',
+      'value': vals.url || (vals.appId + '.cope.tech')
+    }, {
+      'label': 'Status',
+      'value': vals.stat || ''
+    }].map(x => {
+      return ListItemView.build({
+        sel: vu.sel('@settings'),
+        method: 'append',
+        data: {
+          label: x.label || '',
+          value: x.value || ''
+        }
+      });
+    });
+  } // end of if
  
+  let appNameItem = settingItems[0];
+  appNameItem.$el()
+    .off('mouseenter mouseleave').on('mouseenter mouseleave', e => {
+      appNameItem.$el().toggleClass('color-orange');
+    })
+    .off('click').on('click', e => {
+      appNameItem.val('edit', true);
+    });
+  appNameItem.$el('input').prop('placeholder', 'App Name');
+  // TBD: Save app name!!!
+  
   // Navigation
   let navSec = PurelySecView.build({
     sel: vu.$el('@nav')

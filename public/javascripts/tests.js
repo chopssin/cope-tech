@@ -419,12 +419,6 @@ setTimeout(function() {
 
 // Test - Create an app and del it
 Test.go(log => {
-
-  Cope.app('testApp3').init().then(() => {
-    console.log('testApp3 by hydra');
-  });
-
-
   log.title('Create an app and del it');
 
   log('Initiate app "some_doomed_app"');

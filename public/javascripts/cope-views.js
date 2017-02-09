@@ -392,10 +392,48 @@ PurelyAppView.render(vu => {
 
   secs.map((sec, idx) => {
     sec.section.$el().off('click').on('click', function() {
-      console.log(sec.view.val());
+      let vals = sec.view.val();
+      console.log(vals);
       console.log(idx);
 
-      vu.$el('@panel').html(idx);
+      vu.$el('@panel').html('');
+      Object.keys(vals).map(key => {
+        switch (key) {
+          case 'title':
+          case 'content':
+            ListItemView.build({
+              sel: vu.sel('@panel'),
+              method: 'append',
+              data: {
+                label: key.slice(0, 1).toUpperCase().concat(key.slice(1)),
+                value: vals[key]
+              }
+            });
+            break;
+          case 'src':
+            ListItemView.build({
+              sel: vu.sel('@panel'),
+              method: 'append',
+              data: {
+                label: 'Image'
+              }
+            });
+            PurelyViews.class('Box').build({
+              sel: vu.sel('@panel'),
+              method: 'append'
+            }).$el().css({
+              'width': '100%',
+              'height': '300px',
+              'border': '12px solid transparent',
+              'margin-top': '-12px',
+              'background-image': `url(${vals.src})`
+            }).addClass('bg-img');
+            break;
+          case 'data': // slide, grid, waterfall
+            break;
+          default:
+        }
+      });
 
       vu.$el('@back').removeClass('hidden');
       vu.$el('@settings').addClass('hidden');
@@ -414,157 +452,6 @@ PurelyAppView.render(vu => {
     });
   });
   return;
-
-  secs = {};
-  secs.cover = PurelySecView.build({
-    sel: vu.$el('@page'),
-    method: 'append'
-  }).val({ height: '400px' });
-
-  secs.about = PurelySecView.build({
-    sel: vu.$el('@page'),
-    method: 'append'
-  }).val({ height: '400px' });
-
-  secs.about2 = PurelySecView.build({
-    sel: vu.$el('@page'),
-    method: 'append'
-  }).val({ height: '400px' });
-
-  secs.contacts = PurelySecView.build({
-    sel: vu.$el('@page'),
-    method: 'append'
-  }).val({ height: '400px' });
-  secs.contacts.$el('@sec').css('background', '#111111');
-
-  secs.footer = PurelySecView.build({
-    sel: vu.$el('@page'),
-    method: 'append'
-  });
-  secs.footer.$el('@sec').css({
-    'background': '#111111',
-    'padding': '20px'
-  }).html('<div style="color:#777; width:100%; text-align:right;">Powered by Cope</div>');
-
-  // Assign click events
-  Object.keys(secs).map( view => {
-    secs[view].$el().off('click').on('click', function() {
-      console.log(secs[view].val());
-      console.log(view);
-
-      vu.$el('@panel').html(view);
-
-      vu.$el('@back').removeClass('hidden');
-      vu.$el('@settings').addClass('hidden');
-      vu.$el('@panel').removeClass('hidden');
-    });
-    secs[view].res('mask clicked', () => {
-    // Fade out all sections except for self
-    // secs.about.val('fadeOut', true);
-      Object.keys(secs).map( key => {
-        if (key != view) {
-          secs[key].val('fadeOut', true);
-        }
-      });
-    // Fade in the current section
-      secs[view].val('fadeIn', true);
-    });
-  });
-
-  
-  // Cover
-  let coverSlide = PurelyViews.class('Slide').build({
-    sel: secs.cover.sel('@sec'),
-    data: {
-      data: data[0].value,
-      container: {
-        width: '100%',
-        height: '100%'
-      },
-      showArrow: false,
-      captionFontCSS: {
-        'color': '#fff',
-        'text-align': 'left'
-      },
-      mode: 'center'
-    }
-  });
-
-  // About
-  let aboutTiles = PurelyViews.class('Tiles').build({
-    sel: secs.about.sel('@sec'),
-    data: {
-      w: '100%',
-      h: '400px',
-      cut: {
-        'r': 'x60 x90',
-        '1': 'y40 y80'
-      }
-    }
-  });
-  
-  aboutTiles.val('r').$el().addClass('bg')
-    .css({ 'background-image': 'url("/images/sample3.jpg")' });
-
-  aboutTiles.val('11').$el().css({ 
-    'color': '#fff',
-    'background': 'rgba(0, 0, 0, 0.8)',
-    'padding': '12px'
-  }).html('<h3>Our Brand</h3><p style="font-size:16px">' + SAMPLE_TEXT + '</p>');
-
-  let aboutTiles2 = PurelyViews.class('Tiles').build({
-    sel: secs.about2.sel('@sec'),
-    data: {
-      w: '100%',
-      h: '400px',
-      cut: {
-        'r': 'y15 y25 y30 y70',
-        '1': 'x15 x20 x22',
-        '3': 'x15 x45'
-      }
-    }
-  });
-  
-  aboutTiles2.val('r').$el().addClass('bg')
-    .css({ 'background-image': 'url("/images/sample1.jpg")' })
-  aboutTiles2.val('11').$el().css({ 
-    'border': '4px solid #333' 
-  });
-  aboutTiles2.val('13').$el().html('<div style="font-size:20px">Story</div>');
-  aboutTiles2.val('31').$el().css({ 
-    'color': '#333',
-    'background': 'rgba(255, 255, 255, 0.8)',
-    'padding': '8px'
-  }).html('<p style="font-size:16px">' + SAMPLE_TEXT + '</p>');
-
-  // Contact
-  let contactBox = PurelyViews.class('Box').build({
-    sel: secs.contacts.sel('@sec')
-  });
-
-  contactBox.$el().css({
-    'width': '80%',
-    'max-width': '540px',
-    'padding': '10px',
-    'position': 'relative',
-    'margin': '0 auto',
-    'text-align': 'center',
-    'font-size': '14px',
-    'color': '#222',
-    'background': '#000',
-    'top': '30%'
-  });
-
-  let contact = PurelyViews.class('Contact').build({
-    sel: contactBox.sel(),
-    data: {
-      title: 'Contact us',
-      items: [
-        'support@myapp.cope.tech',
-        '+886 987 654 321'
-      ]
-    }
-  });
 });
 
 // "AppPage"

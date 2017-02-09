@@ -109,6 +109,9 @@ ListItemView.render(vu => {
       vu.val('edit', false);
       vu.res('value', newVal);
     }
+  }).off('focusout').on('focusout', e => {
+    vu.val('edit', false);
+    vu.res('value', vu.get('value'));
   });
 });
 

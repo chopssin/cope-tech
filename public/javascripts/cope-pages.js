@@ -103,6 +103,14 @@ Pages.use('/', params => {
           let purelyApp = CopeViews.class('Purely.App').build({
             sel: toggle.sel('@app'),
             data: appCard.val()
+          }).res('select-node', node => {
+            debug('TBD: select node'); 
+          }).res('add-partner', email => {
+            debug('TBD: add partner'); 
+          }).res('rename app', newName => {
+            app.set('appName', newName).then(() => {
+              appCard.val('appName', newName);
+            });
           });
           
           appCard.ds().enroll(purelyApp);

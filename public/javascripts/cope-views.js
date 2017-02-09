@@ -107,6 +107,7 @@ ListItemView.render(vu => {
 
     if (e.which == 13) {
       vu.val('edit', false);
+      vu.res('value', newVal);
     }
   });
 });
@@ -238,6 +239,8 @@ PurelyAppView.render(vu => {
   // Settings
   let vals = vu.val();
   let settingItems = [];
+  vu.$el('@settings').html('');
+
   if (vals) {
     settingItems = [{
       'label': 'App Name',
@@ -263,6 +266,7 @@ PurelyAppView.render(vu => {
     });
   } // end of if
  
+  // To edit app name!!!
   let appNameItem = settingItems[0];
   appNameItem.$el()
     .off('mouseenter mouseleave').on('mouseenter mouseleave', e => {
@@ -271,8 +275,10 @@ PurelyAppView.render(vu => {
     .off('click').on('click', e => {
       appNameItem.val('edit', true);
     });
-  appNameItem.$el('input').prop('placeholder', 'App Name');
-  // TBD: Save app name!!!
+  appNameItem.$el('input').prop('placeholder', 'Enter your app name or site title');
+  appNameItem.res('value', val => {
+    vu.res('rename app', val);
+  });
   
   // Navigation
   let navSec = PurelySecView.build({

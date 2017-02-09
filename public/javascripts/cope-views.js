@@ -75,21 +75,37 @@ ViewAccountCard.render(vu => {
 // end of "AccountCard"
 
 // ListItem
+// @value: text input or textarea
+// - label: string
+// - value: string
+// - editable: boolean
+// - textarea: boolean, true to use textarea instead
 ListItemView.dom(vu => [
   { 'div.cope-list-item': [ 
     { 'label': '' },
     { 'p': '' },
-    { 'input.hidden(type="text")': '' }] 
+    { 'div@value-wrap': [
+      { 'input@value.hidden(type="text").color-orange': '' }] 
+    }]
   }
 ]);
 
 ListItemView.render(vu => {
+
+  if (vu.get('textarea')) {
+    // TBD: Use textarea instead
+  }
+
   vu.use('label').then(v => {
     vu.$el('label').text(v.label);
   });
   vu.use('value').then(v => {
     vu.$el('p').html(v.value);
     vu.$el('input').val(v.value);
+  });
+  vu.use('placeholder').then(v => {
+    vu.$el('input').prop('placeholder', v.placeholder);
+    //'Enter your app name or site title');
   });
 
   if (vu.val('edit')) {
@@ -113,7 +129,14 @@ ListItemView.render(vu => {
     vu.val('edit', false);
     vu.res('value', vu.get('value'));
   });
-});
+
+  if (vu.get('editable')) {
+    vu.$el('p').addClass('cope-btn')
+      .off('click').on('click', e => {
+        vu.val('edit', true);
+      });
+  }
+}); // end of ListItem
 
 // Purely - Purely.Sec
 PurelySecView.dom(vu => [
@@ -179,8 +202,8 @@ PurelyAppView.dom(vu => [
     },
     { 'div.sim-panel.cope-card.wider.bg-w': [
       { 'div@back.hidden': '<-' },
-      { 'div@settings': '' },
-      { 'div@panel.hidden': 'Panel' }]
+      { 'div@settings.inner': '' },
+      { 'div@panel.inner.hidden': 'Panel' }]
     }] 
   }
 ]);
@@ -251,7 +274,9 @@ PurelyAppView.render(vu => {
   if (vals) {
     settingItems = [{
       'label': 'App Name',
-      'value': vals.appName || 'Untitled'
+      'value': vals.appName || 'Untitled',
+      'placeholder': 'Enter the app name or site title',
+      'editable': true
     }, {
       'label': 'App ID',
       'value': vals.appId
@@ -265,25 +290,13 @@ PurelyAppView.render(vu => {
       return ListItemView.build({
         sel: vu.sel('@settings'),
         method: 'append',
-        data: {
-          label: x.label || '',
-          value: x.value || ''
-        }
+        data: x
       });
     });
   } // end of if
  
   // To edit app name!!!
-  let appNameItem = settingItems[0];
-  appNameItem.$el()
-    .off('mouseenter mouseleave').on('mouseenter mouseleave', e => {
-      appNameItem.$el().toggleClass('color-orange');
-    })
-    .off('click').on('click', e => {
-      appNameItem.val('edit', true);
-    });
-  appNameItem.$el('input').prop('placeholder', 'Enter your app name or site title');
-  appNameItem.res('value', val => {
+  settingItems[0].res('value', val => {
     vu.res('rename app', val);
   });
   
@@ -399,12 +412,15 @@ PurelyAppView.render(vu => {
         switch (key) {
           case 'title':
           case 'content':
+            let value = vals[key] || {};
             ListItemView.build({
               sel: vu.sel('@panel'),
               method: 'append',
               data: {
                 label: key.slice(0, 1).toUpperCase().concat(key.slice(1)),
-                value: vals[key]
+                value: value,
+                editable: true,
+                textarea: (key === 'content')
               }
             });
             break;

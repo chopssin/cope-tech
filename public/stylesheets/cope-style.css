@@ -316,6 +316,11 @@
   font-size: 0.8em;
 }
 
+/* .cope-btn */
+.cope-btn:hover {
+  color: #dc5519;
+}
+
 /* .cope-list-item */
 .cope-list-item {
   display: block;
@@ -409,6 +414,10 @@
 }
 .purely-app .sim-panel > div {
   padding: 16px 0;
+}
+.purely-app .sim-panel .inner {
+  overflow: auto;
+  max-height: 60vh;
 }
 
 /* Graph */

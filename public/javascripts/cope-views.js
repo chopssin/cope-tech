@@ -393,14 +393,9 @@ PurelyAppView.render(vu => {
     };
   });
 
-  secs.map((sec, idx) => {
-    sec.section.$el().off('click').on('click', function() {
-      let vals = sec.view.val();
-      console.log(vals);
-      console.log(idx);
-
-      vu.$el('@panel').html('');
-      Object.keys(vals).map(key => {
+  // Print Data Method
+  function printData(vals){
+    Object.keys(vals).map(key => {
         switch (key) {
           case 'title':
           case 'content':
@@ -437,7 +432,26 @@ PurelyAppView.render(vu => {
           default:
         }
       });
+  }// end of Print Data
 
+  secs.map((sec, idx) => {
+    sec.section.$el().off('click').on('click', function() {
+      let vals = sec.view.val();
+      console.log("val",vals.data);
+      console.log(idx);
+      console.log("sec",sec);
+      
+      vu.$el('@panel').html('');
+      
+      // if section = slide
+      if(Object.prototype.toString.call(vals.data) === '[object Array]'){
+        vals.data.map( item =>{
+          printData(item);
+        });
+      }
+      // other section
+      printData(vals);
+      
       vu.$el('@back').removeClass('hidden');
       vu.$el('@settings').addClass('hidden');
       vu.$el('@panel').removeClass('hidden');

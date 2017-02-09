@@ -439,6 +439,21 @@ textarea {
   width: 100%;
 }
 
+/* Purely.Layout.Single*/
+.view-purely-layout-single {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 15px;
+}
+.view-purely-layout-single .title {
+  
+}
+.view-purely-layout-single .content {
+
+}
+
+
 /* viewport */
 ._viewport .uploader {
   width: 100%;

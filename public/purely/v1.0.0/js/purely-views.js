@@ -978,8 +978,10 @@ ContactsView.render(vu => {
 
 // Purely.Layout.Single
 PurelyLayoutSingleView.dom( vu => [
-  { 'h5@title': ''},
-  { 'p@content': ''}
+  { 'div.view-purely-layout-single': [
+    { 'h5@title.title': ''},
+    { 'p@content.content': ''}
+  ]}
 ]);  
 
 PurelyLayoutSingleView.render( vu => {
@@ -989,6 +991,10 @@ PurelyLayoutSingleView.render( vu => {
   vu.use('content').then(v => {
     vu.$el('@content').text(v.content);
   })
+  vu.use('src').then(v => {
+    vu.$el().addClass('bg')
+    .css({'background-image': `url(${v.src})`});
+  });
 });
 // -----
 })(jQuery, Cope);

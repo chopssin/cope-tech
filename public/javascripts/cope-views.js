@@ -204,7 +204,8 @@ PurelyAppView.render(vu => {
       layout: 'single',
       value: {
         title: 'Story',
-        content: SAMPLE_TEXT
+        content: SAMPLE_TEXT,
+        src: '/images/sample3.jpg'
       }
     },
     {
@@ -212,16 +213,19 @@ PurelyAppView.render(vu => {
       layout: 'single',
       value: {
         title: 'Our Brand',
-        content: SAMPLE_TEXT
+        content: SAMPLE_TEXT,
+        src: '/images/sample1.jpg'
       }
     },
     {
       role: 'contacts',
-      title: 'Contact us',
-      value: [
-        'support@myapp.cope.tech',
-        '+886 987 654 321'
-      ]
+      value: {
+        title: 'Contact us',
+        contacts : [
+          'support@myapp.cope.tech',
+          '+886 987 654 321'
+        ]
+      }
     },
     {
       role: 'footer'
@@ -317,8 +321,8 @@ PurelyAppView.render(vu => {
         break;
       case 'contacts': 
         viewClass = PurelyViews.class('Contacts');
-        buildSettings.data.title = x.title;
-        buildSettings.data.items = x.value;
+        buildSettings.data.title = x.value.title;
+        buildSettings.data.items = x.value.contacts;
         break;
       case 'footer': 
         //buildSettings.css = {};
@@ -331,6 +335,7 @@ PurelyAppView.render(vu => {
         viewClass = PurelyViews.class('Purely.Layout.Single');
         buildSettings.data.title = x.value.title;
         buildSettings.data.content = x.value.content;
+        buildSettings.data.src = x.value.src;
         break;
       case 'slide':
         viewClass = PurelyViews.class('Slide');

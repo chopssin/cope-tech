@@ -1016,6 +1016,7 @@ ListItemView.dom(vu => [
 ]);
 
 ListItemView.render(vu => {
+  let $textInput = vu.$el('input');
   if (vu.get('textarea')) {
     // TBD: Use textarea instead
     TextareaView.build({
@@ -1024,7 +1025,10 @@ ListItemView.render(vu => {
         value: vu.val('value')
       }
     });
+    
+    $textInput = vu.$el('textarea');
 
+    // Just for Textarea
     vu.$el('textarea').off('keyup').on('keyup', e => {
       let newVal = vu.$el('textarea').val().trim();
       if (!newVal) newVal = '...';
@@ -1043,22 +1047,22 @@ ListItemView.render(vu => {
     console.log(v.value);
     //let str = (typeof v.value == 'string') && v.value.replace(/\n/g, '<br>') || '...';
     vu.$el('p').html(v.value.replace(/\n/g, '<br>'));
-    vu.$el('input').val(v.value);
-    vu.$el('textarea').val(v.value);
+    $textInput.val(v.value);
   });
   vu.use('placeholder').then(v => {
-    vu.$el('input').prop('placeholder', v.placeholder);
-    vu.$el('textarea').prop('placeholder', v.placeholder);
+    $textInput.prop('placeholder', v.placeholder);
   });
 
   if (vu.val('edit')) {
     vu.$el('p').addClass('hidden');
     vu.$el('@value-wrap').removeClass('hidden');
+    $textInput.focus();
   } else {
     vu.$el('p').removeClass('hidden');
     vu.$el('@value-wrap').addClass('hidden');
   }
 
+  // Just for input[type = text]
   vu.$el('input').off('keyup').on('keyup', e => {
     let newVal = vu.$el('input').val().trim();
     if (!newVal) newVal = '...';

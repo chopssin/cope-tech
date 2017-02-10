@@ -205,10 +205,10 @@ PurelyAppView.dom(vu => [
   { 'div.purely-app': [
     { 'div.sim-wrap': [
       { 'div.row': [
-        { 'div@nav.col-xs-12(style="padding:0")': 'Nav' }] 
+        { 'div@nav.col-xs-12': 'Nav' }] 
       },
-      { 'div.row': [
-        { 'div@page.col-xs-12(style="padding:0")': '' }]
+      { 'div.sim-sections': [
+        { 'div@page': '' }]
       }]
     },
     { 'div@sim-panel.sim-panel.cope-card.wider.bg-w': [

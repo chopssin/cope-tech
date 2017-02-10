@@ -14,11 +14,12 @@ let NavView = Views.class('Nav'),
   SelectView = Views.class('Select'),
   UListView = Views.class('Ulist'),
   FormView = Views.class('Form'),
+  ListItemView = Views.class('ListItem');
   ContactsView = Views.class('Contacts'),
   MyPurelyView = Views.class('MyPurely');
-  PurelyEditNavView = Views.class('Purely.Edit.Nav'),
-  PurelyEditSingleView = Views.class('Purely.Edit.Single'),
-
+  PurelyEditNavView = Views.class('Purely.Edit.Nav'), // to be deprecated
+  PurelyEditSingleView = Views.class('Purely.Edit.Single'), // to be deprecated
+  SectionEditView = Views.class('Purely.Edit.Section.Settings');
   // Purely Layouts
   PurelyLayoutSingleView = Views.class('Purely.Layout.Single'),
   PurelyLayoutSlideView = Views.class('Purely.Layout.Slide'),
@@ -989,12 +990,218 @@ PurelyLayoutSingleView.render( vu => {
     vu.$el('@title').text(v.title);
   })
   vu.use('content').then(v => {
-    vu.$el('@content').text(v.content);
+    vu.$el('@content').html(v.content);
   })
   vu.use('src').then(v => {
     vu.$el().addClass('bg')
     .css({'background-image': `url(${v.src})`});
   });
 });
+
+// ListItem
+// @value: text input or textarea
+// - label: string
+// - value: string
+// - editable: boolean
+// - textarea: boolean, true to use textarea instead
+ListItemView.dom(vu => [
+  { 'div.cope-list-item': [ 
+    { 'label': '' },
+    { 'p': '' },
+    { 'div@value-wrap.hidden.color-orange': [
+      { 'input@value(type="text")': '' }] 
+    }]
+  }
+]);
+
+ListItemView.render(vu => {
+  if (vu.get('textarea')) {
+    // TBD: Use textarea instead
+    TextareaView.build({
+      sel: vu.sel('@value-wrap'),
+      data: {
+        value: vu.val('value')
+      }
+    });
+
+    vu.$el('textarea').off('keyup').on('keyup', e => {
+      let newVal = vu.$el('textarea').val().trim();
+      vu.set('value', newVal);
+      vu.res('value', newVal);
+    }).off('focusout').on('focusout', e => {
+      vu.val('edit', false);
+      vu.res('value', vu.get('value'));
+    });
+  }
+
+  vu.use('label').then(v => {
+    vu.$el('label').text(v.label);
+  });
+  vu.use('value').then(v => {
+    vu.$el('p').html(v.value.replace(/\n/g, '<br>') || '...');
+    vu.$el('input').val(v.value);
+    vu.$el('textarea').val(v.value);
+  });
+  vu.use('placeholder').then(v => {
+    vu.$el('input').prop('placeholder', v.placeholder);
+    vu.$el('textarea').prop('placeholder', v.placeholder);
+  });
+
+  if (vu.val('edit')) {
+    vu.$el('p').addClass('hidden');
+    vu.$el('@value-wrap').removeClass('hidden');
+  } else {
+    vu.$el('p').removeClass('hidden');
+    vu.$el('@value-wrap').addClass('hidden');
+  }
+
+  vu.$el('input').off('keyup').on('keyup', e => {
+    let newVal = vu.$el('input').val().trim();
+    vu.$el('p').html(newVal);
+    vu.set('value', newVal);
+    //vu.res('value', newVal);
+
+    if (e.which == 13) {
+      vu.val('edit', false);
+      vu.res('value', newVal);
+    }
+  }).off('focusout').on('focusout', e => {
+    vu.val('edit', false);
+    vu.res('value', vu.get('value'));
+  });
+
+  if (vu.get('editable')) {
+    vu.$el('p').addClass('cope-btn')
+      .off('click').on('click', e => {
+        vu.val('edit', true);
+      });
+  }
+}); 
+
+// Section Edit
+// @section-edit
+// - vals: object
+// "box clicked" <- view object
+SectionEditView.dom( vu => [
+  { 'div@section-edit': ''}
+]);
+
+SectionEditView.render( vu => {
+  // Print Data Method
+  vu.use('vals').then(v => {
+    let vals = v.vals,
+        placeholders = {
+          title: 'Title',
+          content: 'Content'
+        };
+    Object.keys(vals).map(key => {
+      console.log('key',key);
+      switch (key) {
+        case 'title':
+        case 'content':
+          let value = vals[key] || {};
+          ListItemView.build({
+            sel: vu.sel('@section-edit'),
+            method: 'append',
+            data: {
+              label: key.slice(0, 1).toUpperCase().concat(key.slice(1)),
+              value: value,
+              editable: true,
+              textarea: (key === 'content'),
+              placeholder: placeholders[key]
+            }
+          }).res('value', val => {
+            vals[key] = val;
+            vu.set('vals', vals);
+            vu.res('vals', vals);
+          });
+          break;
+        case 'src':
+          ListItemView.build({
+            sel: vu.sel('@section-edit'),
+            method: 'append',
+            data: {
+              label: 'Image'
+            }
+          });
+          let box = BoxView.build({
+            sel: vu.sel('@section-edit'),
+            method: 'append'
+          }).$el().css({
+            'width': '100%',
+            'height': '300px',
+            'border': '12px solid transparent',
+            'margin-top': '-12px',
+            'background-image': `url(${vals.src})`
+          }).addClass('bg-img');
+
+          box.off('click').on('click', e => {
+            vu.res('box clicked', box);
+
+          });          //
+          break;
+        case 'contacts': // Contacts
+          console.log('contacts',vals[key]);
+          break;
+        case 'data': // slide, grid, waterfall
+          break;
+        default:
+      }
+    });
+  });
+  // function printData(vals, sec){
+  //   Object.keys(vals).map(key => {
+  //       console.log('key',key);
+  //       switch (key) {
+  //         case 'title':
+  //         case 'content':
+  //           let value = vals[key] || {};
+  //           ListItemView.build({
+  //             sel: vu.sel('@sec-settings'),
+  //             method: 'append',
+  //             data: {
+  //               label: key.slice(0, 1).toUpperCase().concat(key.slice(1)),
+  //               value: value,
+  //               editable: true,
+  //               textarea: (key === 'content')
+  //             }
+  //           }).res('value', val => {
+  //             // TBD 
+
+  //             sec.view.val(key, val);
+  //           });
+  //           break;
+  //         case 'src':
+  //           ListItemView.build({
+  //             sel: vu.sel('@sec-settings'),
+  //             method: 'append',
+  //             data: {
+  //               label: 'Image'
+  //             }
+  //           });
+  //           BoxView.build({
+  //             sel: vu.sel('@sec-settings'),
+  //             method: 'append'
+  //           }).$el().css({
+  //             'width': '100%',
+  //             'height': '300px',
+  //             'border': '12px solid transparent',
+  //             'margin-top': '-12px',
+  //             'background-image': `url(${vals.src})`
+  //           }).addClass('bg-img');
+  //           break;
+  //         case 'contacts': // Contacts
+  //           console.log('contacts',vals[key]);
+  //           break;
+  //         case 'data': // slide, grid, waterfall
+  //           break;
+  //         default:
+  //       }
+  //     });
+  // }// end of printData
+
+
+});
+
 // -----
 })(jQuery, Cope);

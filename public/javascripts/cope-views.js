@@ -91,9 +91,19 @@ ListItemView.dom(vu => [
 ]);
 
 ListItemView.render(vu => {
-
   if (vu.get('textarea')) {
     // TBD: Use textarea instead
+    PurelyViews.class('Textarea').build({
+      sel: vu.sel('@value-wrap'),
+      data: {
+        value: vu.val('value')
+      }
+    });
+
+    vu.$el('textarea').off('keyup').on('keyup', e => {
+      let newVal = vu.$el('textarea').val().trim().replace(/<br>/g, "&nbsp");
+      vu.res('value', newVal);
+    });
   }
 
   vu.use('label').then(v => {
@@ -120,6 +130,7 @@ ListItemView.render(vu => {
     let newVal = vu.$el('input').val().trim();
     vu.$el('p').html(newVal);
     vu.set('value', newVal);
+    vu.res('value', newVal);
 
     if (e.which == 13) {
       vu.val('edit', false);
@@ -200,16 +211,18 @@ PurelyAppView.dom(vu => [
         { 'div@page.col-xs-12(style="padding:0")': '' }]
       }]
     },
-    { 'div.sim-panel.cope-card.wider.bg-w': [
-      { 'div@back.hidden': '<-' },
-      { 'div@settings.inner': '' },
-      { 'div@panel.inner.hidden': 'Panel' }]
+    { 'div@sim-panel.sim-panel.cope-card.wider.bg-w': [
+      { 'div@back.hidden': '<-' }, // Go Back button
+      { 'div@app-settings.inner': 'app-settings' }, // app-settings
+      { 'div@sec-layouts.inner': 'sec-layouts' }, // sec-layouts
+      { 'div@sec-settings.inner.hidden': 'sec-settings' }, // sec-settings
+      { 'div@sec-data.inner.hidden': 'sec-data' }] // sec-data
     }] 
   }
 ]);
 
 PurelyAppView.render(vu => {
-  let SAMPLE_TEXT = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nec est sed turpis tincidunt mollis. Duis nec justo tortor. Aliquam dictum dignissim molestie. Fusce maximus sit amet felis auctor pellentesque. <br><br>Sed dapibus nibh id rutrum elementum. Aliquam semper, ipsum in ultricies finibus, diam libero hendrerit felis, nec pharetra mi tellus at leo. Duis ultricies ultricies risus, sed convallis ex molestie at. Nulla facilisi. Ut sodales venenatis massa, nec venenatis quam semper eget.';
+  let SAMPLE_TEXT = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nec est sed turpis tincidunt mollis. Duis nec justo tortor. Aliquam dictum dignissim molestie. Fusce maximus sit amet felis auctor pellentesque. \n\nSed dapibus nibh id rutrum elementum. Aliquam semper, ipsum in ultricies finibus, diam libero hendrerit felis, nec pharetra mi tellus at leo. Duis ultricies ultricies risus, sed convallis ex molestie at. Nulla facilisi. Ut sodales venenatis massa, nec venenatis quam semper eget.';
 
   let data = [
     {
@@ -261,15 +274,21 @@ PurelyAppView.render(vu => {
 
   // Panel routing
   vu.$el('@back').off('click').on('click', e => {
+    
+    // Show settings of the app
+    vu.$el('@app-settings').removeClass('hidden');
+
+    // Hide others 
     vu.$el('@back').addClass('hidden');
-    vu.$el('@settings').removeClass('hidden');
-    vu.$el('@panel').addClass('hidden');
+    vu.$el('@sec-layouts').addClass('hidden');
+    vu.$el('@sec-settings').addClass('hidden');
+    vu.$el('@sec-data').addClass('hidden');
   });
 
   // Settings
   let vals = vu.val();
   let settingItems = [];
-  vu.$el('@settings').html('');
+  vu.$el('@app-settings').html('');
 
   if (vals) {
     settingItems = [{
@@ -288,7 +307,7 @@ PurelyAppView.render(vu => {
       'value': vals.stat || ''
     }].map(x => {
       return ListItemView.build({
-        sel: vu.sel('@settings'),
+        sel: vu.sel('@app-settings'),
         method: 'append',
         data: x
       });
@@ -363,6 +382,7 @@ PurelyAppView.render(vu => {
         viewClass = PurelyViews.class('Slide');
         buildSettings.data.data = x.value.map(s => {
           return {
+            title: s.title,
             src: s.src,
             link: s.link,
             caption: s.title
@@ -407,14 +427,14 @@ PurelyAppView.render(vu => {
   });
 
   // Print Data Method
-  function printData(vals){
+  function printData(vals, sec){
     Object.keys(vals).map(key => {
         switch (key) {
           case 'title':
           case 'content':
             let value = vals[key] || {};
             ListItemView.build({
-              sel: vu.sel('@panel'),
+              sel: vu.sel('@sec-settings'),
               method: 'append',
               data: {
                 label: key.slice(0, 1).toUpperCase().concat(key.slice(1)),
@@ -422,18 +442,22 @@ PurelyAppView.render(vu => {
                 editable: true,
                 textarea: (key === 'content')
               }
+            }).res('value', val => {
+              // TBD 
+
+              sec.view.val(key, val);
             });
             break;
           case 'src':
             ListItemView.build({
-              sel: vu.sel('@panel'),
+              sel: vu.sel('@sec-settings'),
               method: 'append',
               data: {
                 label: 'Image'
               }
             });
             PurelyViews.class('Box').build({
-              sel: vu.sel('@panel'),
+              sel: vu.sel('@sec-settings'),
               method: 'append'
             }).$el().css({
               'width': '100%',
@@ -443,12 +467,15 @@ PurelyAppView.render(vu => {
               'background-image': `url(${vals.src})`
             }).addClass('bg-img');
             break;
+          case 'contacts': // Contacts
+            console.log('contacts',vals[key]);
+            break;
           case 'data': // slide, grid, waterfall
             break;
           default:
         }
       });
-  }// end of Print Data
+  }// end of printData
 
   secs.map((sec, idx) => {
     sec.section.$el().off('click').on('click', function() {
@@ -457,20 +484,22 @@ PurelyAppView.render(vu => {
       console.log(idx);
       console.log("sec",sec);
       
-      vu.$el('@panel').html('');
+      vu.$el('@sec-settings').html('');
       
       // if section = slide
       if(Object.prototype.toString.call(vals.data) === '[object Array]'){
         vals.data.map( item =>{
-          printData(item);
+          printData(item, sec);
         });
       }
       // other section
-      printData(vals);
+      printData(vals, sec);
       
       vu.$el('@back').removeClass('hidden');
-      vu.$el('@settings').addClass('hidden');
-      vu.$el('@panel').removeClass('hidden');
+      vu.$el('@app-settings').addClass('hidden');
+      vu.$el('@sec-settings').removeClass('hidden');
+      vu.$el('@sec-layouts').removeClass('hidden');
+      vu.$el('@sec-data').removeClass('hidden');
     });
     sec.section.res('mask clicked', () => {
       // Fade out all sections except for self

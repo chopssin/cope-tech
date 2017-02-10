@@ -1163,11 +1163,39 @@ SectionEditView.render( vu => {
 // Layout Chooser
 // @layout-chooser
 LayoutChooserView.dom( vu => [
-  { 'div@layout-chooser.layout-chooser': ''}
+  { 'div@layout-chooser.view-layout-chooser': ''}
 ]);
 
 LayoutChooserView.render( vu => {
+  let tmp = '/images/sample-layout.png';
+  let blocks = [{
+    src: tmp 
+  },{
+    src: tmp
+  },{
+    src: tmp
+  },{
+    src: tmp
+  },{
+    src: tmp
+  },{
+    src: tmp
+  }];
 
+  blocks.map( (block, index) => {
+    vu.$el('@layout-chooser').append(`
+      <div class="col-xs-6 col-xs-4">
+        <div class="bg-img block" data-component="block-${index}"></div>
+      </div>`);
+    
+    vu.$el(`@block-${index}`).css('background-image', `url(${block.src})`);
+
+    // click event
+    vu.$el(`@block-${index}`).off('click').on('click', () => {
+      console.log(index);
+      vu.res('clicked', index);
+    });
+  });
 });
 
 

@@ -426,7 +426,6 @@ textarea {
   display: table;
   width: 100%;
 }
-
 /* Purely.Edit.Single */
 .view-purely-edit-single {
   display: table;
@@ -452,6 +451,19 @@ textarea {
 .view-purely-layout-single .content {
 
 }
+
+.view-layout-chooser {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+.view-layout-chooser .block {
+  height: 100px;
+  margin: 5px;
+
+}
+
+
 
 /* List Item */
 .view-list-item {

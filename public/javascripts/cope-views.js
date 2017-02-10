@@ -139,7 +139,7 @@ PurelyAppView.dom(vu => [
     { 'div@sim-panel.sim-panel.cope-card.wider.bg-w': [
       { 'div@back.hidden': '<-' }, // Go Back button
       { 'div@app-settings.inner': 'app-settings' }, // app-settings
-      { 'div@sec-layouts.inner.hidden': 'sec-layouts' }, // sec-layouts
+      { 'div@sec-layouts.inner.hidden(style="width:100%; height:200px;")': 'sec-layouts' }, // sec-layouts
       { 'div@sec-settings.inner.hidden': 'sec-settings' }, // sec-settings
       { 'div@sec-data.inner.hidden': 'sec-data' }] // sec-data
     }] 
@@ -209,7 +209,12 @@ PurelyAppView.render(vu => {
     vu.$el('@sec-settings').addClass('hidden');
     vu.$el('@sec-data').addClass('hidden');
   });
-
+  // Layout Chooser build
+  vu.$el('@sec-layouts').html('');
+  let LayoutChooser = LayoutChooserView.build({
+    sel: vu.sel('@sec-layouts'),
+    method: 'append'
+  });
   // Settings
   let vals = vu.val();
   let settingItems = [];

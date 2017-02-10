@@ -120,7 +120,8 @@ ListItemView.render(vu => {
 
   if (vu.val('edit')) {
     vu.$el('p').addClass('hidden');
-    vu.$el('input').removeClass('hidden');
+    vu.$el('input').removeClass('hidden').focus();
+
   } else {
     vu.$el('p').removeClass('hidden');
     vu.$el('input').addClass('hidden');
@@ -130,7 +131,6 @@ ListItemView.render(vu => {
     let newVal = vu.$el('input').val().trim();
     vu.$el('p').html(newVal);
     vu.set('value', newVal);
-    vu.res('value', newVal);
 
     if (e.which == 13) {
       vu.val('edit', false);
@@ -214,7 +214,7 @@ PurelyAppView.dom(vu => [
     { 'div@sim-panel.sim-panel.cope-card.wider.bg-w': [
       { 'div@back.hidden': '<-' }, // Go Back button
       { 'div@app-settings.inner': 'app-settings' }, // app-settings
-      { 'div@sec-layouts.inner': 'sec-layouts' }, // sec-layouts
+      { 'div@sec-layouts.inner.hidden': 'sec-layouts' }, // sec-layouts
       { 'div@sec-settings.inner.hidden': 'sec-settings' }, // sec-settings
       { 'div@sec-data.inner.hidden': 'sec-data' }] // sec-data
     }] 

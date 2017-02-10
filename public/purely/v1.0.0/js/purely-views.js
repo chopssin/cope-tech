@@ -19,7 +19,8 @@ let NavView = Views.class('Nav'),
   MyPurelyView = Views.class('MyPurely');
   PurelyEditNavView = Views.class('Purely.Edit.Nav'), // to be deprecated
   PurelyEditSingleView = Views.class('Purely.Edit.Single'), // to be deprecated
-  SectionEditView = Views.class('Purely.Edit.Section.Settings');
+  SectionEditView = Views.class('Purely.Edit.Section.Settings'),
+  LayoutChooserView = Views.class('Purely.Layout.Chooser');
   // Purely Layouts
   PurelyLayoutSingleView = Views.class('Purely.Layout.Single'),
   PurelyLayoutSlideView = Views.class('Purely.Layout.Slide'),
@@ -1026,6 +1027,7 @@ ListItemView.render(vu => {
 
     vu.$el('textarea').off('keyup').on('keyup', e => {
       let newVal = vu.$el('textarea').val().trim();
+      if (!newVal) newVal = '...';
       vu.set('value', newVal);
       vu.res('value', newVal);
     }).off('focusout').on('focusout', e => {
@@ -1038,7 +1040,9 @@ ListItemView.render(vu => {
     vu.$el('label').text(v.label);
   });
   vu.use('value').then(v => {
-    vu.$el('p').html(v.value.replace(/\n/g, '<br>') || '...');
+    console.log(v.value);
+    //let str = (typeof v.value == 'string') && v.value.replace(/\n/g, '<br>') || '...';
+    vu.$el('p').html(v.value.replace(/\n/g, '<br>'));
     vu.$el('input').val(v.value);
     vu.$el('textarea').val(v.value);
   });
@@ -1057,6 +1061,7 @@ ListItemView.render(vu => {
 
   vu.$el('input').off('keyup').on('keyup', e => {
     let newVal = vu.$el('input').val().trim();
+    if (!newVal) newVal = '...';
     vu.$el('p').html(newVal);
     vu.set('value', newVal);
     //vu.res('value', newVal);
@@ -1149,59 +1154,18 @@ SectionEditView.render( vu => {
       }
     });
   });
-  // function printData(vals, sec){
-  //   Object.keys(vals).map(key => {
-  //       console.log('key',key);
-  //       switch (key) {
-  //         case 'title':
-  //         case 'content':
-  //           let value = vals[key] || {};
-  //           ListItemView.build({
-  //             sel: vu.sel('@sec-settings'),
-  //             method: 'append',
-  //             data: {
-  //               label: key.slice(0, 1).toUpperCase().concat(key.slice(1)),
-  //               value: value,
-  //               editable: true,
-  //               textarea: (key === 'content')
-  //             }
-  //           }).res('value', val => {
-  //             // TBD 
+});
 
-  //             sec.view.val(key, val);
-  //           });
-  //           break;
-  //         case 'src':
-  //           ListItemView.build({
-  //             sel: vu.sel('@sec-settings'),
-  //             method: 'append',
-  //             data: {
-  //               label: 'Image'
-  //             }
-  //           });
-  //           BoxView.build({
-  //             sel: vu.sel('@sec-settings'),
-  //             method: 'append'
-  //           }).$el().css({
-  //             'width': '100%',
-  //             'height': '300px',
-  //             'border': '12px solid transparent',
-  //             'margin-top': '-12px',
-  //             'background-image': `url(${vals.src})`
-  //           }).addClass('bg-img');
-  //           break;
-  //         case 'contacts': // Contacts
-  //           console.log('contacts',vals[key]);
-  //           break;
-  //         case 'data': // slide, grid, waterfall
-  //           break;
-  //         default:
-  //       }
-  //     });
-  // }// end of printData
+// Layout Chooser
+// @layout-chooser
+LayoutChooserView.dom( vu => [
+  { 'div@layout-chooser.layout-chooser': ''}
+]);
 
+LayoutChooserView.render( vu => {
 
 });
+
 
 // -----
 })(jQuery, Cope);

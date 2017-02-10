@@ -351,19 +351,15 @@ PurelyAppView.render(vu => {
     };
   });
 
-
   secs.map((sec, idx) => {
     sec.section.$el().off('click').on('click', function() {
-      let vals = {};
-      Object.assign(vals, sec.view.val());
-
-      console.log(idx);
-      console.log("sec",sec);
-      
+      //let vals = {};
+      //Object.assign(vals, sec.view.val());
+      let vals = data[idx].value;
       vu.$el('@sec-settings').html('');
       
       // if section = slide
-      if(Object.prototype.toString.call(vals.data) === '[object Array]'){
+      if (Object.prototype.toString.call(vals.data) === '[object Array]') {
         vals.data.map( item =>{
           PurelyViews.class('Purely.Edit.Section.Settings').build({
             sel: vu.$el('@sec-settings'),
@@ -378,9 +374,7 @@ PurelyAppView.render(vu => {
         });
       }
 
-      
-
-      let tmp = PurelyViews.class('Purely.Edit.Section.Settings').build({
+      PurelyViews.class('Purely.Edit.Section.Settings').build({
         sel: vu.$el('@sec-settings'),
         method: 'append',
         data: {

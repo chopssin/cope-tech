@@ -991,7 +991,7 @@ PurelyLayoutSingleView.render( vu => {
     vu.$el('@title').text(v.title);
   })
   vu.use('content').then(v => {
-    vu.$el('@content').html(v.content);
+    vu.$el('@content').html(v.content.replace(/\n/g, '<br>'));
   })
   vu.use('src').then(v => {
     vu.$el().addClass('bg')

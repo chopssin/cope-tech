@@ -74,81 +74,6 @@ ViewAccountCard.render(vu => {
 });
 // end of "AccountCard"
 
-// ListItem
-// @value: text input or textarea
-// - label: string
-// - value: string
-// - editable: boolean
-// - textarea: boolean, true to use textarea instead
-ListItemView.dom(vu => [
-  { 'div.cope-list-item': [ 
-    { 'label': '' },
-    { 'p': '' },
-    { 'div@value-wrap': [
-      { 'input@value.hidden(type="text").color-orange': '' }] 
-    }]
-  }
-]);
-
-ListItemView.render(vu => {
-  if (vu.get('textarea')) {
-    // TBD: Use textarea instead
-    PurelyViews.class('Textarea').build({
-      sel: vu.sel('@value-wrap'),
-      data: {
-        value: vu.val('value')
-      }
-    });
-
-    vu.$el('textarea').off('keyup').on('keyup', e => {
-      let newVal = vu.$el('textarea').val().trim().replace(/<br>/g, "&nbsp");
-      vu.res('value', newVal);
-    });
-  }
-
-  vu.use('label').then(v => {
-    vu.$el('label').text(v.label);
-  });
-  vu.use('value').then(v => {
-    vu.$el('p').html(v.value);
-    vu.$el('input').val(v.value);
-  });
-  vu.use('placeholder').then(v => {
-    vu.$el('input').prop('placeholder', v.placeholder);
-    //'Enter your app name or site title');
-  });
-
-  if (vu.val('edit')) {
-    vu.$el('p').addClass('hidden');
-    vu.$el('input').removeClass('hidden').focus();
-
-  } else {
-    vu.$el('p').removeClass('hidden');
-    vu.$el('input').addClass('hidden');
-  }
-
-  vu.$el('input').off('keyup').on('keyup', e => {
-    let newVal = vu.$el('input').val().trim();
-    vu.$el('p').html(newVal);
-    vu.set('value', newVal);
-
-    if (e.which == 13) {
-      vu.val('edit', false);
-      vu.res('value', newVal);
-    }
-  }).off('focusout').on('focusout', e => {
-    vu.val('edit', false);
-    vu.res('value', vu.get('value'));
-  });
-
-  if (vu.get('editable')) {
-    vu.$el('p').addClass('cope-btn')
-      .off('click').on('click', e => {
-        vu.val('edit', true);
-      });
-  }
-}); // end of ListItem
-
 // Purely - Purely.Sec
 PurelySecView.dom(vu => [
   { 'div.purely-sec(style="margin-bottom:16px; padding:0;")': [
@@ -306,7 +231,7 @@ PurelyAppView.render(vu => {
       'label': 'Status',
       'value': vals.stat || ''
     }].map(x => {
-      return ListItemView.build({
+      return PurelyViews.class('ListItem').build({
         sel: vu.sel('@app-settings'),
         method: 'append',
         data: x
@@ -375,7 +300,7 @@ PurelyAppView.render(vu => {
       case 'single':
         viewClass = PurelyViews.class('Purely.Layout.Single');
         buildSettings.data.title = x.value.title;
-        buildSettings.data.content = x.value.content;
+        buildSettings.data.content = x.value.content.replace(/\n/g, '<br>');
         buildSettings.data.src = x.value.src;
         break;
       case 'slide':
@@ -426,61 +351,12 @@ PurelyAppView.render(vu => {
     };
   });
 
-  // Print Data Method
-  function printData(vals, sec){
-    Object.keys(vals).map(key => {
-        switch (key) {
-          case 'title':
-          case 'content':
-            let value = vals[key] || {};
-            ListItemView.build({
-              sel: vu.sel('@sec-settings'),
-              method: 'append',
-              data: {
-                label: key.slice(0, 1).toUpperCase().concat(key.slice(1)),
-                value: value,
-                editable: true,
-                textarea: (key === 'content')
-              }
-            }).res('value', val => {
-              // TBD 
-
-              sec.view.val(key, val);
-            });
-            break;
-          case 'src':
-            ListItemView.build({
-              sel: vu.sel('@sec-settings'),
-              method: 'append',
-              data: {
-                label: 'Image'
-              }
-            });
-            PurelyViews.class('Box').build({
-              sel: vu.sel('@sec-settings'),
-              method: 'append'
-            }).$el().css({
-              'width': '100%',
-              'height': '300px',
-              'border': '12px solid transparent',
-              'margin-top': '-12px',
-              'background-image': `url(${vals.src})`
-            }).addClass('bg-img');
-            break;
-          case 'contacts': // Contacts
-            console.log('contacts',vals[key]);
-            break;
-          case 'data': // slide, grid, waterfall
-            break;
-          default:
-        }
-      });
-  }// end of printData
 
   secs.map((sec, idx) => {
     sec.section.$el().off('click').on('click', function() {
-      let vals = sec.view.val();
-      console.log("val",vals.data);
+      let vals = {};
+      Object.assign(vals, sec.view.val());
+
       console.log(idx);
       console.log("sec",sec);
       
@@ -489,11 +365,41 @@ PurelyAppView.render(vu => {
       // if section = slide
       if(Object.prototype.toString.call(vals.data) === '[object Array]'){
         vals.data.map( item =>{
-          printData(item, sec);
+          PurelyViews.class('Purely.Edit.Section.Settings').build({
+            sel: vu.$el('@sec-settings'),
+            method: 'append',
+            data: {
+              'vals': item
+            }
+          }).res('vals', vals => {
+            vals.content = vals.content.replace(/\n/g, '<br>');
+            sec.view.val(vals);
+          }) 
         });
       }
-      // other section
-      printData(vals, sec);
+
+      
+
+      let tmp = PurelyViews.class('Purely.Edit.Section.Settings').build({
+        sel: vu.$el('@sec-settings'),
+        method: 'append',
+        data: {
+          'vals': vals
+        }
+      }).res('vals', vals => {
+        sec.view.val(vals);
+      }) 
+
+
+      //TBD:
+      //PurelyViews.class('Purely.Edit.Section.Settings').build({
+      //  sel: vu.sel('@sec-settings'),
+      //  data: {
+      //    vals: vals
+      //  }
+      //}).res('vals', vals => {
+      //  sec.view.val(vals);
+      //});
       
       vu.$el('@back').removeClass('hidden');
       vu.$el('@app-settings').addClass('hidden');

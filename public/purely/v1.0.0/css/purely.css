@@ -305,7 +305,6 @@ textarea {
 /* Slide */
 .view-slide {
   margin: 0 auto;
-  background: #DADADA url('https://fakeimg.pl/980x390/DADADA/?text=NoSlide') no-repeat center center;
 }
 .view-slide .slide{
   width: 100%;
@@ -446,7 +445,7 @@ textarea {
   padding: 15px;
 }
 .view-purely-layout-single .title {
-  
+
 }
 .view-purely-layout-single .content {
 

@@ -715,11 +715,16 @@ SlideView.render( vu => {
 
       //  Default DOM setting
       v.data.forEach((item, index) => {
-        vu.$el('@slideItem').append('<a href='+ item.link +' target="_blank"><div class="slideItem item' + index +'"></div></a>');
+        let alink = '';
+        if (item.link) {
+          alink = 'href="' + item.link + '" target="_blank"';
+        }
+        vu.$el('@slideItem').append('<a '+ alink +'><div class="slideItem item' + index +'"></div></a>');
         vu.$el('@slideCaption').append('<li>'+ item.caption +'</li>');
         vu.$el('@slideNav').append('<li data-navitem="'+index+'"><div class="slideNavItem"></div></li>');
       })
-        vu.$el('@slideNav').find('li').first().addClass('active');
+        
+      vu.$el('@slideNav').find('li').first().addClass('active');
 
       let slideWidth = vu.$el(".view-slide").width();
       let slideHeight = vu.$el(".view-slide").height();
@@ -738,7 +743,9 @@ SlideView.render( vu => {
       vu.$el('.caption').find('li').css('width', slideWidth);
 
       v.data.forEach((item, index) => {
-        vu.$el('.item'+ index).css('background-image', 'url('+item.src+')');
+        if (item.src) {
+          vu.$el('.item'+ index).css('background-image', 'url('+item.src+')');
+        }
       })
 
       //  SlideFunction
@@ -1017,8 +1024,9 @@ ListItemView.dom(vu => [
 
 ListItemView.render(vu => {
   let $textInput = vu.$el('input');
+  
+  // Use textarea instead
   if (vu.get('textarea')) {
-    // TBD: Use textarea instead
     TextareaView.build({
       sel: vu.sel('@value-wrap'),
       data: {
@@ -1043,12 +1051,12 @@ ListItemView.render(vu => {
   vu.use('label').then(v => {
     vu.$el('label').text(v.label);
   });
+
   vu.use('value').then(v => {
-    console.log(v.value);
-    //let str = (typeof v.value == 'string') && v.value.replace(/\n/g, '<br>') || '...';
     vu.$el('p').html(v.value.replace(/\n/g, '<br>'));
     $textInput.val(v.value);
   });
+
   vu.use('placeholder').then(v => {
     $textInput.prop('placeholder', v.placeholder);
   });
@@ -1068,15 +1076,15 @@ ListItemView.render(vu => {
     if (!newVal) newVal = '...';
     vu.$el('p').html(newVal);
     vu.set('value', newVal);
-    //vu.res('value', newVal);
+    vu.res('value', newVal);
 
     if (e.which == 13) {
       vu.val('edit', false);
-      vu.res('value', newVal);
+      //vu.res('value', newVal);
     }
   }).off('focusout').on('focusout', e => {
     vu.val('edit', false);
-    vu.res('value', vu.get('value'));
+    //vu.res('value', vu.get('value'));
   });
 
   if (vu.get('editable')) {

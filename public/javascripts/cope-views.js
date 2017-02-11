@@ -76,12 +76,13 @@ ViewAccountCard.render(vu => {
 
 // Purely - Purely.Sec
 PurelySecView.dom(vu => [
-  { 'div.purely-sec(style="margin-bottom:16px; padding:0;")': [
+  { 'div.purely-sec(style="padding:0;")': [
     { 'div.plus': [
       { 'div': '+'}
     ]},
     { 'div@wrap.wrap':[
-      { 'div@sec.cope-card.full.bg-w.touchable(style="padding:0")': '' },
+      //{ 'div@sec.cope-card.full.bg-w.touchable(style="padding:0")': '' },
+      { 'div@sec(style="padding:0")': '' },
       { 'div@mask.mask': ''}
     ]},
     { 'div.plus': [
@@ -128,7 +129,7 @@ PurelySecView.render(vu => {
 // Purely - Purely.App
 PurelyAppView.dom(vu => [
   { 'div.purely-app': [
-    { 'div.sim-wrap': [
+    { 'div.sim-wrap.cope-card.bg-w(style="padding:0")': [
       { 'div.row': [
         { 'div@nav.col-xs-12': 'Nav' }] 
       },
@@ -149,19 +150,22 @@ PurelyAppView.dom(vu => [
 PurelyAppView.render(vu => {
   let SAMPLE_TEXT = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nec est sed turpis tincidunt mollis. Duis nec justo tortor. Aliquam dictum dignissim molestie. Fusce maximus sit amet felis auctor pellentesque. \n\nSed dapibus nibh id rutrum elementum. Aliquam semper, ipsum in ultricies finibus, diam libero hendrerit felis, nec pharetra mi tellus at leo. Duis ultricies ultricies risus, sed convallis ex molestie at. Nulla facilisi. Ut sodales venenatis massa, nec venenatis quam semper eget.';
 
+  // Global
+  vu.$el('.sim-wrap').css({
+    'background-color': '#aca',
+    'background-image': 'url("/images/sample1.jpg")'
+  });
+
   let data = [
     {
       role: 'cover',
       layout: 'slide',
       value: [{
         title: 'We share gifts',
-        link: '#',
-        src: '/images/sample1.jpg'
       },
       {
         title: 'And happiness',
-        link: '#',
-        src: '/images/sample2.jpg'
+        src: '/images/sample1.jpg'
       }] 
     },
     {
@@ -169,8 +173,8 @@ PurelyAppView.render(vu => {
       layout: 'single',
       value: {
         title: 'Story',
-        content: SAMPLE_TEXT,
-        src: '/images/sample3.jpg'
+        content: SAMPLE_TEXT
+        //src: '/images/sample3.jpg'
       }
     },
     {
@@ -209,12 +213,12 @@ PurelyAppView.render(vu => {
     vu.$el('@sec-settings').addClass('hidden');
     vu.$el('@sec-data').addClass('hidden');
   });
+
   // Layout Chooser build
-  vu.$el('@sec-layouts').html('');
   let LayoutChooser = LayoutChooserView.build({
-    sel: vu.sel('@sec-layouts'),
-    method: 'append'
+    sel: vu.sel('@sec-layouts')
   });
+
   // Settings
   let vals = vu.val();
   let settingItems = [];

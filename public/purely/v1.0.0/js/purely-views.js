@@ -1131,16 +1131,16 @@ SectionEditView.render( vu => {
     data.label = upper(key);
     
     if (key === 'content') {
+      data.editable = true;
+      data.value = vu.get(key) || '';
       data.textarea = true;
+      data.placeholder = 'Compose more about this section';
     }
 
-    if (key === 'title' 
-      || key === 'content') {
+    if (key === 'title') { 
       data.editable = true;
-      data.placeholder = upper(key);
-      
-      // Update with data
       data.value = vu.get(key) || '';
+      data.placeholder = 'Title the section';
     }
     
     items[key] = ListItemView.build({

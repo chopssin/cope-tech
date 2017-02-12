@@ -1091,15 +1091,12 @@ ListItemView.render(vu => {
   });
 
   if (vu.get('editable')) {
-    vu.$el('@display').addClass('cope-btn')
-      .off('click').on('click', e => {
-        vu.val('edit', true);
-      });
-
-    vu.$el('@label')
-      .off('click').on('click', e => {
-        vu.val('edit', true);
-      });
+    ['@display', '@label'].map(comp => {
+      vu.$el(comp).addClass('cope-btn')
+        .off('click').on('click', e => {
+          vu.val('edit', true);
+        });
+    }); // end of map
   }
 }); 
 

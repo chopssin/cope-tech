@@ -199,33 +199,18 @@ textarea {
 }
 
 /* Textarea */
-/*.view-textarea {
-  display: block;
-  width: 100%;
-  max-width: 540px;
-  font-size: 25px;
-  font-weight: 300;
-  letter-spacing: 0;
-  line-height: 28px;
-  overflow: hidden;
-  background-color: #fff;
-  padding: 0;
-}*/
 .view-textarea {
   height: auto;
   min-height: 30px;
   width: 100%;
-  padding-left: 6px;
+  padding-left: 0;
   overflow: hidden;
   margin: 0;
   resize: none;
   border: none;
   outline: none;
   background-color: #fff;
-  font-size: 25px;
-  font-weight: 300;
   letter-spacing: 0;
-  line-height: 28px;
 }
 
 /* ImageUploader*/
@@ -452,6 +437,7 @@ textarea {
 }
 
 .view-layout-chooser {
+  display: table;
   width: 100%;
   height: 100%;
   margin: 0;
@@ -459,10 +445,7 @@ textarea {
 .view-layout-chooser .block {
   height: 100px;
   margin: 5px;
-
 }
-
-
 
 /* List Item */
 .view-list-item {
@@ -471,27 +454,29 @@ textarea {
   width: 100%;
   padding: 0;
   font-size: 18px;
+  margin-bottom:8px;
 }
 .view-list-item > * {
   display: block;
-  padding: 4px;
-  margin: 4px;
+  padding: 0;
+  margin: 8px 0;
 }
-.view-list-item > label {
-  height: 16px;
+.view-list-item > .item-label {
+  height: 18px;
   font-size: 14px;
+  font-weight: 500;
   color: #aaa;
   margin-bottom: 0;
 }
-.view-list-item > p,
-.view-list-item > input {
+.view-list-item .item-display,
+.view-list-item .item-input {
   margin-top: 0;
 }
-.view-list-item > input {
+.view-list-item .item-input {
   border: none;
   outline: none;
+  padding: 0;
 }
-
 
 /* Extra Small Devices, Phones */
 @media only screen and (min-width : 480px) {

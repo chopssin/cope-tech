@@ -1000,9 +1000,9 @@ PurelyLayoutSingleView.render( vu => {
   vu.use('content').then(v => {
     vu.$el('@content').html(v.content.replace(/\n/g, '<br>'));
   })
-  vu.use('src').then(v => {
+  vu.use('imgsrc').then(v => {
     vu.$el().addClass('bg')
-    .css({'background-image': `url(${v.src})`});
+    .css({'background-image': `url(${v.imgsrc})`});
   });
 });
 
@@ -1013,11 +1013,11 @@ PurelyLayoutSingleView.render( vu => {
 // - editable: boolean
 // - textarea: boolean, true to use textarea instead
 ListItemView.dom(vu => [
-  { 'div.cope-list-item': [ 
-    { 'label': '' },
-    { 'p': '' },
+  { 'div.view-list-item': [ 
+    { 'div@label.item-label': '' },
+    { 'div@display.item-display': '' },
     { 'div@value-wrap.hidden.color-orange': [
-      { 'input@value(type="text")': '' }] 
+      { 'input@value(type="text").item-input': '' }] 
     }]
   }
 ]);
@@ -1037,9 +1037,9 @@ ListItemView.render(vu => {
     $textInput = vu.$el('textarea');
 
     // Just for Textarea
-    vu.$el('textarea').off('keyup').on('keyup', e => {
+    $textInput.off('keyup').on('keyup', e => {
       let newVal = vu.$el('textarea').val().trim();
-      if (!newVal) newVal = '...';
+      if (!newVal) newVal = '';
       vu.set('value', newVal);
       vu.res('value', newVal);
     }).off('focusout').on('focusout', e => {
@@ -1049,11 +1049,11 @@ ListItemView.render(vu => {
   }
 
   vu.use('label').then(v => {
-    vu.$el('label').text(v.label);
+    vu.$el('@label').text(v.label);
   });
 
   vu.use('value').then(v => {
-    vu.$el('p').html(v.value.replace(/\n/g, '<br>'));
+    vu.$el('@display').html(v.value.replace(/\n/g, '<br>'));
     $textInput.val(v.value);
   });
 
@@ -1062,19 +1062,19 @@ ListItemView.render(vu => {
   });
 
   if (vu.val('edit')) {
-    vu.$el('p').addClass('hidden');
+    vu.$el('@display').addClass('hidden');
     vu.$el('@value-wrap').removeClass('hidden');
     $textInput.focus();
   } else {
-    vu.$el('p').removeClass('hidden');
+    vu.$el('@display').removeClass('hidden');
     vu.$el('@value-wrap').addClass('hidden');
   }
 
   // Just for input[type = text]
   vu.$el('input').off('keyup').on('keyup', e => {
     let newVal = vu.$el('input').val().trim();
-    if (!newVal) newVal = '...';
-    vu.$el('p').html(newVal);
+    if (!newVal) newVal = '';
+    vu.$el('@display').html(newVal);
     vu.set('value', newVal);
     vu.res('value', newVal);
 
@@ -1088,7 +1088,12 @@ ListItemView.render(vu => {
   });
 
   if (vu.get('editable')) {
-    vu.$el('p').addClass('cope-btn')
+    vu.$el('@display').addClass('cope-btn')
+      .off('click').on('click', e => {
+        vu.val('edit', true);
+      });
+
+    vu.$el('@label')
       .off('click').on('click', e => {
         vu.val('edit', true);
       });
@@ -1104,6 +1109,75 @@ SectionEditView.dom( vu => [
 ]);
 
 SectionEditView.render( vu => {
+
+  // Convert first character to uppercase
+  let upper = function(str) {
+    return str.slice(0, 1).toUpperCase().concat(str.slice(1));
+  };
+      
+  vu.$el('@section-edit').html('');
+
+  let items = {};
+  [ 'layout', 
+    'title', 
+    'content', 
+    'background', 
+    'collection' ].map(key => {
+
+    let data = {};
+    data.label = upper(key);
+    
+    if (key === 'content') {
+      data.textarea = true;
+    }
+
+    if (key === 'title' 
+      || key === 'content') {
+      data.editable = true;
+      data.placeholder = upper(key);
+      
+      // Update with data
+      data.value = vu.get(key) || '';
+    }
+    
+    items[key] = ListItemView.build({
+      sel: vu.sel('@section-edit'),
+      method: 'append',
+      data : data
+    }).res('value', val => {
+      vu.set(key, val);
+      vu.res('vals', vu.val());
+    });
+  }); // end of the construction of items
+
+  // Build layout chooser
+  LayoutChooserView.build({
+    sel: items.layout.sel('@display')
+  });
+
+  // Build the preview box of background
+  let bgBox = BoxView.build({
+    sel: items.background.sel('@display')
+  });
+  
+  bgBox.$el().off('click').on('click', e => {
+    vu.res('box clicked', bgBox);
+  });
+
+  let bgBoxCSS = {
+    'width': '100%',
+    'height': '300px',
+    'background-color': '#eee',
+    'margin-top': '8px'
+  };
+
+  if (vu.get('imgsrc')) {
+    bgBoxCSS['background-image'] = `url(${ vu.get('imgsrc') })`;
+  }
+  bgBox.$el().css(bgBoxCSS).addClass('bg-img');
+
+  return;
+
   // Print Data Method
   vu.use('vals').then(v => {
     let vals = v.vals,
@@ -1154,8 +1228,7 @@ SectionEditView.render( vu => {
 
           box.off('click').on('click', e => {
             vu.res('box clicked', box);
-
-          });          //
+          });
           break;
         case 'contacts': // Contacts
           console.log('contacts',vals[key]);

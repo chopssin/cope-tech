@@ -106,7 +106,7 @@ PurelySecView.render(vu => {
   }
   if (fadeOut && hasFadedIn) {
     vu.set('hasFadedIn', false);
-    vu.$el('.plus').fadeOut(300);
+    vu.$el('.plus').hide(); //fadeOut(300);
     vu.set('fadeIn', false);
     vu.set('fadeOut', false);
   }
@@ -139,10 +139,8 @@ PurelyAppView.dom(vu => [
     },
     { 'div@sim-panel.sim-panel.cope-card.wider.bg-w': [
       { 'div@back.hidden': '<-' }, // Go Back button
-      { 'div@app-settings.inner': 'app-settings' }, // app-settings
-      { 'div@sec-layouts.inner.hidden(style="width:100%; height:200px;")': 'sec-layouts' }, // sec-layouts
-      { 'div@sec-settings.inner.hidden': 'sec-settings' }, // sec-settings
-      { 'div@sec-data.inner.hidden': 'sec-data' }] // sec-data
+      { 'div@app-settings': 'app-settings' }, // app-settings
+      { 'div@sec-settings.hidden': 'sec-settings' }] // sec-settings
     }] 
   }
 ]);
@@ -150,13 +148,13 @@ PurelyAppView.dom(vu => [
 PurelyAppView.render(vu => {
   let SAMPLE_TEXT = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nec est sed turpis tincidunt mollis. Duis nec justo tortor. Aliquam dictum dignissim molestie. Fusce maximus sit amet felis auctor pellentesque. \n\nSed dapibus nibh id rutrum elementum. Aliquam semper, ipsum in ultricies finibus, diam libero hendrerit felis, nec pharetra mi tellus at leo. Duis ultricies ultricies risus, sed convallis ex molestie at. Nulla facilisi. Ut sodales venenatis massa, nec venenatis quam semper eget.';
 
-  // Global
+  // Set the whole page css
   vu.$el('.sim-wrap').css({
     'background-color': '#aca',
     'background-image': 'url("/images/sample1.jpg")'
   });
-
-  let data = [
+      
+  let data = [ // sections
     {
       role: 'cover',
       layout: 'slide',
@@ -183,7 +181,7 @@ PurelyAppView.render(vu => {
       value: {
         title: 'Our Brand',
         content: SAMPLE_TEXT,
-        src: '/images/sample1.jpg'
+        imgsrc: '/images/sample1.jpg'
       }
     },
     {
@@ -209,17 +207,15 @@ PurelyAppView.render(vu => {
 
     // Hide others 
     vu.$el('@back').addClass('hidden');
-    vu.$el('@sec-layouts').addClass('hidden');
     vu.$el('@sec-settings').addClass('hidden');
-    vu.$el('@sec-data').addClass('hidden');
   });
 
   // Layout Chooser build
-  let LayoutChooser = LayoutChooserView.build({
-    sel: vu.sel('@sec-layouts')
-  });
+  //let LayoutChooser = LayoutChooserView.build({
+  //  sel: editSection.sel('@') //vu.sel('@sec-layouts')
+  //});
 
-  // Settings
+  // App Settings
   let vals = vu.val();
   let settingItems = [];
   vu.$el('@app-settings').html('');
@@ -267,7 +263,7 @@ PurelyAppView.render(vu => {
     }
   });
 
-  //Sections 
+  // Left side sections 
   let secs = data.map((x, idx) => {
 
     let viewClass, view, // PurelyViews.class(<className>) 
@@ -310,7 +306,7 @@ PurelyAppView.render(vu => {
         viewClass = PurelyViews.class('Purely.Layout.Single');
         buildSettings.data.title = x.value.title;
         buildSettings.data.content = x.value.content.replace(/\n/g, '<br>');
-        buildSettings.data.src = x.value.src;
+        buildSettings.data.imgsrc = x.value.imgsrc;
         break;
       case 'slide':
         viewClass = PurelyViews.class('Slide');
@@ -362,53 +358,27 @@ PurelyAppView.render(vu => {
 
   secs.map((sec, idx) => {
     sec.section.$el().off('click').on('click', function() {
-      //let vals = {};
-      //Object.assign(vals, sec.view.val());
-      let vals = data[idx].value;
-      vu.$el('@sec-settings').html('');
       
-      // if section = slide
-      if (Object.prototype.toString.call(vals.data) === '[object Array]') {
-        vals.data.map( item =>{
-          PurelyViews.class('Purely.Edit.Section.Settings').build({
-            sel: vu.$el('@sec-settings'),
-            method: 'append',
-            data: {
-              'vals': item
-            }
-          }).res('vals', vals => {
-            vals.content = vals.content.replace(/\n/g, '<br>');
-            sec.view.val(vals);
-          }) 
-        });
-      }
+      let vals = data[idx].value;
 
-      PurelyViews.class('Purely.Edit.Section.Settings').build({
-        sel: vu.$el('@sec-settings'),
-        method: 'append',
-        data: {
-          'vals': vals
-        }
-      }).res('vals', vals => {
+      // Build the section editor
+      let editSection = PurelyViews.class('Purely.Edit.Section.Settings').build({
+        sel: vu.$el('@sec-settings')
+      });
+
+      editSection.res('vals', vals => {
+        vals.content = (vals.content 
+          && vals.content.replace(/\n/g, '<br>')) || '';
+
         sec.view.val(vals);
-      }) 
+      });
 
-
-      //TBD:
-      //PurelyViews.class('Purely.Edit.Section.Settings').build({
-      //  sel: vu.sel('@sec-settings'),
-      //  data: {
-      //    vals: vals
-      //  }
-      //}).res('vals', vals => {
-      //  sec.view.val(vals);
-      //});
+      // Fill up editSection with the selected section value
+      editSection.val(vals);
       
       vu.$el('@back').removeClass('hidden');
       vu.$el('@app-settings').addClass('hidden');
       vu.$el('@sec-settings').removeClass('hidden');
-      vu.$el('@sec-layouts').removeClass('hidden');
-      vu.$el('@sec-data').removeClass('hidden');
     });
     sec.section.res('mask clicked', () => {
       // Fade out all sections except for self

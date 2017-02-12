@@ -245,7 +245,7 @@ PurelyAppView.render(vu => {
   } // end of if
  
   // To edit app name!!!
-  settingItems[0].res('value', val => {
+  settingItems[0].res('done', val => {
     vu.res('rename app', val);
   });
   

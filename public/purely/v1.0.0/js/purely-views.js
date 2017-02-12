@@ -1012,6 +1012,8 @@ PurelyLayoutSingleView.render( vu => {
 // - value: string
 // - editable: boolean
 // - textarea: boolean, true to use textarea instead
+// "value" <- string: triggered on every keyup
+// "done": <- string: only triggered on Enter or focusout event
 ListItemView.dom(vu => [
   { 'div.view-list-item': [ 
     { 'div@label.item-label': '' },
@@ -1044,7 +1046,7 @@ ListItemView.render(vu => {
       vu.res('value', newVal);
     }).off('focusout').on('focusout', e => {
       vu.val('edit', false);
-      vu.res('value', vu.get('value'));
+      vu.res('done', vu.get('value'));
     });
   }
 
@@ -1075,16 +1077,17 @@ ListItemView.render(vu => {
     let newVal = vu.$el('input').val().trim();
     if (!newVal) newVal = '';
     vu.$el('@display').html(newVal);
-    vu.set('value', newVal);
-    vu.res('value', newVal);
-
     if (e.which == 13) {
       vu.val('edit', false);
-      //vu.res('value', newVal);
+      vu.res('done', newVal);
+    } else {
+      vu.set('value', newVal);
+      vu.res('value', newVal);
     }
+
   }).off('focusout').on('focusout', e => {
     vu.val('edit', false);
-    //vu.res('value', vu.get('value'));
+    vu.res('done', vu.get('value'));
   });
 
   if (vu.get('editable')) {

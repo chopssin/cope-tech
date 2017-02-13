@@ -444,6 +444,26 @@ textarea {
   margin: 0;
 }
 
+/* Purely.TypeChooser */
+.view-type-chooser {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 80px;
+  padding: 10px;
+}
+
+.view-type-chooser .type-option {
+  display: block;
+  float: left;
+  width: 60px;
+  height: 60px;
+  margin: 0;
+  padding: 8px;
+  background: #eee;
+}
+
+/* Purely.LayoutChooser*/
 .view-layout-chooser {
   display: table;
   width: 100%;

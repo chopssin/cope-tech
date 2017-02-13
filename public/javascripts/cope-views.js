@@ -138,7 +138,7 @@ PurelyAppView.dom(vu => [
       }]
     },
     { 'div@sim-panel.sim-panel.cope-card.wider.bg-w': [
-      { 'div@back.hidden': '<-' }, // Go Back button
+      { 'div@back.hidden(style="cursor: pointer;")': '<-' }, // Go Back button
       { 'div@app-settings': 'app-settings' }, // app-settings
       { 'div@sec-settings.hidden': 'sec-settings' }] // sec-settings
     }] 
@@ -196,6 +196,55 @@ PurelyAppView.render(vu => {
     },
     {
       role: 'footer'
+    }
+  ];
+
+  // sections data
+  let sections = [
+    {
+      type: 'collection',
+      collection: {
+        layout: 'slide',
+        //col: 'Shoes',
+        //sort: 'recent',
+        data: [
+          {
+            title: 'We share gitts'
+          },
+          {
+            title: 'And happines',
+            src: '/images/sample1.jpg'
+          }
+        ]
+      }
+    },
+    {
+      type: 'basic',
+      basic: {
+        layout: 'single',
+        title: 'Story',
+        content: SAMPLE_TEXT,
+        imgsrc: '/images/sample3.jpg'
+      }
+    },
+    {
+      type: 'basic',
+      basic: {
+        layout: 'single',
+        title: 'Our Brand',
+        content: SAMPLE_TEXT,
+        imgsrc: '/images/sample1.jpg'
+      }
+    },
+    {
+      type: 'contacts',
+      basic: {
+        title: 'Contact us'
+      },
+      contacts: [
+        { type: 'email', value: 'support@myapp.cope.tech' }, 
+        { type: 'phone', value: '+886 987 654 321' } 
+      ]
     }
   ];
 
@@ -264,13 +313,12 @@ PurelyAppView.render(vu => {
   });
 
   // Left side sections 
-  let secs = data.map((x, idx) => {
+  let secs = sections.map((x, idx) => {
 
     let viewClass, view, // PurelyViews.class(<className>) 
+        subClass, // for 'collection' or 'contacts'
         buildSettings = {};
     
-    buildSettings.method = 'append';
-
     let wrap = PurelySecView.build({
       sel: vu.sel('@page'),
       method: 'append',
@@ -279,97 +327,62 @@ PurelyAppView.render(vu => {
       }
     });
 
+    // Options for basic section views
+    let basicLayouts = {
+      single: 'Purely.Layout.Single'
+    };
+
+    // Decide basic section view class
+    viewClass = PurelyViews.class(basicLayouts[x.layout || 'single']);
+
+    // Initiate build settings
     buildSettings.sel = wrap.sel('@sec');
-    buildSettings.data = {};
+    buildSettings.method = 'append';
+    buildSettings.data = x;
 
-    // Customed settings for data and css
-    switch (x.role) {
-      case 'cover':  
-        break;
-
-      case 'about':
-
-        break;
-      case 'contacts': 
-        viewClass = PurelyViews.class('Contacts');
-        buildSettings.data.title = x.value.title;
-        buildSettings.data.items = x.value.contacts;
-        break;
-      case 'footer': 
-        //buildSettings.css = {};
-        break
-      default: 
-    }
-    
-    switch (x.layout) {
-      case 'single':
-        viewClass = PurelyViews.class('Purely.Layout.Single');
-        buildSettings.data.title = x.value.title;
-        buildSettings.data.content = x.value.content.replace(/\n/g, '<br>');
-        buildSettings.data.imgsrc = x.value.imgsrc;
-        break;
-      case 'slide':
-        viewClass = PurelyViews.class('Slide');
-        buildSettings.data.data = x.value.map(s => {
-          return {
-            title: s.title,
-            src: s.src,
-            link: s.link,
-            caption: s.title
-          }
-        });
-        buildSettings.data.container = {
-          width: '100%',
-          height: '100%'
-        };
-        buildSettings.data.showArrow = false;
-        buildSettings.data.captionFontCSS = {
-          'color': '#fff',
-          'text-align': 'left'
-        };
-        buildSettings.data.mode = 'center';
-        break; 
-      case 'grid':
-
-        break;
-      case 'waterfall':
-
-        break;
-      case 'Tiles': 
-        viewClass = PurelySecView.class('Tiles');
-        break;
-      default:
-    }
-
-    if (viewClass) {
-      view = viewClass.build(buildSettings);
-    }
-
-    //if (buildSettings.css) {
-    //  view.$el().css(buildSettings.css);
-    //}
-    
     return {
-      role: x.role || '',
-      view: view,
-      section: wrap
+      wrap: wrap,
+      view: viewClass.build(buildSettings)
     };
   });
 
-  secs.map((sec, idx) => {
-    sec.section.$el().off('click').on('click', function() {
-      
-      let vals = data[idx].value;
+      // case 'slide':
+      //   viewClass = PurelyViews.class('Slide');
+      //   buildSettings.data.data = x.value.map(s => {
+      //     return {
+      //       title: s.title,
+      //       src: s.src,
+      //       link: s.link,
+      //       caption: s.title
+      //     }
+      //   });
+      //   buildSettings.data.container = {
+      //     width: '100%',
+      //     height: '100%'
+      //   };
+      //   buildSettings.data.showArrow = false;
+      //   buildSettings.data.captionFontCSS = {
+      //     'color': '#fff',
+      //     'text-align': 'left'
+      //   };
+      //   buildSettings.data.mode = 'center';
 
-      // Build the section editor
+
+  secs.map((sec, idx) => {
+    sec.wrap.$el().off('click').on('click', function() {
+      
+      let vals = sections[idx];
+
+      // Build the section editor on the right side
       let editSection = PurelyViews.class('Purely.Edit.Section.Settings').build({
         sel: vu.$el('@sec-settings')
       });
 
       editSection.res('vals', vals => {
-        vals.content = (vals.content 
-          && vals.content.replace(/\n/g, '<br>')) || '';
-
+        if (vals.basic && vals.basic.content) {
+          vals.basic.content = vals.basic.content.replace(/\n/g, '<br>');
+        }
+        console.log('vals',vals);
         sec.view.val(vals);
       });
 
@@ -380,16 +393,16 @@ PurelyAppView.render(vu => {
       vu.$el('@app-settings').addClass('hidden');
       vu.$el('@sec-settings').removeClass('hidden');
     });
-    sec.section.res('mask clicked', () => {
+    sec.wrap.res('mask clicked', () => {
       // Fade out all sections except for self
       // secs.about.val('fadeOut', true);
       secs.map((x, i) => {
         if (idx != i) {
-          x.section.val('fadeOut', true);
+          x.wrap.val('fadeOut', true);
         }
       });
       // Fade in the current section
-      sec.section.val('fadeIn', true);
+      sec.wrap.val('fadeIn', true);
     });
   });
   return;

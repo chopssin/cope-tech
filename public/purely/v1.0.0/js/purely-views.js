@@ -979,7 +979,7 @@ ContactsView.render(vu => {
       return;
     }
     let items = v.items.map(item => {
-      return '<li>' + item + '</li>';
+      return '<li>' + item.value + '</li>';
     }).join('');
     vu.$el('@list').html(items);
   });
@@ -989,21 +989,54 @@ ContactsView.render(vu => {
 PurelyLayoutSingleView.dom( vu => [
   { 'div.view-purely-layout-single': [
     { 'h5@title.title': ''},
-    { 'p@content.content': ''}
+    { 'p@content.content': ''},
+    { 'div@col': '' }
   ]}
 ]);  
 
 PurelyLayoutSingleView.render( vu => {
-  vu.use('title').then(v => {
-    vu.$el('@title').text(v.title);
-  })
-  vu.use('content').then(v => {
-    vu.$el('@content').html(v.content.replace(/\n/g, '<br>'));
-  })
-  vu.use('imgsrc').then(v => {
-    vu.$el().addClass('bg')
-    .css({'background-image': `url(${v.imgsrc})`});
+
+  let vals = vu.val();
+  console.log(vals);
+
+  // vals.basic
+  vu.use('basic').then(v => {
+    Object.keys(v.basic).map(key =>{
+      switch (key) {
+        case 'title':
+          vu.$el('@title').text(v.basic.title);
+          break;
+        case 'content':
+          vu.$el('@content').html(v.basic.content.replace(/\n/g, '<br>'));
+          break;
+        case 'imgsrc':
+          vu.$el().addClass('bg-img')
+          .css({'background-image': `url(${v.basic.imgsrc})`});
+          break;
+        default: 
+      }
+    });
   });
+
+  // vals.collection
+  vu.use('collection')
+
+  // vals.contacts
+  vu.use('contacts').then(v => {
+
+    let title = v.basic.title || '';
+
+    vu.$el('@title').addClass('hidden');
+    vu.$el('@content').addClass('hidden');
+
+    ContactsView.build({
+      sel: vu.sel('@col'),
+      data: {
+        title: title,
+        items: v.contacts
+      }
+    })
+   });
 });
 
 // ListItem
@@ -1110,6 +1143,9 @@ SectionEditView.dom( vu => [
 
 SectionEditView.render( vu => {
 
+  let vals = vu.val() || {};
+  if (!vals.basic) vals.basic = {}; 
+
   // Convert first character to uppercase
   let upper = function(str) {
     return str.slice(0, 1).toUpperCase().concat(str.slice(1));
@@ -1123,21 +1159,22 @@ SectionEditView.render( vu => {
     'title', 
     'content', 
     'background', 
-    'collection' ].map(key => {
+    'collection',
+    'contacts' ].map(key => {
 
     let data = {};
     data.label = upper(key);
     
     if (key === 'content') {
       data.editable = true;
-      data.value = vu.get(key) || '';
+      data.value = vals.basic && vals.basic.content || '';
       data.textarea = true;
       data.placeholder = 'Compose more about this section';
     }
 
     if (key === 'title') { 
       data.editable = true;
-      data.value = vu.get(key) || '';
+      data.value = vals.basic && vals.basic.title;
       data.placeholder = 'Title the section';
     }
     
@@ -1146,7 +1183,8 @@ SectionEditView.render( vu => {
       method: 'append',
       data : data
     }).res('value', val => {
-      vu.set(key, val);
+      vals.basic[key] = val;
+      vu.set(vals);
       vu.res('vals', vu.val());
     });
   }); // end of the construction of items
@@ -1172,8 +1210,8 @@ SectionEditView.render( vu => {
     'margin-top': '8px'
   };
 
-  if (vu.get('imgsrc')) {
-    bgBoxCSS['background-image'] = `url(${ vu.get('imgsrc') })`;
+  if (vals.basic.imgsrc) {
+    bgBoxCSS['background-image'] = `url(${ vals.basic.imgsrc })`;
   }
   bgBox.$el().css(bgBoxCSS).addClass('bg-img');
 

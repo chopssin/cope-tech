@@ -77,7 +77,7 @@ ViewAccountCard.render(vu => {
 // Purely - Purely.Sec
 PurelySecView.dom(vu => [
   { 'div.purely-sec(style="padding:0;")': [
-    { 'div.plus': [
+    { 'div@before-plus.plus': [
       { 'div': '+'}
     ]},
     { 'div@wrap.wrap':[
@@ -85,7 +85,7 @@ PurelySecView.dom(vu => [
       { 'div@sec(style="padding:0")': '' },
       { 'div@mask.mask': ''}
     ]},
-    { 'div.plus': [
+    { 'div@after-plus.plus': [
       { 'div': '+'}
     ]}
   ]}
@@ -124,6 +124,11 @@ PurelySecView.render(vu => {
     }
   })
 
+  // TBD: Click events
+  // before -> myIdx - 1
+  // after -> myIdx
+  // res('after', ... )
+
 });
 
 // Purely - Purely.App
@@ -153,51 +158,6 @@ PurelyAppView.render(vu => {
     'background-color': '#aca',
     'background-image': 'url("/images/sample1.jpg")'
   });
-      
-  let data = [ // sections
-    {
-      role: 'cover',
-      layout: 'slide',
-      value: [{
-        title: 'We share gifts',
-      },
-      {
-        title: 'And happiness',
-        src: '/images/sample1.jpg'
-      }] 
-    },
-    {
-      role: 'about',
-      layout: 'single',
-      value: {
-        title: 'Story',
-        content: SAMPLE_TEXT
-        //src: '/images/sample3.jpg'
-      }
-    },
-    {
-      role: 'about',
-      layout: 'single',
-      value: {
-        title: 'Our Brand',
-        content: SAMPLE_TEXT,
-        imgsrc: '/images/sample1.jpg'
-      }
-    },
-    {
-      role: 'contacts',
-      value: {
-        title: 'Contact us',
-        contacts : [
-          'support@myapp.cope.tech',
-          '+886 987 654 321'
-        ]
-      }
-    },
-    {
-      role: 'footer'
-    }
-  ];
 
   // sections data
   let sections = [
@@ -346,28 +306,6 @@ PurelyAppView.render(vu => {
     };
   });
 
-      // case 'slide':
-      //   viewClass = PurelyViews.class('Slide');
-      //   buildSettings.data.data = x.value.map(s => {
-      //     return {
-      //       title: s.title,
-      //       src: s.src,
-      //       link: s.link,
-      //       caption: s.title
-      //     }
-      //   });
-      //   buildSettings.data.container = {
-      //     width: '100%',
-      //     height: '100%'
-      //   };
-      //   buildSettings.data.showArrow = false;
-      //   buildSettings.data.captionFontCSS = {
-      //     'color': '#fff',
-      //     'text-align': 'left'
-      //   };
-      //   buildSettings.data.mode = 'center';
-
-
   secs.map((sec, idx) => {
     sec.wrap.$el().off('click').on('click', function() {
       
@@ -384,9 +322,26 @@ PurelyAppView.render(vu => {
         }
         console.log('vals',vals);
         sec.view.val(vals);
+      }).res('after', idx => {
+        // Update sections
+        
+        // Build empty wrap
+        let newWrap = PurelySecView.build({
+          data: { height: '400px' }
+        });
+
+        console.log(newWrap.dom());
+
+        // Insert new wrap after idx-th wrap
+        secs[idx].wrap.$el().after(newWrap.dom());
+
+        // Build inner view
+        // buildInnerView();
+
       });
 
-      // Fill up editSection with the selected section value
+      // Fill up editSection on the right side
+      // with the selected section value
       editSection.val(vals);
       
       vu.$el('@back').removeClass('hidden');
@@ -405,7 +360,6 @@ PurelyAppView.render(vu => {
       sec.wrap.val('fadeIn', true);
     });
   });
-  return;
 });
 
 // "AppPage"

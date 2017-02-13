@@ -435,6 +435,14 @@ textarea {
 .view-purely-layout-single .content {
 
 }
+.view-purely-layout-single .col {
+  position: absolute;
+  width: 60%;
+  height: 60%;
+  top: 20%;
+  right: 5%;
+  margin: 0;
+}
 
 .view-layout-chooser {
   display: table;

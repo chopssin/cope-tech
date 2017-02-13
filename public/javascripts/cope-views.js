@@ -379,6 +379,11 @@ PurelyAppView.render(vu => {
       });
 
       editSection.res('vals', vals => {
+
+        // Update data source
+        sections[idx] = vals;
+
+        // Update data for rendering
         if (vals.basic && vals.basic.content) {
           vals.basic.content = vals.basic.content.replace(/\n/g, '<br>');
         }

@@ -379,16 +379,9 @@ PurelyAppView.render(vu => {
       });
 
       editSection.res('vals', vals => {
-<<<<<<< HEAD
         if (vals.basic && vals.basic.content) {
           vals.basic.content = vals.basic.content.replace(/\n/g, '<br>');
         }
-        console.log('vals',vals);
-=======
-        vals.content = (vals.content 
-          && vals.content.replace(/\n/g, '<br>')) || '';
-        data[idx].value = vals;
->>>>>>> 6d8c4411c7d771d4544a30ed4cea67bb9ad7e2d9
         sec.view.val(vals);
       });
 

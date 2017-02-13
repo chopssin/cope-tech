@@ -1118,7 +1118,8 @@ SectionEditView.render( vu => {
   vu.$el('@section-edit').html('');
 
   let items = {};
-  [ 'layout', 
+  [ 'type',
+    'layout', 
     'title', 
     'content', 
     'background', 

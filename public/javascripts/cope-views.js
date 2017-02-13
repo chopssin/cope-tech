@@ -369,7 +369,7 @@ PurelyAppView.render(vu => {
       editSection.res('vals', vals => {
         vals.content = (vals.content 
           && vals.content.replace(/\n/g, '<br>')) || '';
-
+        data[idx].value = vals;
         sec.view.val(vals);
       });
 

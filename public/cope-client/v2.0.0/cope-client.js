@@ -276,11 +276,24 @@
   Thumbnailer.prototype.onload = function() {
     if (this.onload) {
       this.onload.call();
+    } else {
+          console.log('setTimeout 300 onload');
+      setTimeout(function() {
+        if (this.onload) {
+          this.onload.call();
+        } 
+      }, 300);
     }
   };
   Thumbnailer.prototype.onprogress = function(_p) {
     if (this.onprogress) {
       this.onprogress.call(_p);
+    } else {
+      setTimeout(function() {
+        if (this.onprogress) {
+          this.onprogress.call();
+        } 
+      }, 300);
     }
   };
   Thumbnailer.prototype.process1 = function(self, u) {
@@ -1564,14 +1577,53 @@
   // -----------------------------
   Cope.modal = function() {
 
+    // Cope styles
+    let css = {};
+    css.btn = {
+      'display': 'block',
+      'position': 'relative',
+      'min-width': '86px',
+      'text-align': 'center',
+      'font-size': '14px',
+      'font-weight': '400',
+      'padding': '8px',
+      'border': 'none',
+      'background-color': '#236eb6',
+      'color': '#fff',
+      'float': 'right',
+      'margin-top': '8px',
+      'cursor': 'pointer',
+      //'-webkit-box-shadow': '0px 4px 6px 0 rgba(0, 0, 0, .4)',
+      //'-moz-box-shadow': '0px 4px 6px 0 rgba(0, 0, 0, .4)',
+      'box-shadow': '0px 4px 6px 0 rgba(0, 0, 0, .4)'
+    };
+
     // Build the initial modal
+    // @lightbox
+    // @modal
+    // @main
+    // @btns
+    // @btn-left
+    // @btn-right
+    // - useBtn: string, could be 'left' || 'right' || 'both'
     let myModal = Cope.views().class('myModal');
     myModal.dom(vu => [
       { 'div@lightbox': [
-        { 'div@modal': '' }]
+        { 'div@modal': [
+          { 'div@main': '' },
+          { 'div@btns(style = "display:none")': [
+            { 'div@btn-left(style = "display:none")': '' },
+            { 'div@btn-right(style = "display:none")': '' }] 
+          }] 
+        }]
       }
     ]);
     myModal.render(vu => {
+
+      let btn = {};
+      btn.left = vu.$el('@btn-left');
+      btn.right = vu.$el('@btn-right');
+
       vu.$el('@lightbox').css({
         display: 'none',
         position: 'fixed',
@@ -1579,6 +1631,7 @@
         height: '100vh',
         margin: '0',
         padding: '0',
+        overflow: 'auto',
         'background-color': 'rgba(0,0,0, 0.88)',
         'z-index': '10000'
       }).off('click').on('click', e => {
@@ -1588,6 +1641,7 @@
         $('body').css('overflow', 'auto');
       });
 
+      // Modal CSS and click event
       vu.$el('@modal').css({
         display: 'table',
         position: 'relative',
@@ -1600,6 +1654,49 @@
       }).off('click').on('click', e => {
         e.stopPropagation();
       });
+      
+      // Main CSS
+      vu.$el('@main').css({
+        display: 'block',
+        width: '100%',
+        'max-height': '348px',
+        overflow: 'auto'
+      });
+
+      // Buttons CSS
+      ['left', 'right'].map(key => {
+        btn[key].css(css.btn)
+          .css('float', key)
+          .css('display', 'none')
+          .off('mouseenter').on('mouseenter', e => {
+            btn[key].css({
+              'box-shadow': '0px 6px 9px 0 rgba(0, 0, 0, .4)'
+            });
+          })
+          .off('mouseleave').on('mouseleave', e => {
+            btn[key].css({
+              'box-shadow': '0px 4px 6px 0 rgba(0, 0, 0, .4)'
+            });
+          })
+      });
+
+      switch (vu.get('useBtn')) {
+        case 'right':
+        case 'left':
+          vu.$el('@btns').show();
+          vu.$el('@btn-' + vu.get('useBtn')).show();
+          break;
+        case 'both':
+          vu.$el('@btns').show();
+          vu.$el('@btn-left').show();
+          vu.$el('@btn-right').show();
+          break;
+        default:
+          vu.$el('@btns').hide();
+          vu.$el('@btn-left').hide();
+          vu.$el('@btn-right').hide();
+      }
+
     }); // end of myModal.render
     
     myModal = myModal.build({
@@ -1617,50 +1714,34 @@
       myModal.$el('@lightbox').click();
     };
 
-
     // Built-in Views
     let modalViews = Cope.views(),
-        textInputView = modalViews.class('text');
+        textInputView = modalViews.class('text'),
+        fileInputView = modalViews.class('file');
 
-    // Cope styles
-    let css = {};
-    css.btn = {
-      'display': 'block',
-      'position': 'relative',
-      'min-width': '86px',
-      'text-align': 'center',
-      'font-size': '14px',
-      'font-weight': '400',
-      'padding': '8px',
-      'border': 'none',
-      'background-color': '#236eb6',
-      'color': '#fff',
-      'float': 'right',
-      'margin-top': '8px',
-      //'-webkit-box-shadow': '0px 4px 6px 0 rgba(0, 0, 0, .4)',
-      //'-moz-box-shadow': '0px 4px 6px 0 rgba(0, 0, 0, .4)',
-      'box-shadow': '0px 4px 6px 0 rgba(0, 0, 0, .4)'
-    };
-
-    // View - text input
+    // View - text
     // @value
     // - type: string, "input" or "textarea"
     // - label: string
+    // - placeholder: string
     // - value: string
     // - btn: string, button text
+    // "value" <- string, value of the input
     textInputView.dom(vu => [
       { 'div(style="font-size:16px;")': [
         { 'label': '' },
         ((vu.val('type') === 'textarea') 
         ? { 'textarea@value(rows="1" style="line-height:16px")': '' }
-        : { 'input@value(type="text" style="line-height:16px"))': '' }),
-        { 'button': '' }] 
+        : { 'input@value(type="text" style="line-height:16px"))': '' })] 
       }
     ]);
     textInputView.render(vu => {
 
       let $ta = vu.$el('@value'),
-          $btn = vu.$el('button');
+          $btn = myModal.$el('@btn-right');
+
+      // Use the right button
+      myModal.val('useBtn', 'right');
       
       vu.use('label').then(v => {
         vu.$el('label').text(v.label);
@@ -1668,50 +1749,204 @@
       vu.use('value').then(v => {
         $ta.val(v.value);
       });
+      vu.use('placeholder').then(v => {
+        $ta.prop('placeholder', v.placeholder);
+      });
 
       $ta.off('keyup').on('keyup', () => {
         let n = $ta.val().match(/\n/g);
         n = n ? n.length : 0;
-        console.log(n);
         $ta[0].style.height = (32 + 16 * n) + 'px';
+
+        vu.set('value', $ta.val().trim());
       });
 
       // Trigger a keyup event
       $ta.keyup();
 
       // Set the button
-      $btn.css(css.btn).html(vu.val('btn') || 'Done')
-        .off('mouseenter').on('mouseenter', e => {
-          $btn.css({
-            'box-shadow': '0px 6px 9px 0 rgba(0, 0, 0, .4)'
-          });
-        })
-        .off('mouseleave').on('mouseleave', e => {
-          $btn.css({
-            'box-shadow': '0px 4px 6px 0 rgba(0, 0, 0, .4)'
-          });
-        })
+      $btn.html(vu.val('btn') || 'Done')
         .off('click').on('click', e => {
-          vu.res('value', $ta.val().trim());
+          debug('Cope.modal', vu.get('value'));
+          vu.res('value', vu.get('value'));
           closeModal();
         });
-
     }); // end of "text"
 
+    // View - file
+    // @dropzone: div, where we drop and preview files
+    // @btn-choose: div, choose button
+    // @btn-upload: div, upload button
+    // - type: string, 'image' || 'video' || 'audio'
+    // - maxWidth: number, for image compression
+    // - saveOriginal: boolean, decide whether to save the original
+    // - files: array of object, { 
+    //   file: originalFile,
+    //   thumb: compressed file
+    // }
+    // "upload" <- array: array of { file, thumb }
+    fileInputView.dom(vu => [
+      { 'div@dropzone(style="margin-right:-14px;")': '' },
+      { 'input(type="file" multiple style="display:none; position:fixed; top:-10000px")': '' }
+    ]);
+    fileInputView.render(vu => {
+      myModal.val('useBtn', 'both');
+
+      let $left = myModal.$el('@btn-left'),
+          $right = myModal.$el('@btn-right'),
+          maxWidth = vu.get('maxWidth'),
+          files = [], // [fileObj]
+          grids = []; // Grid views
+
+      if (isNaN(maxWidth)) {
+        maxWidth = 200; // default max width
+      }
+
+      // Private views
+      let Grid = Cope.views().class('PreviewGrid');
+      Grid.dom(vu => [{ div: '' }]);
+      Grid.render(vu => {
+        vu.$el().css({
+          'display': 'block',
+          'position': 'relative',
+          'width': '160px',
+          'height': '160px',
+          'margin-right': '14px',
+          'margin-bottom': '14px',
+          'overflow': 'hidden',
+          'float': 'left',
+          'background-color': '#eee',
+          'background-repeat': 'no-repeat',
+          'background-position': '50% 50%',
+          'background-size': 'cover'
+        });
+
+        // TBD: Show the progress
+        let progress = vu.get('progress');
+      });
+
+      // To compress and preview image
+      let previewImage = function(file, grid, callback) {
+        let reader = new FileReader();
+        reader.onload = function(e) {
+
+          let img = new Image();
+          img.onload = function() {
+
+            // Compress the image
+            let thumb = Cope.Util.thumbnailer(img, maxWidth);
+            thumb.onload = function() {
+              let thumbDataURL = thumb.canvas.toDataURL(file.type);
+              let thumbFile = dataURItoBlob(thumbDataURL);
+            
+              // Preview image wrap
+              grid.$el().css('background-image', 'url(' + thumbDataURL + ')');
+              
+              grid.set('file', {
+                file: file,
+                thumbFile: thumbFile,
+                image: e.target.result,
+                thumbImage: thumbDataURL
+              });
+
+              // Callback with grid
+              callback(grid);
+            }; // end of thumb.onload
+            thumb.onprogress = function(progress) {
+              grid.val('progress', progress);
+            }; // end of thumb.onprogress
+          }; // end of img.onload
+          
+          // Load the image after onload function is assigned
+          img.src = e.target.result;
+
+        }; // end of reader.onload
+
+        reader.readAsDataURL(file);
+      }; // end of previewImage
+
+      let addFile = function(grids, file, callback) {
+        let fileObj = {},
+            fileType;
+
+        fileObj.file = file;
+
+        if (file.type.slice(0, 5) === 'image') {
+          fileType = 'image'
+        } else {
+
+          // Not valid
+          return grids;
+        } 
+
+        // Append to @dropzone
+        let grid = Grid.build({
+          sel: vu.$el('@dropzone'),
+          method: 'append',
+          data: { idx: grids.length }
+        });
+
+        // Preview the file
+        switch (fileType) {
+          case 'image':
+            previewImage(file, grid, callback);
+            break;
+        }
+
+        // Append to grid views array
+        grids = grids.concat(grid);
+        return grids;
+      }; // end of addFile
+
+      // File input onchange
+      vu.$el('input').off('change').on('change', e => {
+        let tmpFiles = vu.$el('input').get(0).files;
+
+        // Add to files
+        for (let i = 0; i < tmpFiles.length; i++) {
+          grids = addFile(grids, tmpFiles[i], grid => {
+            
+            // Update files
+            let fileObj = grid.get('file'); // { file, thumb, ... }
+            let idx = grid.get('idx');
+            files = files.slice(0, idx)
+              .concat(fileObj)
+              .concat(files.slice(idx));
+            vu.set('files', files);
+          });
+        } // end of for
+      }); // end of on change
+
+      // Buttons click events
+      $left.html('Choose')
+        .off('click').on('click', e => {
+          // Trigger the file input
+          vu.$el('input').click();
+        }); // end of $left.onclick
+
+      $right.html('Upload')
+        .off('click').on('click', e => {
+          closeModal();
+          vu.res('upload', vu.get('files'));
+        });
+    }); // end of fileInputView.render
+
+    // name: string, the desired View name
+    // params: object, the params to pass in
     let modal = function(name, params) {
-      // name: string, the desired View name
-      // params: object, the params to pass in
       if (typeof name != 'string' || (params && typeof params != 'object')) {
         return;
       }
 
       let Class = modalViews.class(name);
       if (Class) {
-        openModal();
-        return Class.build({
-          sel: myModal.sel('@modal'),
+        myModal.val('useBtn', 'none');
+        let vu = Class.build({
+          sel: myModal.sel('@main'),
           data: params || {}
         });
+        openModal();
+        return vu;
       }
     };
 

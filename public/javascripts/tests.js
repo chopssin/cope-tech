@@ -1426,6 +1426,57 @@ Test.go(log => {
     sel: '#SingleBlock'
   });
 });
+
+// Test - Cope.Modal
+Test.go(log => {
+  log.title('Cope.Modal');
+
+  let btnClass = Cope.views().class('btn');
+  btnClass.dom(vu => [{ 'button': vu.get('btnText') }]);
+  btnClass.render(vu => {
+    vu.$el('button').off('click').on('click', function() {
+      Cope.modal(vu.get('viewName'), vu.val())
+        .res('value', value => {
+          log(value);
+        })
+        .res('upload', files => {
+          console.log(files);
+          files.map(x => {
+            if (x.file.type.slice(0, 5) === 'image') {
+              $(log.sel()).append('<img src=' + x.thumbImage + '>');
+            }
+          });
+        })
+    });
+  });
+  btnClass.build({ 
+    sel: log.sel(), method:'append', 
+    data: { 
+      btnText: 'Text',
+      viewName: 'text' 
+    } 
+  });
+  btnClass.build({ 
+    sel: log.sel(), method:'append', 
+    data: { 
+      btnText: 'Textarea',
+      viewName: 'text', 
+      type: 'textarea', 
+      label: 'Textarea',
+      placeholder: 'This is a resizable textarea.'
+    } 
+  });
+  btnClass.build({ 
+    sel: log.sel(), method:'append', 
+    data: { 
+      btnText: 'Uploader',
+      viewName: 'file',
+      maxWidth: 40
+    } 
+  });
+  log.ok(); 
+});
+
 // end Tests
 
 })(jQuery, Cope);

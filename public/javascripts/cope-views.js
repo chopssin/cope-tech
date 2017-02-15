@@ -76,8 +76,8 @@ ViewAccountCard.render(vu => {
 
 // Purely - Purely.Sec
 PurelySecView.dom(vu => [
-  { 'div.purely-sec(style="padding:0;")': [
-    { 'div.plus': [
+  { 'div.purely-sec': [
+    { 'div@before-plus.plus.top': [
       { 'div': '+'}
     ]},
     { 'div@wrap.wrap':[
@@ -85,7 +85,7 @@ PurelySecView.dom(vu => [
       { 'div@sec(style="padding:0")': '' },
       { 'div@mask.mask': ''}
     ]},
-    { 'div.plus': [
+    { 'div@after-plus.plus.bottom': [
       { 'div': '+'}
     ]}
   ]}
@@ -97,6 +97,10 @@ PurelySecView.render(vu => {
       fadeIn = vu.val('fadeIn'),
       fadeOut = vu.val('fadeOut'),
       hasFadedIn = vu.val('hasFadedIn');
+
+  vu.$el().css({
+    top: '-1000px'
+  });
 
   if (fadeIn && !hasFadedIn) {
     vu.set('hasFadedIn', true);
@@ -123,6 +127,27 @@ PurelySecView.render(vu => {
       vu.res('mask clicked');
     }
   })
+
+  // Click events
+  // before -> myIdx - 1
+  // after -> myIdx
+  // res('after', ... )
+  vu.$el('@before-plus').off('click').on('click', () => {
+    vu.res('after', vu.get('idx'));
+  });
+
+  vu.$el('@after-plus').off('click').on('click', () => {
+    vu.res('after', vu.get('idx') + 1);
+  });
+
+  vu.use('idx, height').then(v => {
+    // TBD: animate css top
+    let h = v.height.slice(0, v.height.length - 2);
+    let top = h * v.idx;
+    vu.$el().css({
+      top: top + 'px'
+    })
+  });
 
 });
 
@@ -153,51 +178,6 @@ PurelyAppView.render(vu => {
     'background-color': '#aca',
     'background-image': 'url("/images/sample1.jpg")'
   });
-      
-  let data = [ // sections
-    {
-      role: 'cover',
-      layout: 'slide',
-      value: [{
-        title: 'We share gifts',
-      },
-      {
-        title: 'And happiness',
-        src: '/images/sample1.jpg'
-      }] 
-    },
-    {
-      role: 'about',
-      layout: 'single',
-      value: {
-        title: 'Story',
-        content: SAMPLE_TEXT
-        //src: '/images/sample3.jpg'
-      }
-    },
-    {
-      role: 'about',
-      layout: 'single',
-      value: {
-        title: 'Our Brand',
-        content: SAMPLE_TEXT,
-        imgsrc: '/images/sample1.jpg'
-      }
-    },
-    {
-      role: 'contacts',
-      value: {
-        title: 'Contact us',
-        contacts : [
-          'support@myapp.cope.tech',
-          '+886 987 654 321'
-        ]
-      }
-    },
-    {
-      role: 'footer'
-    }
-  ];
 
   // sections data
   let sections = [
@@ -248,6 +228,133 @@ PurelyAppView.render(vu => {
     }
   ];
 
+  // makePage
+  let makePage = function() {
+    let secs = [],
+        my = {};
+
+    let plusOnClick = function(idx) {
+
+      my.insert(idx);
+    };
+
+    let validate = function(p) {
+      if (!p) p = {};
+      if (!p.type) p.type = 'basic';
+      if (!p.basic) {
+        p.basic = {
+          title: 'Section Title',
+          content: 'More about this section.'
+        };
+      }
+      return p;
+    };
+
+    // s: params of the section
+    my.insert = function(i, s) {
+
+      console.log('input', i, s);
+      if (i > secs.length) return;
+     
+      // Handle the old array
+      secs.map(sec => {
+        let myIdx = sec.wrap.get('idx');
+        if (myIdx >= i) {
+          sec.wrap.val('idx', myIdx + 1);
+        }
+      });
+
+      // Handle the new one
+      let params = validate(s);
+      let wrap = PurelySecView.build({
+        sel: vu.sel('@page'),
+        method: 'append',
+        data: {
+          height: '400px',
+          idx: i
+        }
+      }).res('after', plusOnClick)
+      .res('mask clicked', () => {
+        // Fade out all sections except for self
+        // secs.about.val('fadeOut', true);
+        secs.map((x, idx) => {
+          if (i != idx) {
+            x.wrap.val('fadeOut', true);
+          }
+        });
+        // Fade in the current section
+        wrap.val('fadeIn', true);
+      });
+
+      // Options for basic section views
+      let basicLayouts = {
+        single: 'Purely.Layout.Single'
+      };
+
+      // Decide basic section view class
+      let viewClass = PurelyViews.class(basicLayouts[params.basic.layout || 'single']);
+
+      // Initiate build settings
+      let buildSettings = {};
+      buildSettings.sel = wrap.sel('@sec');
+      //buildSettings.method = 'append';
+      buildSettings.data = params;
+
+      secs = secs.concat({
+        wrap: wrap,
+        view: viewClass.build(buildSettings)
+      });
+
+      secs.map((sec, idx) => {
+        sec.wrap.$el().off('click').on('click', function() {
+        
+        let vals = sections[idx];
+
+        // Build the section editor on the right side
+        let editSection = PurelyViews.class('Purely.Edit.Section.Settings').build({
+          sel: vu.$el('@sec-settings')
+        });
+
+        editSection.res('vals', vals => {
+
+          // Update data source
+          sections[idx] = vals;
+          // Update data for rendering
+          if (vals.basic && vals.basic.content) {
+            vals.basic.content = vals.basic.content.replace(/\n/g, '<br>');
+          }
+          sec.view.val(vals);
+        });
+        // Fill up editSection on the right side
+        // with the selected section value
+        editSection.val(vals);
+        
+        vu.$el('@back').removeClass('hidden');
+        vu.$el('@app-settings').addClass('hidden');
+        vu.$el('@sec-settings').removeClass('hidden');
+      });
+     });   
+
+      console.log(secs.map(s => s.wrap.get('idx')).join(', '));
+    }; // end of my.insert
+
+    my.remove = function(i) {
+
+    };
+
+    my.swap = function(i, j) {
+
+    };
+
+    return my;
+  };
+
+  let Page = makePage();
+
+  sections.map((s, i) => {
+    Page.insert(i, s);
+  });
+
   // Panel routing
   vu.$el('@back').off('click').on('click', e => {
     
@@ -258,11 +365,6 @@ PurelyAppView.render(vu => {
     vu.$el('@back').addClass('hidden');
     vu.$el('@sec-settings').addClass('hidden');
   });
-
-  // Layout Chooser build
-  //let LayoutChooser = LayoutChooserView.build({
-  //  sel: editSection.sel('@') //vu.sel('@sec-layouts')
-  //});
 
   // App Settings
   let vals = vu.val();
@@ -311,106 +413,7 @@ PurelyAppView.render(vu => {
       }
     }
   });
-
-  // Left side sections 
-  let secs = sections.map((x, idx) => {
-
-    let viewClass, view, // PurelyViews.class(<className>) 
-        subClass, // for 'collection' or 'contacts'
-        buildSettings = {};
-    
-    let wrap = PurelySecView.build({
-      sel: vu.sel('@page'),
-      method: 'append',
-      data: {
-        height: '400px'
-      }
-    });
-
-    // Options for basic section views
-    let basicLayouts = {
-      single: 'Purely.Layout.Single'
-    };
-
-    // Decide basic section view class
-    viewClass = PurelyViews.class(basicLayouts[x.layout || 'single']);
-
-    // Initiate build settings
-    buildSettings.sel = wrap.sel('@sec');
-    buildSettings.method = 'append';
-    buildSettings.data = x;
-
-    return {
-      wrap: wrap,
-      view: viewClass.build(buildSettings)
-    };
-  });
-
-      // case 'slide':
-      //   viewClass = PurelyViews.class('Slide');
-      //   buildSettings.data.data = x.value.map(s => {
-      //     return {
-      //       title: s.title,
-      //       src: s.src,
-      //       link: s.link,
-      //       caption: s.title
-      //     }
-      //   });
-      //   buildSettings.data.container = {
-      //     width: '100%',
-      //     height: '100%'
-      //   };
-      //   buildSettings.data.showArrow = false;
-      //   buildSettings.data.captionFontCSS = {
-      //     'color': '#fff',
-      //     'text-align': 'left'
-      //   };
-      //   buildSettings.data.mode = 'center';
-
-
-  secs.map((sec, idx) => {
-    sec.wrap.$el().off('click').on('click', function() {
-      
-      let vals = sections[idx];
-
-      // Build the section editor on the right side
-      let editSection = PurelyViews.class('Purely.Edit.Section.Settings').build({
-        sel: vu.$el('@sec-settings')
-      });
-
-      editSection.res('vals', vals => {
-
-        // Update data source
-        sections[idx] = vals;
-
-        // Update data for rendering
-        if (vals.basic && vals.basic.content) {
-          vals.basic.content = vals.basic.content.replace(/\n/g, '<br>');
-        }
-        sec.view.val(vals);
-      });
-
-      // Fill up editSection with the selected section value
-      editSection.val(vals);
-      
-      vu.$el('@back').removeClass('hidden');
-      vu.$el('@app-settings').addClass('hidden');
-      vu.$el('@sec-settings').removeClass('hidden');
-    });
-    sec.wrap.res('mask clicked', () => {
-      // Fade out all sections except for self
-      // secs.about.val('fadeOut', true);
-      secs.map((x, i) => {
-        if (idx != i) {
-          x.wrap.val('fadeOut', true);
-        }
-      });
-      // Fade in the current section
-      sec.wrap.val('fadeIn', true);
-    });
-  });
-  return;
-});
+}); //end of PureAppView.render
 
 // "AppPage"
 // "rename app" <= string, the new name

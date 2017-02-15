@@ -20,9 +20,14 @@ let NavView = Views.class('Nav'),
   PurelyEditNavView = Views.class('Purely.Edit.Nav'), // to be deprecated
   PurelyEditSingleView = Views.class('Purely.Edit.Single'), // to be deprecated
   SectionEditView = Views.class('Purely.Edit.Section.Settings'),
-  LayoutChooserView = Views.class('Purely.Layout.Chooser');
-  // Purely Layouts
+  
+  TypeChooserView = Views.class('Purely.TypeChooser'),
+  LayoutChooserView = Views.class('Purely.LayoutChooser');
+
+  // Purely Layouts for sections
   PurelyLayoutSingleView = Views.class('Purely.Layout.Single'),
+
+  // For collections
   PurelyLayoutSlideView = Views.class('Purely.Layout.Slide'),
   PurelyLayoutGridView = Views.class('Purely.Layout.Grid'),
   PurelyLayoutWaterfallView = Views.class('Purely.Layout.Waterfall');
@@ -703,7 +708,6 @@ SlideView.render( vu => {
 
   //  Loading Data
   vu.use('data').then( v => {
-
     if(Array.isArray(v.data)){
       let currentNumber = 0;
       let totalSlideNumber = v.data.length - 1;
@@ -990,14 +994,14 @@ PurelyLayoutSingleView.dom( vu => [
   { 'div.view-purely-layout-single': [
     { 'h5@title.title': ''},
     { 'p@content.content': ''},
-    { 'div@col': '' }
+    { 'div@col.col': '' }
   ]}
 ]);  
 
 PurelyLayoutSingleView.render( vu => {
+  vu.$el().children().html('');
 
   let vals = vu.val();
-  console.log(vals);
 
   // vals.basic
   vu.use('basic').then(v => {
@@ -1019,15 +1023,26 @@ PurelyLayoutSingleView.render( vu => {
   });
 
   // vals.collection
-  vu.use('collection')
+  vu.use('collection').then(v => {
+    if (v.type != 'collection') return;
+
+    SlideView.build({
+      sel:vu.sel('@col'),
+      data: {
+        data: v.collection.data,
+        container: {
+          width: '100%',
+          height: '100%'
+        }
+      }
+    });
+  });
 
   // vals.contacts
   vu.use('contacts').then(v => {
-
+    if (v.type != 'contacts') return;
+    
     let title = v.basic.title || '';
-
-    vu.$el('@title').addClass('hidden');
-    vu.$el('@content').addClass('hidden');
 
     ContactsView.build({
       sel: vu.sel('@col'),
@@ -1143,6 +1158,9 @@ SectionEditView.dom( vu => [
 
 SectionEditView.render( vu => {
 
+  let typeChooser,
+      layoutChooser;
+
   let vals = vu.val() || {};
   if (!vals.basic) vals.basic = {}; 
 
@@ -1154,13 +1172,24 @@ SectionEditView.render( vu => {
   vu.$el('@section-edit').html('');
 
   let items = {};
-  [ 'type',
+  let keys = [ 
+    'type',
     'layout', 
     'title', 
     'content', 
-    'background', 
-    'collection',
-    'contacts' ].map(key => {
+    'background'
+  ]; 
+
+  switch (vals.type) {
+    case 'collection':
+    case 'contacts':
+      keys = keys.concat([vals.type]);
+      break;
+    default:
+  }
+
+
+  keys.map(key => {
 
     let data = {};
     data.label = upper(key);
@@ -1189,9 +1218,23 @@ SectionEditView.render( vu => {
     });
   }); // end of the construction of items
 
+  // Build type chooser
+  typeChooser = TypeChooserView.build({
+    sel: items.type.sel('@display')
+  }).res('clicked', type => {
+    // TBD
+    console.log(type);
+    vals.type = type;
+    vu.res('vals', vals);
+    vu.val(vals);
+  });
+
   // Build layout chooser
-  LayoutChooserView.build({
-    sel: items.layout.sel('@display')
+  layoutChooser = LayoutChooserView.build({
+    sel: items.layout.sel('@display'),
+    data: {
+      type: vals.type
+    }
   });
 
   // Build the preview box of background
@@ -1214,69 +1257,32 @@ SectionEditView.render( vu => {
     bgBoxCSS['background-image'] = `url(${ vals.basic.imgsrc })`;
   }
   bgBox.$el().css(bgBoxCSS).addClass('bg-img');
+});
 
-  return;
+// Type Chooser
+// @type-basic
+// @type-col
+// @type-contacts
+TypeChooserView.dom( vu => [
+  { 'div@type-chooser.view-type-chooser': [
+    { 'div@type-basic.type-option': 'Basic' },
+    { 'div@type-col.type-option': 'Collection' },
+    { 'div@type-contacts.type-option': 'Contacts' }]
+  }
+]);
 
-  // Print Data Method
-  vu.use('vals').then(v => {
-    let vals = v.vals,
-        placeholders = {
-          title: 'Title',
-          content: 'Content'
-        };
-    Object.keys(vals).map(key => {
-      console.log('key',key);
-      switch (key) {
-        case 'title':
-        case 'content':
-          let value = vals[key] || {};
-          ListItemView.build({
-            sel: vu.sel('@section-edit'),
-            method: 'append',
-            data: {
-              label: key.slice(0, 1).toUpperCase().concat(key.slice(1)),
-              value: value,
-              editable: true,
-              textarea: (key === 'content'),
-              placeholder: placeholders[key]
-            }
-          }).res('value', val => {
-            vals[key] = val;
-            vu.set('vals', vals);
-            vu.res('vals', vals);
-          });
-          break;
-        case 'src':
-          ListItemView.build({
-            sel: vu.sel('@section-edit'),
-            method: 'append',
-            data: {
-              label: 'Image'
-            }
-          });
-          let box = BoxView.build({
-            sel: vu.sel('@section-edit'),
-            method: 'append'
-          }).$el().css({
-            'width': '100%',
-            'height': '300px',
-            'border': '12px solid transparent',
-            'margin-top': '-12px',
-            'background-image': `url(${vals.src})`
-          }).addClass('bg-img');
+TypeChooserView.render( vu => {
+  //@type-basic click event
+  vu.$el('@type-basic').off('click').on('click', () => {
+    vu.res('clicked', 'basic');
+  });
 
-          box.off('click').on('click', e => {
-            vu.res('box clicked', box);
-          });
-          break;
-        case 'contacts': // Contacts
-          console.log('contacts',vals[key]);
-          break;
-        case 'data': // slide, grid, waterfall
-          break;
-        default:
-      }
-    });
+  vu.$el('@type-col').off('click').on('click', () => {
+    vu.res('clicked', 'collection');
+  });
+
+  vu.$el('@type-contacts').off('click').on('click', () => {
+    vu.res('clicked', 'contacts');
   });
 });
 
@@ -1305,7 +1311,7 @@ LayoutChooserView.render( vu => {
   blocks.map( (block, index) => {
     vu.$el('@layout-chooser').append(`
       <div class="col-xs-6 col-xs-4">
-        <div class="bg-img block" data-component="block-${index}"></div>
+        <div class="bg-img block" data-component="block-${index}">${ (vu.get('type') || 'basic') + '-' + index}</div>
       </div>`);
     
     vu.$el(`@block-${index}`).css('background-image', `url(${block.src})`);

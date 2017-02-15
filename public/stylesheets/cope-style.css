@@ -351,7 +351,10 @@
 
 /* Purely App Simulator */
 .purely-sec {
-
+  display: block;
+  position: absolute;
+  width: 50%;
+  padding: 0;
 }
 .purely-sec .wrap {
   display: block;
@@ -369,9 +372,17 @@
 }
 .purely-sec .plus {
   display: none;
+  position: absolute;
   width: 100%;
   padding: 16px;
   text-align: center;
+  z-index: 99;
+}
+.purely-sec .plus.top {
+  top: 0;
+}
+.purely-sec .plus.bottom {
+  bottom: 0;
 }
 .purely-sec .plus div {
   position: relative;
@@ -408,10 +419,10 @@
 .purely-app .sim-sections {
   display: block;
   position: relative;
-  width: 120%;
+  width: 200%;
   height: 400px;
   overflow: scroll;
-  padding-right: 20%;
+  padding-right: 100%;
 }
 .purely-app .sim-sections > div {
   display: block;

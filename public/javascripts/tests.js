@@ -1411,6 +1411,7 @@ Test.go(log => {
 
 // Test - Purely: App name, Logo and Nav
 Test.go(log => {
+  log.title('Purely.Edit.Nav');
   Vbox.append('PurelyEditNav');
   let MyPure = Views.class('Purely.Edit.Nav').build({
     sel: '#PurelyEditNav'
@@ -1421,6 +1422,7 @@ Test.go(log => {
 
 // Test - Purely: Single Block
 Test.go(log => {
+  log.title('Purely.Edit.Single');
   Vbox.append('SingleBlock');
   let SingleBlock = Views.class('Purely.Edit.Single').build({
     sel: '#SingleBlock'

@@ -1002,7 +1002,6 @@ PurelyLayoutSingleView.render( vu => {
   vu.$el().children().html('');
 
   let vals = vu.val();
-  console.log(vals);
 
   // vals.basic
   vu.use('basic').then(v => {
@@ -1027,7 +1026,6 @@ PurelyLayoutSingleView.render( vu => {
   vu.use('collection').then(v => {
     if (v.type != 'collection') return;
 
-    console.log(v.collection.data);
     SlideView.build({
       sel:vu.sel('@col'),
       data: {
@@ -1275,15 +1273,15 @@ TypeChooserView.dom( vu => [
 
 TypeChooserView.render( vu => {
   //@type-basic click event
-  vu.$el('@type-basic').off('click').on('click', () =>{
+  vu.$el('@type-basic').off('click').on('click', () => {
     vu.res('clicked', 'basic');
   });
 
-  vu.$el('@type-col').off('click').on('click', () =>{
+  vu.$el('@type-col').off('click').on('click', () => {
     vu.res('clicked', 'collection');
   });
 
-  vu.$el('@type-contacts').off('click').on('click', () =>{
+  vu.$el('@type-contacts').off('click').on('click', () => {
     vu.res('clicked', 'contacts');
   });
 });

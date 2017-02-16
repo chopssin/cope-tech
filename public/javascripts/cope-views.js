@@ -6,13 +6,20 @@ var debug = Cope.Util.setDebug('cope-views', false),
     Views = Cope.views('Cope'), // global views
     ViewAppCard = Views.class('AppCard'),
     ListItemView = Views.class('ListItem'),
-    PurelyAppView = Views.class('Purely.App'),
-    PurelySecView = Views.class('Purely.Sec'),
-    PurelySettingsView = Views.class('Purely.Settings'),
+
     ViewAppPage = Views.class('AppPage'),
     ViewDataGraph = Views.class('DataGraph'),
     ViewAccountCard = Views.class('AccountCard'),
-    ToggleView = Views.class('Toggle');
+    ToggleView = Views.class('Toggle'),
+    NavBoxView = Views.class('NavBox'),
+
+    PurelyAppView = Views.class('Purely.App'),
+    PurelySecView = Views.class('Purely.Sec'),
+    PurelySettingsView = Views.class('Purely.Settings'),
+    
+    //SectionEditView & PageEditView
+    SectionEditView = Views.class('Purely.Edit.Section.Settings'),
+    PageEditView = Views.class('Purely.Edit.Page'),
 
     priViews = Cope.useViews(), // private views
     ViewAddInput = priViews.class('AddInput');
@@ -73,6 +80,24 @@ ViewAccountCard.render(vu => {
   });
 });
 // end of "AccountCard"
+
+// NavBox
+NavBoxView.dom(vu => [{ 'div': '' }]);
+NavBoxView.render(vu => {
+  let height = vu.get('height') + 'px' || '50px';
+      
+  vu.$el().css({
+    position: 'absolute',
+    width: '100%',
+    height: height
+  });
+  vu.use('idx, height').then(v => {
+    vu.$el().animate({
+      'top': (v.height * v.idx) + 'px'
+    }, 400);
+  });
+});
+
 
 // Purely - Purely.Sec
 PurelySecView.dom(vu => [
@@ -156,13 +181,11 @@ PurelySecView.render(vu => {
 
   vu.use('idx, height').then(v => {
     // TBD: animate css top
-    let h = v.height.slice(0, v.height.length - 2);
-    let top = h * v.idx;
+    let top = v.height * v.idx;
     vu.$el().css({
       top: top + 'px'
     })
   });
-
 });
 
 // Purely - Purely.App
@@ -187,14 +210,27 @@ PurelyAppView.dom(vu => [
 PurelyAppView.render(vu => {
   let SAMPLE_TEXT = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nec est sed turpis tincidunt mollis. Duis nec justo tortor. Aliquam dictum dignissim molestie. Fusce maximus sit amet felis auctor pellentesque. \n\nSed dapibus nibh id rutrum elementum. Aliquam semper, ipsum in ultricies finibus, diam libero hendrerit felis, nec pharetra mi tellus at leo. Duis ultricies ultricies risus, sed convallis ex molestie at. Nulla facilisi. Ut sodales venenatis massa, nec venenatis quam semper eget.';
 
+  let pages = [], 
+      sections = [];
   // Set the whole page css
   vu.$el('.sim-wrap').css({
     'background-color': '#aca',
     'background-image': 'url("/images/sample1.jpg")'
   });
 
+  // pages data
+  pages = [{
+    title: 'Home'
+  }, {
+    title: 'Products'
+  }, {
+    title: 'Services'
+  }, {
+    title: 'Contacts'
+  }];
+
   // sections data
-  let sections = [
+  sections = [
     {
       type: 'collection',
       collection: {
@@ -243,6 +279,9 @@ PurelyAppView.render(vu => {
   ];
 
   // makeList
+  //  o: Object
+  //  
+  //
   let makeList = function(o) {
     let secs = [],
         my = {};
@@ -263,7 +302,7 @@ PurelyAppView.render(vu => {
       });
 
       // Handle the new one
-      let wrap = o.viewClass.build({ //PurelySecView.build({
+      let wrap = o.wrapClass.build({ //PurelySecView.build({
         sel: o.sel, //vu.sel('@page'),
         method: 'append',
         data: {
@@ -282,7 +321,7 @@ PurelyAppView.render(vu => {
       secs.map((sec, idx) => {
         sec.wrap.$el().off('click').on('click', function() {
           if (o.onclick) {
-            o.onclick(sec, idx);
+            o.onclick(sec, sec.wrap.get('idx'));
           }
         });  
       });    
@@ -298,26 +337,35 @@ PurelyAppView.render(vu => {
         }
         return true;
       });
-    };
+    }; // end of my.remove
 
     my.swap = function(i, j) {
-
-    };
+      let wrap_i, wrap_j;
+      let arr = [];
+      arr = secs.map(sec => sec.wrap.get('idx'));
+      wrap_i = arr.indexOf(i);
+      wrap_j = arr.indexOf(j);
+      if(wrap_i != wrap_j) {
+        secs[wrap_i].wrap.val('idx', j);
+        secs[wrap_j].wrap.val('idx', i);
+      }
+    }; // end of my.swap
 
     return my;
   };
 
+  // Page
   let Page = makeList({
-    viewClass: PurelySecView,
+    wrapClass: PurelySecView,
     sel: vu.sel('@page'),
-    height: '400px',
+    height: 400,
     onclick: function(sec, idx) {
 
       let vals = sections[idx];
 
       // Build the section editor on the right side
       let editSection = PurelyViews.class('Purely.Edit.Section.Settings').build({
-        sel: vu.$el('@sec-settings')
+        sel: vu.sel('@sec-settings')
       });
 
       editSection.res('vals', vals => {
@@ -343,7 +391,6 @@ PurelyAppView.render(vu => {
   // Build the initial sections
   sections.map((s, i) => {
     Page.insert(i, function(wrap, secs) {
-
       let build = function(wrap, p) {
         if (!p) p = {};
         if (!p.type) p.type = 'basic';
@@ -451,16 +498,47 @@ PurelyAppView.render(vu => {
     }
   })
   
-  // vu.$el('@nav').off('click').on('click', () => {
-  //   console.log('nav clicked');
-  //   let navPanel = PurelyViews.class('Purely.Edit.Nav.Settings').build({
-  //     sel: vu.sel('@sec-settings')
-  //   });
+  // Nav click event
+  vu.$el('@nav').off('click').on('click', () => {
+    console.log('nav clicked');
 
-  //   vu.$el('@back').removeClass('hidden');
-  //   vu.$el('@app-settings').addClass('hidden');
-  //   vu.$el('@sec-settings').removeClass('hidden');
-  // });
+    // Build wrap for nav settings
+    let navboxWrap = PurelyViews.class('Box').build({
+      sel: vu.sel('@sec-settings'),
+      data: {
+        css: {
+          width: '100%',
+          height: '400px',
+          overflow: 'auto'
+        }
+      }
+    });
+
+    // Nav
+    let Nav = makeList({
+      wrapClass: NavBoxView,//PurelyViews.class('Purely.Edit.Page'),
+      sel: navboxWrap.sel(),
+      height: 100,
+      onclick: function(sec, idx) {
+        let ridx = Math.floor(Math.random() * pages.length);
+        Nav.swap(idx, ridx);
+      }
+    });
+
+    pages.map((p, i) => {
+      Nav.insert(i, function(wrap, secs){
+        return PurelyViews.class('ListItem').build({
+          sel: wrap.sel(),
+          data: { label: p.title }
+        }); 
+      });
+    });
+
+    vu.$el('@back').removeClass('hidden');
+    vu.$el('@app-settings').addClass('hidden');
+    vu.$el('@sec-settings').removeClass('hidden');
+  }); 
+
 
 }); //end of PureAppView.render
 

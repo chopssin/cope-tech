@@ -17,9 +17,10 @@ let NavView = Views.class('Nav'),
   ListItemView = Views.class('ListItem');
   ContactsView = Views.class('Contacts'),
   MyPurelyView = Views.class('MyPurely');
-  PurelyEditNavView = Views.class('Purely.Edit.Nav.Settiings'),
+  PurelyEditNavView = Views.class('Purely.Edit.Nav.Settiings'),// to be depreacted
   PurelyEditSingleView = Views.class('Purely.Edit.Single'), // to be deprecated
   SectionEditView = Views.class('Purely.Edit.Section.Settings'),
+  PageEditView = Views.class('Purely.Edit.Page'),
   
   TypeChooserView = Views.class('Purely.TypeChooser'),
   LayoutChooserView = Views.class('Purely.LayoutChooser');
@@ -1262,11 +1263,11 @@ SectionEditView.render( vu => {
 
 // PurelyEditNavView
 // @nav-edit
-PurelyEditNavView.dom( vu => [
+PageEditView.dom( vu => [
   { 'div@nav-edit': 'page'}
 ]);
 
-PurelyEditNavView.render( vu => {
+PageEditView.render( vu => {
   vu.$el().off('click').on('click', () => {
     console.log('ok');
   });

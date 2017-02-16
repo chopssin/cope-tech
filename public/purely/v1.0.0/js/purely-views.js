@@ -17,7 +17,7 @@ let NavView = Views.class('Nav'),
   ListItemView = Views.class('ListItem');
   ContactsView = Views.class('Contacts'),
   MyPurelyView = Views.class('MyPurely');
-  PurelyEditNavView = Views.class('Purely.Edit.Nav'), // to be deprecated
+  PurelyEditNavView = Views.class('Purely.Edit.Nav.Settiings'),
   PurelyEditSingleView = Views.class('Purely.Edit.Single'), // to be deprecated
   SectionEditView = Views.class('Purely.Edit.Section.Settings'),
   
@@ -1258,6 +1258,22 @@ SectionEditView.render( vu => {
   }
   bgBox.$el().css(bgBoxCSS).addClass('bg-img');
 });
+
+
+// PurelyEditNavView
+// @nav-edit
+PurelyEditNavView.dom( vu => [
+  { 'div@nav-edit': 'page'}
+]);
+
+PurelyEditNavView.render( vu => {
+  vu.$el().off('click').on('click', () => {
+    console.log('ok');
+  });
+});
+
+
+
 
 // Type Chooser
 // @type-basic

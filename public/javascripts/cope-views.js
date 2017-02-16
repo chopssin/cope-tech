@@ -210,10 +210,14 @@ PurelyAppView.dom(vu => [
 ]);
 
 PurelyAppView.render(vu => {
+
+  // Reset
+  vu.$el('@page').html('');
+
   let SAMPLE_TEXT = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nec est sed turpis tincidunt mollis. Duis nec justo tortor. Aliquam dictum dignissim molestie. Fusce maximus sit amet felis auctor pellentesque. \n\nSed dapibus nibh id rutrum elementum. Aliquam semper, ipsum in ultricies finibus, diam libero hendrerit felis, nec pharetra mi tellus at leo. Duis ultricies ultricies risus, sed convallis ex molestie at. Nulla facilisi. Ut sodales venenatis massa, nec venenatis quam semper eget.';
 
-  let pages = [], 
-      sections = [];
+  let pages = vu.get('pages'), 
+      sections = vu.get('sections');
   // Set the whole page css
   vu.$el('.sim-wrap').css({
     'background-color': '#aca',
@@ -232,7 +236,7 @@ PurelyAppView.render(vu => {
   }];
 
   // sections data
-  sections = [
+  sections = sections || [
     {
       type: 'collection',
       collection: {
@@ -279,11 +283,10 @@ PurelyAppView.render(vu => {
       ]
     }
   ];
+  vu.set('sections', sections);
 
   // makeList
-  //  o: Object
-  //  
-  //
+  // o: Object
   let makeList = function(o) {
     let secs = [],
         my = {};
@@ -332,8 +335,8 @@ PurelyAppView.render(vu => {
               o['on' + evt](sec, sec.wrap.get('idx'));
             });
           }
-        });
-      });    
+        }); // end of [ ... ].map
+      }); // end of secs.map
     }; // end of my.insert
 
     my.remove = function(i) {
@@ -370,7 +373,7 @@ PurelyAppView.render(vu => {
     height: 400,
     onclick: function(sec, idx) {
 
-      let vals = sections[idx];
+      let vals = sec.view.get(); //vu.get('sections')[idx];
 
       // Build the section editor on the right side
       let editSection = PurelyViews.class('Purely.Edit.Section.Settings').build({
@@ -380,7 +383,13 @@ PurelyAppView.render(vu => {
       editSection.res('vals', vals => {
 
         // Update data source
-        sections[idx] = vals;
+        //sections = vu.get('sections');
+        //sections[idx] = vals;
+        vu.set('sections', sections => {
+          sections[idx] = vals;
+          return sections;
+        });
+        
         // Update data for rendering
         if (vals.basic && vals.basic.content) {
           vals.basic.content = vals.basic.content.replace(/\n/g, '<br>');
@@ -390,11 +399,24 @@ PurelyAppView.render(vu => {
         Cope.modal('file', {
           maxWidth: 500
         }).res('upload', arr => {
-          let vals = editSection.val();
-          vals.basic.imgsrc = arr[0].image;
-          sections[idx] = vals;
-          editSection.val(vals);
-          sec.view.val(vals);
+          editSection.set('basic', basic => {
+            basic.imgsrc = arr[0].image;
+            return basic;
+          }); 
+
+          vu.set('sections', sections => {
+            let vals = editSection.val();
+            sections[idx] = vals; 
+            sec.view.val(vals);
+            return sections;
+          });
+          //let vals = editSection.val();
+          //vals.basic.imgsrc = arr[0].image;
+          //sections = vu.get('sections');
+          //sections[idx] = vals;
+          //editSection.val(vals);
+          //sec.view.val(vals);
+          //vu.set('sections', sections);
         });
       });
 

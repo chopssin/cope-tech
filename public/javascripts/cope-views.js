@@ -326,7 +326,10 @@ PurelyAppView.render(vu => {
       secs.map((sec, idx) => {
         [ 'click', 
           'dragstart', 
+          'dragend', 
+          'dragenter', 
           'dragover', 
+          'dragleave', 
           'drop', 
           'mouseenter', 
           'mouseleave' ].map(evt => {
@@ -558,6 +561,7 @@ PurelyAppView.render(vu => {
     });
 
     // Nav
+    let dragged, dropAt;
     let Nav = makeList({
       wrapClass: NavBoxView,//PurelyViews.class('Purely.Edit.Page'),
       sel: navboxWrap.sel(),
@@ -566,9 +570,21 @@ PurelyAppView.render(vu => {
         //let ridx = Math.floor(Math.random() * pages.length);
         //Nav.swap(idx, ridx);
 
-        Nav.swap(0, 1);
-        Nav.swap(1, 2);
-        Nav.swap(2, 3);
+      },
+      ondragstart: function(sec, idx) {
+        dragged = idx;
+      },
+      ondragenter: function(sec, idx) {
+        sec.wrap.$el().css('background', '#aca');
+        dropAt = idx;
+        console.log('enter');
+      },
+      ondragleave: function(sec, idx) {
+        sec.wrap.$el().css('background', '#fff');
+        console.log('leave');
+      },
+      ondragend: function(sec, idx) {
+        Nav.swap(dragged, dropAt);
       }
     });
 

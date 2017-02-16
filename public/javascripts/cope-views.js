@@ -82,19 +82,21 @@ ViewAccountCard.render(vu => {
 // end of "AccountCard"
 
 // NavBox
-NavBoxView.dom(vu => [{ 'div': '' }]);
+NavBoxView.dom(vu => [{ 'div(draggable = true)': '' }]);
 NavBoxView.render(vu => {
   let height = vu.get('height') + 'px' || '50px';
       
   vu.$el().css({
     position: 'absolute',
     width: '100%',
-    height: height
+    height: height,
+    border: '1px solid #333',
+    background: '#fff'
   });
   vu.use('idx, height').then(v => {
-    vu.$el().animate({
+    vu.$el().css({
       'top': (v.height * v.idx) + 'px'
-    }, 400);
+    });
   });
 });
 
@@ -319,11 +321,18 @@ PurelyAppView.render(vu => {
       });
 
       secs.map((sec, idx) => {
-        sec.wrap.$el().off('click').on('click', function() {
-          if (o.onclick) {
-            o.onclick(sec, sec.wrap.get('idx'));
+        [ 'click', 
+          'dragstart', 
+          'dragover', 
+          'drop', 
+          'mouseenter', 
+          'mouseleave' ].map(evt => {
+          if (o['on' + evt]) {
+            sec.wrap.$el().off(evt).on(evt, function() {
+              o['on' + evt](sec, sec.wrap.get('idx'));
+            });
           }
-        });  
+        });
       });    
     }; // end of my.insert
 
@@ -532,8 +541,12 @@ PurelyAppView.render(vu => {
       sel: navboxWrap.sel(),
       height: 100,
       onclick: function(sec, idx) {
-        let ridx = Math.floor(Math.random() * pages.length);
-        Nav.swap(idx, ridx);
+        //let ridx = Math.floor(Math.random() * pages.length);
+        //Nav.swap(idx, ridx);
+
+        Nav.swap(0, 1);
+        Nav.swap(1, 2);
+        Nav.swap(2, 3);
       }
     });
 

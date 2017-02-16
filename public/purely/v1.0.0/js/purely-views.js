@@ -1149,9 +1149,10 @@ ListItemView.render(vu => {
   }
 }); 
 
-// Section Edit
+// Purely.Edit.Section.Settings
 // @section-edit
 // - vals: object
+// - items: object, all items with names
 // "box clicked" <- view object
 SectionEditView.dom( vu => [
   { 'div@section-edit': ''}
@@ -1188,7 +1189,6 @@ SectionEditView.render( vu => {
       break;
     default:
   }
-
 
   keys.map(key => {
 
@@ -1244,7 +1244,7 @@ SectionEditView.render( vu => {
   });
   
   bgBox.$el().off('click').on('click', e => {
-    vu.res('box clicked', bgBox);
+    vu.res('background', bgBox);
   });
 
   let bgBoxCSS = {
@@ -1258,6 +1258,8 @@ SectionEditView.render( vu => {
     bgBoxCSS['background-image'] = `url(${ vals.basic.imgsrc })`;
   }
   bgBox.$el().css(bgBoxCSS).addClass('bg-img');
+
+  vu.set('items', items);
 });
 
 

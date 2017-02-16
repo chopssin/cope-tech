@@ -99,6 +99,9 @@ Pages.use('/', params => {
 
           toggle.val('sec', 'app');
 
+          // Get the Graph interface
+          let G = Cope.graph(app.appId);
+
           // Build the app page
           let purelyApp = CopeViews.class('Purely.App').build({
             sel: toggle.sel('@app'),
@@ -111,9 +114,18 @@ Pages.use('/', params => {
             app.set('appName', newName).then(() => {
               appCard.val('appName', newName);
             });
-          });
+          }).res('get page', pageId => {
+            G.col('pages').node(pageId).val().then(page => {
+              purelyApp.val('sections', page && page.sections);
+            });
+          })
           
           appCard.ds().enroll(purelyApp);
+
+          // Fetch app home page settings
+          G.col('pages').node('page_').val().then(page => {
+            purelyApp.val('sections', page && page.sections);
+          });
 
           return;
           // Build the app page

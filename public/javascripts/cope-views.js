@@ -184,7 +184,7 @@ PurelySecView.render(vu => {
     let top = v.height * v.idx;
     vu.$el().css({
       top: top + 'px'
-    })
+    });
   });
 });
 

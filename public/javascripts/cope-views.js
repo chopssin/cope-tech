@@ -94,9 +94,9 @@ NavBoxView.render(vu => {
     background: '#fff'
   });
   vu.use('idx, height').then(v => {
-    vu.$el().css({
+    vu.$el().animate({
       'top': (v.height * v.idx) + 'px'
-    });
+    }, 300);
   });
 });
 
@@ -575,16 +575,15 @@ PurelyAppView.render(vu => {
         dragged = idx;
       },
       ondragenter: function(sec, idx) {
-        sec.wrap.$el().css('background', '#aca');
-        dropAt = idx;
-        console.log('enter');
+        //sec.wrap.$el().css('background', '#aca');
+        Nav.swap(dragged, idx);
+        dragged = idx;
       },
       ondragleave: function(sec, idx) {
-        sec.wrap.$el().css('background', '#fff');
-        console.log('leave');
+        //sec.wrap.$el().css('background', '#fff');
       },
       ondragend: function(sec, idx) {
-        Nav.swap(dragged, dropAt);
+        //Nav.swap(dragged, dropAt);
       }
     });
 

@@ -487,12 +487,14 @@ PurelySecView.render(vu => {
 // Purely - Purely.App
 PurelyAppView.dom(vu => [
   { 'div.purely-app': [
-    { 'div.sim-wrap.cope-card.bg-w(style="padding:0;z-index:49")': [
-      { 'div.row': [
-        { 'div@nav.col-xs-12': 'Nav' }] 
+    { 'div.sim-wrap': [
+      { 'div.cope-card.bg-w.full(style="display:flex; padding:0; margin-bottom:16px;")': [
+        { 'div@nav.col-xs-12(style="padding:0")': 'Nav' }] 
       },
-      { 'div.sim-sections': [
-        { 'div@page': '' }]
+      { 'div.cope-card.full(style="padding:0")': [
+        { 'div.sim-sections': [
+          { 'div@page': '' }]
+        }]
       }]
     },
     { 'div@sim-panel.sim-panel.cope-card.wider.bg-w': [
@@ -500,7 +502,9 @@ PurelyAppView.dom(vu => [
       { 'div@app-settings': 'app-settings' }, // app-settings
       { 'div@sec-settings.hidden': 'sec-settings' }] // sec-settings
     }, 
-    { 'div@sim-page.sim-page.cope-card.bg-w': '' }]
+    { 'div.sim-page.cope-card.bg-w': [
+      { 'div@sim-page.inner': '' }] 
+    }]
   }
 ]);
 
@@ -514,7 +518,7 @@ PurelyAppView.render(vu => {
   let pages = vu.get('pages'), 
       sections = vu.get('sections');
   // Set the whole page css
-  vu.$el('.sim-wrap').css({
+  vu.$el('.sim-sections').css({
     'background-color': '#aca',
     'background-image': 'url("/images/sample1.jpg")'
   });
@@ -534,17 +538,22 @@ PurelyAppView.render(vu => {
   sections = sections || [
     {
       type: 'collection',
+      basic: {
+        layout: 'hide',
+        bgColor: '#fff',
+        colorStrength: 0.8
+      },
       collection: {
-        layout: 'slide',
+        layout: 'bold-left-slide',
         //col: 'Shoes',
         //sort: 'recent',
         data: [
           {
-            title: 'We share gitts'
+            title: 'Build your dream simply',
+            imgsrc: '/images/sample1.jpg'
           },
           {
-            title: 'And happines',
-            src: '/images/sample1.jpg'
+            title: 'And purely'
           }
         ]
       }
@@ -555,7 +564,8 @@ PurelyAppView.render(vu => {
         layout: 'single',
         title: 'Story',
         content: SAMPLE_TEXT,
-        imgsrc: '/images/sample3.jpg'
+        imgsrc: '/images/sample3.jpg',
+        bgColor: '#fff'
       }
     },
     {
@@ -731,7 +741,8 @@ PurelyAppView.render(vu => {
         };
 
         // Decide basic section view class
-        let viewClass = PurelyViews.class(basicLayouts[params.basic.layoyt || 'single']);
+        let viewClass = PurelyViews.class('Purely.Section');
+          //PurelyViews.class(basicLayouts[params.basic.layoyt || 'single']);
 
         // Initiate build settings
         let buildSettings = {};

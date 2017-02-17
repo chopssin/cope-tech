@@ -1,5 +1,4 @@
 (function($, Cope) {
-// -----
 
 const Views = Cope.useViews('Purely');
 
@@ -12,11 +11,16 @@ let NavView = Views.class('Nav'),
   GridView = Views.class('Grid'),
   SlideView = Views.class('Slide'),
   SelectView = Views.class('Select'),
-  UListView = Views.class('Ulist'),
+  UListView = Views.class('UList'),
   FormView = Views.class('Form'),
   ListItemView = Views.class('ListItem'),
   ContactsView = Views.class('Contacts'),
-  MyPurelyView = Views.class('MyPurely');
+
+  PurelyPageClass = Views.class('Purely.Page'),
+  PurelySectionClass = Views.class('Purely.Section'),
+  PurelySectionBasicClass = Views.class('Purely.Section.Basic'),
+  PurelySectionCollectionClass = Views.class('Purely.Section.Collection'),
+  PurelySectionContactsClass = Views.class('Purely.Section.Contacts'),
   
   PurelyEditNavView = Views.class('Purely.Edit.Nav.Settiings'),// to be depreacted
   PurelyEditSingleView = Views.class('Purely.Edit.Single'), // to be deprecated
@@ -329,7 +333,7 @@ TilesView.render( vu => {
       if (pid != 'r') {
         myId = pid + myId;
       }
-
+      
       vu.set(myId, BoxView.build({
         sel: vu.get(pid).sel(),
         method: 'append',
@@ -1047,5 +1051,189 @@ ListItemView.render(vu => {
   }
 }); 
 
-// -----
+// Purely.Page
+PurelyPageClass.dom(vu => [{ 'div.view-purely-page': '' }]);
+PurelyPageClass.render(vu => {
+  let sectionsData = [], // to store sections data
+      sampleSectionsData = [], // default sample sections
+      sampleText = ''; // default sample text to fill up with
+
+  // Set sample sections data
+  sampleSectionsData = [{
+    type: 'collection', 
+    basic: {
+      layout: 'hide', // Hide will hide every thing in basic
+      title: 'Featuring'
+    },
+    collection: {
+      layout: 'cover-slide', // col: <colID>, sort: 'recent' || 'featured'
+      data: [
+        { title: 'Build your dream simply', imgsrc: '/images/sample1.jpg' },
+        { title: 'And share it purely', imgsrc: '/images/sample2.jpg' }
+      ]
+    }
+  }, {
+    type: 'basic',
+    basic: {
+      layout: 'bold-left', // default
+      title: 'Story',
+      content: SAMPLE_TEXT
+    }
+  }, {
+    type: 'contacts',
+    basic: { // basic layout would be 'bold-left'
+      title: 'Contacts'
+    },
+    contacts: {
+      layout: 'simple',
+      data: [
+        { type: 'email', value: 'My Email' },
+        { type: 'phone', value: 'My Phone Number' }
+      ]
+    }
+  }];
+
+  // Build and render dom based on sections
+  sectionsData = vu.get('sections') || sampleSectionsData;
+  vu.set('sections', sectionsData.map((secData, i) => {
+    //vu.$el().append('<div data-component="sec-' + i + '"></div>');
+    vu().append([['div.sec-wrap@sec-' + i]]);
+
+    return PurelySectionView.build({
+      sel: vu.sel('@sec-' + i),
+      data: secData
+    }); 
+  })); // end of vu.set('sections', ... map ... )
+}); // end of Purely.Page
+
+// Purely.Section
+PurelySectionClass.dom(vu => [{ 'div.view-purely-section': '' }]);
+PurelySectionClass.render(vu => {
+  let type = vu.get('type') || 'basic',
+      basicData = vu.get('basic') || {},
+      collectionData = vu.get('collection') || {},
+      contactsData = vu.get('contacts') || {},
+      basicClass = Views.class('Purely.Section.Basic'),
+      collectionClass = Views.class('Purely.Section.Collection'),
+      contactsClass = Views.class('Purely.Section.Contacts'),
+      basicVu,
+      collectionVu,
+      contactsVu;
+
+  basicVu = basicClass.build({
+    sel: vu.sel(),
+    data: basicData
+  });
+
+  switch (type) {
+    case 'collection':
+      collectionVu = collectionClass.build({
+        sel: basicVu.sel('@comp'),
+        data: collectionData
+      });
+      break;
+    case 'contacts':
+      contactsVu = contactsClass.build({
+        sel: basicVu.sel('@comp'),
+        data: contactsData
+      });
+      break;
+    default:
+  }
+}); // end of Purely.Section
+
+// Purely.Section.Basic
+// @title
+// @content
+// @comp
+// @bg-mask
+PurelySectionBasicClass.dom(vu => [
+  { 'section.view-purely-section-basic': [
+    { 'div.text-wrap': [
+      { 'h2@title': '' },
+      { 'p@content': '' }]
+    }, 
+    { 'div@comp.comp-wrap': '' },
+    { 'div@bg-mask.color-mask': '' }] 
+  }
+]);
+
+PurelySectionBasicClass.render(vu => {
+  let title = vu.get('title') || '',
+      content = vu.get('content') || '',
+      layout = vu.get('layout') || 'bold-left',
+      imgsrc = vu.get('imgsrc'),
+      vidsrc = vu.get('vidsrc'),
+      bgColor = vu.get('bgColor'),
+      colorStrength = vu.get('colorStrength');
+
+  title = title.replace(/\n/g, ' ');
+  content = content.replace(/\n/g, '<br>');
+  if (vidsrc) {
+    // TBD
+  } 
+  if (imgsrc) {
+    vu.$el().css({
+      'background-image': 'url(' + imgsrc + ')' 
+    });
+  } 
+  if (bgColor) {
+    vu.$el('@bg-mask').css({
+      'background-color': bgColor  
+    });
+  } 
+  if (!isNaN(colorStrength)) {
+    vu.$el('@bg-mask').css({
+      'opacity': colorStrength  
+    });
+  }
+
+  vu('@title').html(title);
+  vu('@content').html(content);
+  vu.$el().addClass('layout-' + layout);
+}); // end of Purely.Section.Basic
+
+// Purely.Section.Collection
+PurelySectionCollectionClass.dom(vu => [
+  { 'div.view-purely-section-collection': [
+    { 'div@collection': '' }] 
+  }
+]);
+
+PurelySectionCollectionClass.render(vu => {
+  let layout = vu.get('layout') || 'bold-left-slide',
+      data = vu.get('data'),
+      itemViews = [];
+
+  if (!Array.isArray(data)) { data = []; }
+  itemViews = data.map((x, i) => {
+    vu('@collection').append([[ 'div.col-item@item-' + i, '' ]]);
+    
+    let itemView = PurelySectionBasicClass.build({
+      sel: vu.sel('@item-' + i),
+      data: x
+    });
+
+    if (i > 0) { itemView.$el().hide(); }
+    return itemView;
+  });
+
+  vu.set('itemViews', itemViews);
+  vu.$el().addClass('layout-' + layout);
+
+  // Slide
+  if (layout.slice(-5) == 'slide' && itemViews.length > 1) {
+    vu.set('turn', 0);
+    setInterval(function() {
+      let turn = vu.map('turn', turn => (turn + 1) % itemViews.length);
+      itemViews.map(x => {
+        x.$el().fadeOut(900);
+      });
+      itemViews[turn].$el().fadeIn(900);
+    }, 2600);
+  }
+});
+// end of Purely.Section.Collection
+
+//-------------------------------------
 })(jQuery, Cope);

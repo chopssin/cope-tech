@@ -417,6 +417,30 @@ setTimeout(function() {
   });
 }, 1000);
 
+// Test - vu#val(key, x => f(x))
+Test.go(log => {
+  log.title('vu#val(key, x => f(x))');
+  
+  let Test = Cope.views().class('Test');
+  Test.dom(vu => [{ p: '' }]);
+  Test.render(vu => {
+    vu.$el().html(vu.get('value'));
+  });
+
+  let test = Test.build({
+    sel: log.sel(),
+    data: { 'value': 0 }
+  });
+
+  let intervalId = setInterval(function() {
+    test.val('value', value => value + 1);
+    if (test.get('value') > 4) {
+      log.ok();
+      clearInterval(intervalId);
+    }
+  }, 1000);
+});
+
 // Test - Create an app and del it
 Test.go(log => {
   log.title('Create an app and del it');

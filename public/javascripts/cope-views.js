@@ -76,19 +76,31 @@ ViewAccountCard.render(vu => {
 // end of "AccountCard"
 
 // NavBox
-NavBoxView.dom(vu => [{ 'div': '' }]);
+NavBoxView.dom(vu => [{ 'div(draggable = true)': '' }]);
 NavBoxView.render(vu => {
   let height = vu.get('height') + 'px' || '50px';
       
   vu.$el().css({
     position: 'absolute',
     width: '100%',
-    height: height
+    height: height,
+    border: '1px solid #333',
+    background: '#fff'
   });
   vu.use('idx, height').then(v => {
-    vu.$el().animate({
-      'top': (v.height * v.idx) + 'px'
-    }, 400);
+    let top = v.height * v.idx;
+    let dy = v.dy || 0;
+    if (!v.isDragging) {
+      vu.$el().css({
+        'top': top + 'px'
+        //'left': '0'
+      });
+    } else {
+      vu.$el().css({
+        'top': (top + dy) + 'px'//(v.height * v.idx) + 'px'
+        //'left': '-1000px'
+      });
+    }
   });
 });// end of NavBox
 
@@ -202,10 +214,14 @@ PurelyAppView.dom(vu => [
 ]);
 
 PurelyAppView.render(vu => {
+
+  // Reset
+  vu.$el('@page').html('');
+
   let SAMPLE_TEXT = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nec est sed turpis tincidunt mollis. Duis nec justo tortor. Aliquam dictum dignissim molestie. Fusce maximus sit amet felis auctor pellentesque. \n\nSed dapibus nibh id rutrum elementum. Aliquam semper, ipsum in ultricies finibus, diam libero hendrerit felis, nec pharetra mi tellus at leo. Duis ultricies ultricies risus, sed convallis ex molestie at. Nulla facilisi. Ut sodales venenatis massa, nec venenatis quam semper eget.';
 
-  let pages = [], 
-      sections = [];
+  let pages = vu.get('pages'), 
+      sections = vu.get('sections');
   // Set the whole page css
   vu.$el('.sim-wrap').css({
     'background-color': '#aca',
@@ -224,7 +240,7 @@ PurelyAppView.render(vu => {
   }];
 
   // sections data
-  sections = [
+  sections = sections || [
     {
       type: 'collection',
       collection: {
@@ -271,11 +287,10 @@ PurelyAppView.render(vu => {
       ]
     }
   ];
+  vu.set('sections', sections);
 
   // makeList
-  //  o: Object
-  //  
-  //
+  // o: Object
   let makeList = function(o) {
     let secs = [],
         my = {};
@@ -313,12 +328,15 @@ PurelyAppView.render(vu => {
       });
 
       secs.map((sec, idx) => {
-        sec.wrap.$el().off('click').on('click', function() {
-          if (o.onclick) {
-            o.onclick(sec, sec.wrap.get('idx'));
-          }
-        });  
-      });    
+        Object.keys(o).map(key => {
+          if (key.indexOf('on') != 0) return;
+          
+          let evt = key.slice('2');
+          sec.wrap.$el().off(evt).on(evt, function(e) {
+            o[key](sec, sec.wrap.get('idx'), e);
+          });
+        }); // end of Object.keys ... map
+      }); // end of secs.map
     }; // end of my.insert
 
     my.remove = function(i) {
@@ -355,7 +373,7 @@ PurelyAppView.render(vu => {
     height: 400,
     onclick: function(sec, idx) {
 
-      let vals = sections[idx];
+      let vals = sec.view.get(); //vu.get('sections')[idx];
 
       // Build the section editor on the right side
       let editSection = PurelyViews.class('Purely.Edit.Section.Settings').build({
@@ -365,12 +383,41 @@ PurelyAppView.render(vu => {
       editSection.res('vals', vals => {
 
         // Update data source
-        sections[idx] = vals;
+        //sections = vu.get('sections');
+        //sections[idx] = vals;
+        vu.set('sections', sections => {
+          sections[idx] = vals;
+          return sections;
+        });
+        
         // Update data for rendering
         if (vals.basic && vals.basic.content) {
           vals.basic.content = vals.basic.content.replace(/\n/g, '<br>');
         }
         sec.view.val(vals);
+      }).res('background', bgBox => {
+        Cope.modal('file', {
+          maxWidth: 500
+        }).res('upload', arr => {
+          editSection.set('basic', basic => {
+            basic.imgsrc = arr[0].image;
+            return basic;
+          }); 
+
+          vu.set('sections', sections => {
+            let vals = editSection.val();
+            sections[idx] = vals; 
+            sec.view.val(vals);
+            return sections;
+          });
+          //let vals = editSection.val();
+          //vals.basic.imgsrc = arr[0].image;
+          //sections = vu.get('sections');
+          //sections[idx] = vals;
+          //editSection.val(vals);
+          //sec.view.val(vals);
+          //vu.set('sections', sections);
+        });
       });
       // Fill up editSection on the right side
       // with the selected section value
@@ -509,21 +556,59 @@ PurelyAppView.render(vu => {
     });
 
     // Nav
+    let draggedIdx, dropAt;
     let Nav = makeList({
       wrapClass: NavBoxView,//PurelyViews.class('Purely.Edit.Page'),
       sel: navboxWrap.sel(),
       height: 100,
       onclick: function(sec, idx) {
-        let ridx = Math.floor(Math.random() * pages.length);
-        Nav.swap(idx, ridx);
+        //let ridx = Math.floor(Math.random() * pages.length);
+        //Nav.swap(idx, ridx);
+
+      },
+      ondragstart: function(sec, idx, e) {
+        //e.preventDefault();
+        draggedIdx = idx;
+        sec.wrap.set('startPageY', e.pageY);
+        sec.wrap.set('isDragging', true);
+
+        //var crt = this.cloneNode(true);
+        //crt.style.backgroundColor = "red";
+        //crt.style.position = "absolute"; crt.style.top = "0px"; crt.style.left = "-100px";
+        //document.body.appendChild(crt);
+        //e.originalEvent.dataTransfer.setDragImage(crt, 0, 0);
+      },
+      ondrag: function(sec, idx, e) {
+        console.log(e.pageY);
+ 
+        sec.wrap.val('dy', e.pageY - sec.wrap.get('startPageY'));  
+      },
+      ondragenter: function(sec, idx) {
+        Nav.swap(draggedIdx, idx);
+        //sec.wrap.$el().css('background', '#aca');
+        // if (!sec.wrap.get('isDragged')) {
+        //   Nav.swap(dragged, idx);
+        //   sec.wrap.set('isDragged', true);
+        // }
+      },
+      ondragleave: function(sec, idx) {
+        //sec.wrap.$el().css('background', '#fff');
+      },
+      ondragend: function(sec, idx) {
+        dropAt = idx;
+        sec.wrap.val('isDragging', false);
       }
     });
 
     pages.map((p, i) => {
       Nav.insert(i, function(wrap, secs){
-        return PurelyViews.class('ListItem').build({
+        let vu = PurelyViews.class('ListItem').build({
           sel: wrap.sel(),
           data: { label: p.title }
+        });
+
+        vu.$el().off('dragenter').on('dragenter', function(e) {
+          e.stopPropagation();
         }); 
       });
     });

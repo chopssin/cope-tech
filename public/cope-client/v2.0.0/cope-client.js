@@ -471,8 +471,16 @@
           }
           break;
         case 2:
-          if (isValidKey(args[0]) && !isEqual(data[args[0]], args[1])) {
-            data[args[0]] = args[1];
+          let key = args[0],
+              oldVal = data[key],
+              newVal = args[1];
+
+          if (typeof args[1] == 'function') { // args[1] as map function
+            newVal = args[1](oldVal);
+          }
+
+          if (isValidKey(key) && !isEqual(oldVal, newVal)) {
+            data[key] = newVal;
             return true;
           }
       } // end of switch

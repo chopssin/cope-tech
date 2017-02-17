@@ -670,20 +670,8 @@ PurelyAppView.render(vu => {
         sel: vu.sel('@sec-settings')
       });
 
+      // Update left side section view
       editSection.res('vals', vals => {
-
-        // Update data source
-        //sections = vu.get('sections');
-        //sections[idx] = vals;
-        vu.set('sections', sections => {
-          sections[idx] = vals;
-          return sections;
-        });
-        
-        // Update data for rendering
-        if (vals.basic && vals.basic.content) {
-          vals.basic.content = vals.basic.content.replace(/\n/g, '<br>');
-        }
         sec.view.val(vals);
       }).res('background', bgBox => {
         Cope.modal('file', {
@@ -693,20 +681,7 @@ PurelyAppView.render(vu => {
             basic.imgsrc = arr[0].image;
             return basic;
           }); 
-
-          vu.set('sections', sections => {
-            let vals = editSection.val();
-            sections[idx] = vals; 
-            sec.view.val(vals);
-            return sections;
-          });
-          //let vals = editSection.val();
-          //vals.basic.imgsrc = arr[0].image;
-          //sections = vu.get('sections');
-          //sections[idx] = vals;
-          //editSection.val(vals);
-          //sec.view.val(vals);
-          //vu.set('sections', sections);
+          sec.view.val(editSection.val());
         });
       });
       // Fill up editSection on the right side

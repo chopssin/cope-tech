@@ -428,6 +428,7 @@
   overflow: scroll;
   padding-right: 100%;
 }
+
 .purely-app .sim-sections > div {
   display: block;
   width: 100%;
@@ -440,8 +441,13 @@
   padding: 0 15px;
   margin: 20px 0;
 }
+
 .purely-app .sim-panel > div {
   padding: 4px 0;
+}
+
+.purely-app .sim-page {
+  display: none;
 }
 
 /* Graph */
@@ -487,15 +493,25 @@
   .purely-app .sim-wrap {
     position: fixed;
     width: 50%;
+    left: 15%;
   }
   .purely-app .sim-panel {
     /*position: fixed;*/
-    width: 50%;
+    width: 40%;
     max-width: 420px;
+    left: 65%;
     padding: 0 15px;
-    left: 50%;
     margin-bottom: 40px;
     margin-left: 30px;
+  }
+  .purely-app .sim-page {
+    display: block;
+    position: fixed;
+    width: 12%;
+    top: 120px;
+    left 0;
+    padding: 0 15px;
+    margin-bottom: 40px;
   }
 }
 

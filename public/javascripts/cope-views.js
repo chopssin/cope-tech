@@ -499,6 +499,9 @@ PurelyAppView.dom(vu => [
       { 'div@back.hidden(style="cursor: pointer;")': '<-' }, // Go Back button
       { 'div@app-settings': 'app-settings' }, // app-settings
       { 'div@sec-settings.hidden': 'sec-settings' }] // sec-settings
+    }, 
+    { 'div@sim-page.sim-page.cope-card.bg-w': [
+      { 'div': 'Sections' }]
     }] 
   }
 ]);

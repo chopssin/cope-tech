@@ -5,7 +5,7 @@ const Views = Cope.useViews('Purely');
 
 let NavView = Views.class('Nav'),
   BoxView = Views.class('Box'),
-  TilesView = Views.class('Tiles');
+  TilesView = Views.class('Tiles'),
   TextareaView = Views.class('Textarea'),
   ImageUploaderView = Views.class('ImageUploader'),
   PhotoView = Views.class('Photo'),
@@ -14,18 +14,18 @@ let NavView = Views.class('Nav'),
   SelectView = Views.class('Select'),
   UListView = Views.class('Ulist'),
   FormView = Views.class('Form'),
-  ListItemView = Views.class('ListItem');
+  ListItemView = Views.class('ListItem'),
   ContactsView = Views.class('Contacts'),
   MyPurelyView = Views.class('MyPurely');
+  
   PurelyEditNavView = Views.class('Purely.Edit.Nav.Settiings'),// to be depreacted
   PurelyEditSingleView = Views.class('Purely.Edit.Single'), // to be deprecated
   SectionEditView = Views.class('Purely.Edit.Section.Settings'),
   PageEditView = Views.class('Purely.Edit.Page'),
-  
   TypeChooserView = Views.class('Purely.TypeChooser'),
-  LayoutChooserView = Views.class('Purely.LayoutChooser');
+  LayoutChooserView = Views.class('Purely.LayoutChooser'),
 
-  // Purely Layouts for sections
+  // Purely Layouts for basic sections
   PurelyLayoutSingleView = Views.class('Purely.Layout.Single'),
 
   // For collections
@@ -173,9 +173,7 @@ NavView.render( vu=> {
     vu.$el('@user-menu').fadeOut(300);
     $(".logo .float-right").hide();
   });
-
 });
-
 
 //UList
 //-comp: str, set element data-component
@@ -594,7 +592,6 @@ PhotoView.render(vu => {
   };
 
   vu.$el('@caption').css(captionCSS);
-
 });
 
 
@@ -691,7 +688,6 @@ SlideView.dom( vu => [
   ]}
 ]);
 
-
 SlideView.render( vu => {
 
   // Default CSS Setting
@@ -716,7 +712,6 @@ SlideView.render( vu => {
       if(totalSlideNumber == 0){
         vu.$el('.slideButton').remove();
       }
-
 
       //  Default DOM setting
       v.data.forEach((item, index) => {
@@ -833,9 +828,7 @@ SlideView.render( vu => {
     delete v.captionFontCSS.width;
     vu.$el('.caption').find('li').css(v.captionFontCSS);
   })
-
 })
-
 
 // Select
 // @select
@@ -867,101 +860,6 @@ SelectView.render( vu => {
       })
     } 
   })  
-});
-
-
-//PurelyEditNavView
-PurelyEditNavView.dom( vu => [
-  { 'div.view-purely-edit-nav': [
-    { 'div@form.col-xs-12': [
-      { 'h5': 'Site Title'},
-      { 'input(type="text")@site-title': ''},
-      { 'h5': 'Hosted By'},
-      { 'input(type="text")@hosted-by': ''},
-      { 'h5': 'Logo'},
-      { 'div@image-uploader': ''},
-      { 'div@save-btn(style="float: right; margin: 10px 0px; cursor: pointer;")': 'Save'}
-    ]},
-    { 'div@viewport.col-xs-12': ''}
-  ]}
-]);
-
-PurelyEditNavView.render(vu => {
-  
-
-  // Image Uploader
-  let imageuploaderview = ImageUploaderView.build({
-    sel: vu.sel('@image-uploader')
-  });
-  
-  // @save-btn Click Event
-  vu.$el('@save-btn').off('click').on('click',() => {
-    let obj = {}
-    obj.appName = vu.$el('@site-title').val().trim();
-    obj.hostedBy = vu.$el('@hosted-by').val().trim();
-    obj.images = imageuploaderview.val('files');
-    console.log(obj);
-    vu.res('save', obj);
-  });
-});
-
-//PurelyEditSingle
-PurelyEditSingleView.dom( vu => [
-  { 'div.view-purely-edit-single': [
-    { 'div@textarea.col-xs-12': [
-      { 'h5': 'Title'},
-      { 'div@title.title': ''},
-      { 'h5': 'Content'},
-      { 'div@content.content': ''},
-      { 'div@image-uploader': ''},
-      { 'div@save-btn(style="float: right; margin: 10px 0; cursor: pointer;")': 'Save'}
-    ]}
-  ]}
-]);
-
-PurelyEditSingleView.render( vu => {
-
-  // Title textarea
-  let title = TextareaView.build({
-    sel: vu.sel('@title'),
-    data: {
-      value: 'Title'
-    }
-  });
-
-  title.$el().css({
-    'width': '100%',
-    'border': '1px solid #aaa',
-    'font-size': '14px'
-  });
-
-  // Content textarea
-  let content = TextareaView.build({
-    sel: vu.sel('@content'),
-    data: {
-      value: 'Content'
-    }
-  });
-  content.$el().css({
-    'margin-bottom': '16px',
-    'border': '1px solid #aaa',
-    'font-size': '14px'
-  });
-
-  // Image UpLoader
-  let imageuploaderview = ImageUploaderView.build({
-    sel: vu.sel('@image-uploader')
-  });
-
-  //@save-btn Click Event
-  vu.$el('@save-btn').off('click').on('click',() => {
-    let obj = {}
-    obj.title = title.val('value');
-    obj.content = content.val('value');
-    obj.images = imageuploaderview.val('files');
-    console.log(obj);
-    vu.res('save', obj);
-  });
 });
 
 // Contact
@@ -1148,201 +1046,6 @@ ListItemView.render(vu => {
     }); // end of map
   }
 }); 
-
-// Purely.Edit.Section.Settings
-// @section-edit
-// - vals: object
-// - items: object, all items with names
-// "box clicked" <- view object
-SectionEditView.dom( vu => [
-  { 'div@section-edit': ''}
-]);
-
-SectionEditView.render( vu => {
-
-  let typeChooser,
-      layoutChooser;
-
-  let vals = vu.val() || {};
-  if (!vals.basic) vals.basic = {}; 
-
-  // Convert first character to uppercase
-  let upper = function(str) {
-    return str.slice(0, 1).toUpperCase().concat(str.slice(1));
-  };
-      
-  vu.$el('@section-edit').html('');
-
-  let items = {};
-  let keys = [ 
-    'type',
-    'layout', 
-    'title', 
-    'content', 
-    'background'
-  ]; 
-
-  switch (vals.type) {
-    case 'collection':
-    case 'contacts':
-      keys = keys.concat([vals.type]);
-      break;
-    default:
-  }
-
-  keys.map(key => {
-
-    let data = {};
-    data.label = upper(key);
-    
-    if (key === 'content') {
-      data.editable = true;
-      data.value = vals.basic && vals.basic.content || '';
-      data.textarea = true;
-      data.placeholder = 'Compose more about this section';
-    }
-
-    if (key === 'title') { 
-      data.editable = true;
-      data.value = vals.basic && vals.basic.title;
-      data.placeholder = 'Title the section';
-    }
-    
-    items[key] = ListItemView.build({
-      sel: vu.sel('@section-edit'),
-      method: 'append',
-      data : data
-    }).res('value', val => {
-      vals.basic[key] = val;
-      vu.set(vals);
-      vu.res('vals', vu.val());
-    });
-  }); // end of the construction of items
-
-  // Build type chooser
-  typeChooser = TypeChooserView.build({
-    sel: items.type.sel('@display')
-  }).res('clicked', type => {
-    // TBD
-    console.log(type);
-    vals.type = type;
-    vu.res('vals', vals);
-    vu.val(vals);
-  });
-
-  // Build layout chooser
-  layoutChooser = LayoutChooserView.build({
-    sel: items.layout.sel('@display'),
-    data: {
-      type: vals.type
-    }
-  });
-
-  // Build the preview box of background
-  let bgBox = BoxView.build({
-    sel: items.background.sel('@display')
-  });
-  
-  bgBox.$el().off('click').on('click', e => {
-    vu.res('background', bgBox);
-  });
-
-  let bgBoxCSS = {
-    'width': '100%',
-    'height': '300px',
-    'background-color': '#eee',
-    'margin-top': '8px'
-  };
-
-  if (vals.basic.imgsrc) {
-    bgBoxCSS['background-image'] = `url(${ vals.basic.imgsrc })`;
-  }
-  bgBox.$el().css(bgBoxCSS).addClass('bg-img');
-
-  vu.set('items', items);
-});
-
-
-// PurelyEditNavView
-// @nav-edit
-PageEditView.dom( vu => [
-  { 'div@nav-edit': 'page'}
-]);
-
-PageEditView.render( vu => {
-  vu.$el().off('click').on('click', () => {
-    console.log('ok');
-  });
-});
-
-
-
-
-// Type Chooser
-// @type-basic
-// @type-col
-// @type-contacts
-TypeChooserView.dom( vu => [
-  { 'div@type-chooser.view-type-chooser': [
-    { 'div@type-basic.type-option': 'Basic' },
-    { 'div@type-col.type-option': 'Collection' },
-    { 'div@type-contacts.type-option': 'Contacts' }]
-  }
-]);
-
-TypeChooserView.render( vu => {
-  //@type-basic click event
-  vu.$el('@type-basic').off('click').on('click', () => {
-    vu.res('clicked', 'basic');
-  });
-
-  vu.$el('@type-col').off('click').on('click', () => {
-    vu.res('clicked', 'collection');
-  });
-
-  vu.$el('@type-contacts').off('click').on('click', () => {
-    vu.res('clicked', 'contacts');
-  });
-});
-
-// Layout Chooser
-// @layout-chooser
-LayoutChooserView.dom( vu => [
-  { 'div@layout-chooser.view-layout-chooser': ''}
-]);
-
-LayoutChooserView.render( vu => {
-  let tmp = '/images/sample-layout.png';
-  let blocks = [{
-    src: tmp 
-  },{
-    src: tmp
-  },{
-    src: tmp
-  },{
-    src: tmp
-  },{
-    src: tmp
-  },{
-    src: tmp
-  }];
-
-  blocks.map( (block, index) => {
-    vu.$el('@layout-chooser').append(`
-      <div class="col-xs-6 col-xs-4">
-        <div class="bg-img block" data-component="block-${index}">${ (vu.get('type') || 'basic') + '-' + index}</div>
-      </div>`);
-    
-    vu.$el(`@block-${index}`).css('background-image', `url(${block.src})`);
-
-    // click event
-    vu.$el(`@block-${index}`).off('click').on('click', () => {
-      console.log(index);
-      vu.res('clicked', index);
-    });
-  });
-});
-
 
 // -----
 })(jQuery, Cope);

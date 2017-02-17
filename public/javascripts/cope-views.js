@@ -590,6 +590,10 @@ PurelyAppView.render(vu => {
 
     my.render = o.render;
 
+    my.get = function(i) {
+      return secs[i];
+    };
+
     // s: params of the section
     my.insert = function(i, callback) {
 
@@ -712,7 +716,7 @@ PurelyAppView.render(vu => {
 
         let params = p;
 
-          // Options for basic section views
+        // Options for basic section views
         let basicLayouts = {
           single: 'Purely.Layout.Single'
         };

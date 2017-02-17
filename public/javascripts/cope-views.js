@@ -94,9 +94,19 @@ NavBoxView.render(vu => {
     background: '#fff'
   });
   vu.use('idx, height').then(v => {
-    vu.$el().animate({
-      'top': (v.height * v.idx) + 'px'
-    }, 300);
+    let top = v.height * v.idx;
+    let dy = v.dy || 0;
+    if (!v.isDragging) {
+      vu.$el().css({
+        'top': top + 'px'
+        //'left': '0'
+      });
+    } else {
+      vu.$el().css({
+        'top': (top + dy) + 'px'//(v.height * v.idx) + 'px'
+        //'left': '-1000px'
+      });
+    }
   });
 });
 
@@ -324,21 +334,14 @@ PurelyAppView.render(vu => {
       });
 
       secs.map((sec, idx) => {
-        [ 'click', 
-          'dragstart', 
-          'dragend', 
-          'dragenter', 
-          'dragover', 
-          'dragleave', 
-          'drop', 
-          'mouseenter', 
-          'mouseleave' ].map(evt => {
-          if (o['on' + evt]) {
-            sec.wrap.$el().off(evt).on(evt, function() {
-              o['on' + evt](sec, sec.wrap.get('idx'));
-            });
-          }
-        }); // end of [ ... ].map
+        Object.keys(o).map(key => {
+          if (key.indexOf('on') != 0) return;
+          
+          let evt = key.slice('2');
+          sec.wrap.$el().off(evt).on(evt, function(e) {
+            o[key](sec, sec.wrap.get('idx'), e);
+          });
+        }); // end of Object.keys ... map
       }); // end of secs.map
     }; // end of my.insert
 
@@ -561,7 +564,7 @@ PurelyAppView.render(vu => {
     });
 
     // Nav
-    let dragged, dropAt;
+    let draggedIdx, dropAt;
     let Nav = makeList({
       wrapClass: NavBoxView,//PurelyViews.class('Purely.Edit.Page'),
       sel: navboxWrap.sel(),
@@ -571,27 +574,49 @@ PurelyAppView.render(vu => {
         //Nav.swap(idx, ridx);
 
       },
-      ondragstart: function(sec, idx) {
-        dragged = idx;
+      ondragstart: function(sec, idx, e) {
+        //e.preventDefault();
+        draggedIdx = idx;
+        sec.wrap.set('startPageY', e.pageY);
+        sec.wrap.set('isDragging', true);
+
+        //var crt = this.cloneNode(true);
+        //crt.style.backgroundColor = "red";
+        //crt.style.position = "absolute"; crt.style.top = "0px"; crt.style.left = "-100px";
+        //document.body.appendChild(crt);
+        //e.originalEvent.dataTransfer.setDragImage(crt, 0, 0);
+      },
+      ondrag: function(sec, idx, e) {
+        console.log(e.pageY);
+ 
+        sec.wrap.val('dy', e.pageY - sec.wrap.get('startPageY'));  
       },
       ondragenter: function(sec, idx) {
+        Nav.swap(draggedIdx, idx);
         //sec.wrap.$el().css('background', '#aca');
-        Nav.swap(dragged, idx);
-        dragged = idx;
+        // if (!sec.wrap.get('isDragged')) {
+        //   Nav.swap(dragged, idx);
+        //   sec.wrap.set('isDragged', true);
+        // }
       },
       ondragleave: function(sec, idx) {
         //sec.wrap.$el().css('background', '#fff');
       },
       ondragend: function(sec, idx) {
-        //Nav.swap(dragged, dropAt);
+        dropAt = idx;
+        sec.wrap.val('isDragging', false);
       }
     });
 
     pages.map((p, i) => {
       Nav.insert(i, function(wrap, secs){
-        return PurelyViews.class('ListItem').build({
+        let vu = PurelyViews.class('ListItem').build({
           sel: wrap.sel(),
           data: { label: p.title }
+        });
+
+        vu.$el().off('dragenter').on('dragenter', function(e) {
+          e.stopPropagation();
         }); 
       });
     });

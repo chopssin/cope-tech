@@ -264,7 +264,7 @@ const setTest = function() {
     viewport.val('switch', 'tests');
   });
 
-  let toggle = UListView.build({
+  let toggle = Views.class('UList').build({
     sel: '#tests-nav',
     data: {
       items: [{ 
@@ -419,12 +419,14 @@ setTimeout(function() {
 
 // Test - vu#val(key, x => f(x))
 Test.go(log => {
-  log.title('vu#val(key, x => f(x))');
+  log.title('vu#map(key, x => f(x), toRenderAgain)');
   
   let Test = Cope.views().class('Test');
-  Test.dom(vu => [{ p: '' }]);
+  Test.dom(vu => [{ h3: '' }]);
   Test.render(vu => {
-    vu.$el().html(vu.get('value'));
+    //vu.$el().html(vu.get('value'));
+    //vu('h3').html([{ 'div': vu.get('value') }]);
+    vu('h3').html(vu.get('value'));
   });
 
   let test = Test.build({
@@ -433,7 +435,7 @@ Test.go(log => {
   });
 
   let intervalId = setInterval(function() {
-    test.val('value', value => value + 1);
+    test.map('value', value => value + 1, true);
     if (test.get('value') > 4) {
       log.ok();
       clearInterval(intervalId);
@@ -648,13 +650,13 @@ Test.go(log => {
 // View
 
 // >>>>>>>>>>>> build: sel: viewport.sel('@purely')
-  PurelyEditNavView.build({
-    sel: viewport.sel('@purely')
-  }).res('save',values => {
-    app.set('appName', values[0]).then(() => {
-      console.log(':)');
-    });
-  });
+  //PurelyEditNavView.build({
+  //  sel: viewport.sel('@purely')
+  //}).res('save',values => {
+  //  app.set('appName', values[0]).then(() => {
+  //    console.log(':)');
+  //  });
+  //});
   
 //   viewport.$el('@purely').prepend(`
 //     <div class="row viewport">
@@ -732,7 +734,6 @@ Test.go(log => {
 //   });
   
 
-  log.ok();
 //plus
 
 });
@@ -1119,7 +1120,7 @@ Test.go(log => {
   //BoxB.val('test', 0).val('test', 2)
 
   //Textarea
-  let textarea = TextareaView.build({
+  let textarea = Views.class('Textarea').build({
     sel: '#textarea',
     method: 'append',
     data: {
@@ -1129,7 +1130,7 @@ Test.go(log => {
     console.log(value);
   });
 
-  let textarea2 = TextareaView.build({
+  let textarea2 = Views.class('Textarea').build({
     sel: '#textarea',
     method: 'append',
     data: {
@@ -1143,7 +1144,7 @@ Test.go(log => {
   });
 
   //ImageUploader 
-  let ImageUploaderA = ImageUploaderView.build({
+  let ImageUploaderA = Views.class('ImageUploader').build({
     sel: '#imageUploader',
     method: 'append'
   }).res('value', val => {
@@ -1151,7 +1152,7 @@ Test.go(log => {
   });
 
   //form
-  let form = FormView.build({
+  let form = Views.class('Form').build({
     sel: '#form',
     method: 'append',
     data:{
@@ -1193,7 +1194,7 @@ Test.go(log =>{
 
   Vbox.append('view-select');
 
-  SelectView.build({
+  Views.class('Select').build({
     sel: '#view-select',
     method: 'append',
     data: {
@@ -1237,7 +1238,7 @@ Test.go(log => {
   Vbox.append('slide');
 
 
-  PhotoView.build({
+  Views.class('Photo').build({
     sel: '#photo',
     method: 'append'
   }).val({
@@ -1252,7 +1253,7 @@ Test.go(log => {
     }
   })
 
-  GridView.build({
+  Views.class('Grid').build({
     sel: '#grid',
     method: 'append'
   }).val({
@@ -1275,7 +1276,7 @@ Test.go(log => {
     }
   }); 
 
-  SlideView.build({
+  Views.class('Slide').build({
     sel: '#slide',
     method: 'append'
   }).val({
@@ -1307,8 +1308,7 @@ Test.go(log => {
     mode: 'center'
   })
   
-  
-  SlideView.build({
+  Views.class('Slide').build({
     sel: '#slide',
     method: 'append'
   }).val({

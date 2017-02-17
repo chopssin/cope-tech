@@ -500,9 +500,7 @@ PurelyAppView.dom(vu => [
       { 'div@app-settings': 'app-settings' }, // app-settings
       { 'div@sec-settings.hidden': 'sec-settings' }] // sec-settings
     }, 
-    { 'div@sim-page.sim-page.cope-card.bg-w': [
-      { 'div': 'Sections' }]
-    }] 
+    { 'div@sim-page.sim-page.cope-card.bg-w': '' }]
   }
 ]);
 
@@ -663,6 +661,16 @@ PurelyAppView.render(vu => {
     return my;
   };
 
+  // PS: Page Selector
+  let PS = makeList({
+    wrapClass: PurelySecView, //PageSelectorItemView,
+    sel: vu.sel('@sim-page'),
+    height: 400,
+    onclick: function(sec, idx){
+      //TBD
+    }
+  });
+
   // Page
   let Page = makeList({
     wrapClass: PurelySecView,
@@ -680,6 +688,7 @@ PurelyAppView.render(vu => {
       // Update left side section view
       editSection.res('vals', vals => {
         sec.view.val(vals);
+        // TBD: PS.get(idx).view.val(vals);
       }).res('background', bgBox => {
         Cope.modal('file', {
           maxWidth: 500
@@ -748,11 +757,20 @@ PurelyAppView.render(vu => {
           wrap.val('fadeIn', true);
         });
 
+        PS.insert(i, function(wrap, secs) {
+          let psSettings = {};
+          Object.assign(psSettings, buildSettings);
+          wrap.$el().css({ 
+            'width': '100%'
+          });
+          psSettings.sel = wrap.sel('@sec');
+          return viewClass.build(psSettings);
+        });
+
         return viewClass.build(buildSettings);
       }; // end of build
 
       return build(wrap, s);
-      
     }); // end of Page.insert
   }); // end of sections.map
 

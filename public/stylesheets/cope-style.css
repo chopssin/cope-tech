@@ -507,11 +507,19 @@
   .purely-app .sim-page {
     display: block;
     position: fixed;
-    width: 12%;
+    width: 640px;
+    height: 1600px;
     top: 120px;
-    left 0;
-    padding: 0 15px;
     margin-bottom: 40px;
+    padding: 0;
+    -webkit-transform: scale(.24, .24);
+    -moz-transform: scale(.24, .24);
+    transform: scale(.24, .24);
+    -webkit-transform-origin: 0 0;
+    -moz-transform-origin: 0 0;
+    transform-origin: 0 0;
+    overflow: auto;
+    z-index: 100;
   }
 }
 

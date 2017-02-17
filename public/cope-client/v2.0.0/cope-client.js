@@ -441,7 +441,7 @@
     };
 
     my.enroll = function(_vu) {
-      if (typeof _vu == 'object'
+      if (typeof _vu == 'function' //'object'
         && typeof _vu.id == 'string') {
         registry[_vu.id] = _vu;
         //_vu.ds((_snapName || name), my);
@@ -475,10 +475,6 @@
               oldVal = data[key],
               newVal = args[1];
 
-          if (typeof args[1] == 'function') { // args[1] as map function
-            newVal = args[1](oldVal);
-          }
-
           if (isValidKey(key) && !isEqual(oldVal, newVal)) {
             data[key] = newVal;
             return true;
@@ -505,6 +501,19 @@
           break;
       } // end of outer switch
     }; // end of my.get
+
+    my.map = function(key, mapFunc, toEmit) {
+      if (typeof key == 'string' && typeof mapFunc == 'function') {
+        let value = mapFunc(my.get(key));
+        if (toEmit === true) {
+          my.val(key, value);
+        } else {
+          my.set(key, value);
+        }
+        return value;
+      }
+      return;
+    }; // end of my.map
 
     my.val = function() {
 
@@ -1156,7 +1165,7 @@
     timestamp = timestamp + Math.floor(Math.random() * 10000).toString(36);
 
     newView = function(_data, _load) {
-      let vu = {},
+      let vu,
           id,
           resFuncs = {},
           myLoadFunc,
@@ -1164,6 +1173,27 @@
 
       count = count + 1;
       id = timestamp + '_' + count;
+
+      vu = function(sel) {
+        let api = {},
+            $el = vu.$el();
+
+        if (typeof sel == 'string') {
+          $el = vu.$el(sel);
+        }
+        
+        ['html', 'append', 'prepend'].map(method => {
+          api[method] = function(arg) {
+            let html = (typeof arg == 'string' || !isNaN(arg))
+              ? arg + ''
+              : domToHtml(arg);
+            try { 
+              $el[method](html);
+            } catch (err) { console.error(err); }
+          };
+        });
+        return api;
+      };
 
       vu.id = id;
       vu.ID = ' data-vuid="' + id + '" ';
@@ -1236,6 +1266,10 @@
       vu.get = function() {
         return vuDataSnap.get.apply(vu, arguments);
       }; // end of vu.set
+
+      vu.map = function(key, mapFunc, toEmit) {
+        return vuDataSnap.map.apply(vu, arguments);
+      }; // end of vu.map
 
       vu.use = function(_keys) {
         if (typeof _keys != 'string') return;
@@ -1339,7 +1373,7 @@
 
             // Add vu.id to the first children
             domArr = html.map(o => {
-              let newO = {};
+              let newO = {}; 
               k = Object.keys(o)[0];
               newO[k + '*' + vu.id] = o[k];
               return newO;

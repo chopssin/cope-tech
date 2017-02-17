@@ -56,12 +56,6 @@ ViewAccountCard.dom(vu => [
     { 'button@signOut.cope-card.as-btn.bg-blue.color-w': 'Sign out' }]
   }
 ]);
-  //return '<div' + this.ID + '>' 
-  //  + '<h3 data-component="name">Cope User</h3>'
-  //  + '<p data-component="email"></p>'
-  //  + '<button data-component="signout" class="cope-card as-btn bg-blue color-w">Sign out</button>'
-  //  + '</div>';
-//});
 
 ViewAccountCard.render(vu => {
   var $signOut = vu.$el('@signOut'),
@@ -96,7 +90,7 @@ NavBoxView.render(vu => {
       'top': (v.height * v.idx) + 'px'
     }, 400);
   });
-});
+});// end of NavBox
 
 
 // Purely - Purely.Sec
@@ -377,23 +371,11 @@ PurelyAppView.render(vu => {
           vals.basic.content = vals.basic.content.replace(/\n/g, '<br>');
         }
         sec.view.val(vals);
-      }).res('background', bgBox => {
-        Cope.modal('file', {
-          maxWidth: 500
-        }).res('upload', arr => {
-          let vals = editSection.val();
-          vals.basic.imgsrc = arr[0].image;
-          sections[idx] = vals;
-          editSection.val(vals);
-          sec.view.val(vals);
-        });
       });
-
       // Fill up editSection on the right side
       // with the selected section value
       editSection.val(vals);
       
-      // Show the selected section settings on the right
       vu.$el('@back').removeClass('hidden');
       vu.$el('@app-settings').addClass('hidden');
       vu.$el('@sec-settings').removeClass('hidden');
@@ -436,7 +418,7 @@ PurelyAppView.render(vu => {
         })
         .res('del clicked', Page.remove)
         .res('mask clicked', () => {
-          // Fade out all sections' buttons except for self
+          // Fade out all sections except for self
           // secs.about.val('fadeOut', true);
           secs.map((x, idx) => {
             if (i != idx) {

@@ -14,9 +14,12 @@ var debug = Cope.Util.setDebug('cope-views', false),
     NavBoxView = Views.class('NavBox'),
 
     // Purely App
+    SimSecClass = Views.class('SimSec'),
+
     PurelyAppView = Views.class('Purely.App'),
     PurelySecView = Views.class('Purely.Sec'),
     PurelySettingsView = Views.class('Purely.Settings'),  
+    
 
     PurelyEditNavView = Views.class('Purely.Edit.Nav.Settiings'),// to be depreacted
     PurelyEditSingleView = Views.class('Purely.Edit.Single'), // to be deprecated
@@ -395,6 +398,55 @@ LayoutChooserView.render( vu => {
   });
 });
 
+// Purely- Purely.SimSec
+SimSecClass.dom(vu => [
+  { 'div.sim-sec': [
+    { 'div.inner-wrap': [
+      { 'div@sec.inner-sec': '' }] 
+    }] 
+  }
+]);
+
+SimSecClass.render(vu => {
+  let view, 
+      vw, // viewport width
+      vh = vu.get('height') || 400,
+      sw, // screen width
+      sh, // screen height
+      sr = 1, // scale rate
+      randomIdx, 
+      onresize;
+
+  // randomIdx for assigning onresize to window
+  randomIdx = vu.map('randomIdx', r => {
+    if (!r) { 
+      return new Date().getTime() + '_' + Math.floor(Math.random()*1000); 
+    }
+    return r;
+  });
+
+  view = PurelyViews.class('Purely.Section').build({
+    sel: vu.sel('@sec'),
+    data: vu.get()
+  });
+
+  onresize = function() {
+    vw = vu.$el().width(); 
+    sw = sh * vw / vh; 
+    sh = $(document).height(); 
+    sr = vh / sh;
+    vu.$el('@sec').css({
+      width: sw + 'px',
+      height: sh + 'px',
+      transform: `scale(${sr}, ${sr})`
+    });
+  }; // end of onresize
+  
+  // Scale the section on resize event
+  $(window).off('resize.simsec-' + randomIdx).on('resize.simsec-' + randomIdx, onresize);
+  onresize();
+});
+
 // Purely - Purely.Sec
 PurelySecView.dom(vu => [
   { 'section.purely-sec': [
@@ -748,13 +800,13 @@ PurelyAppView.render(vu => {
         };
 
         // Decide basic section view class
-        let viewClass = PurelyViews.class('Purely.Section');
+        let viewClass = SimSecClass;
+          //PurelyViews.class('Purely.Section');
           //PurelyViews.class(basicLayouts[params.basic.layoyt || 'single']);
 
         // Initiate build settings
         let buildSettings = {};
         buildSettings.sel = wrap.sel('@sec');
-        //buildSettings.method = 'append';
         buildSettings.data = params;
 
         wrap.res('after', idx => {

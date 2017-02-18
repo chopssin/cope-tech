@@ -350,6 +350,33 @@
 }
 
 /* Purely App Simulator */
+
+.sim-sec {
+  display: block;
+  position: absolute;
+  overflow: hidden;
+  width: 100%;
+}
+
+.sim-sec .inner-wrap {
+  display: block;
+  position: relative;
+  width: 200%;
+  overflow: hidden;
+}
+
+.sim-sec .inner-sec {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  -webkit-transform: scale(1, 1);
+  -moz-transform: scale(1, 1);
+  transform: scale(1, 1);
+  -webkit-transform-origin: 0 0;
+  -moz-transform-origin: 0 0;
+  transform-origin: 0 0;
+}
+
 .purely-sec {
   display: block;
   position: absolute;
@@ -409,6 +436,7 @@
   width: 100%;
   margin: 0;
   padding: 0;
+  overflow: hidden;
 }
 
 .purely-app .sim-wrap {

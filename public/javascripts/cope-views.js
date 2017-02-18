@@ -431,14 +431,18 @@ SimSecClass.render(vu => {
   });
 
   onresize = function() {
+    console.log(vu.get().basic.title);
     vw = vu.$el().width(); 
-    sw = sh * vw / vh; 
     sh = $(document).height(); 
+    sw = sh * vw / vh; 
     sr = vh / sh;
+
+    console.log(sr, vw, vh, sw, sh);
+
     vu.$el('@sec').css({
       width: sw + 'px',
       height: sh + 'px',
-      transform: `scale(${sr}, ${sr})`
+      transform: `scale(${sr})`
     });
   }; // end of onresize
   
@@ -791,18 +795,8 @@ PurelyAppView.render(vu => {
             content: 'More about this section.'
           };
         }
-
+        
         let params = p;
-
-        // Options for basic section views
-        let basicLayouts = {
-          single: 'Purely.Layout.Single'
-        };
-
-        // Decide basic section view class
-        let viewClass = SimSecClass;
-          //PurelyViews.class('Purely.Section');
-          //PurelyViews.class(basicLayouts[params.basic.layoyt || 'single']);
 
         // Initiate build settings
         let buildSettings = {};
@@ -834,10 +828,10 @@ PurelyAppView.render(vu => {
             'width': '100%'
           });
           psSettings.sel = wrap.sel('@sec');
-          return viewClass.build(psSettings);
+          return SimSecClass.build(psSettings);
         });
 
-        return viewClass.build(buildSettings);
+        return SimSecClass.build(buildSettings);
       }; // end of build
 
       return build(wrap, s);

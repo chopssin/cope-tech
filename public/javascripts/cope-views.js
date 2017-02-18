@@ -553,7 +553,9 @@ PurelyAppView.render(vu => {
             imgsrc: '/images/sample1.jpg'
           },
           {
-            title: 'And purely'
+            title: 'And purely',
+            bgColor: '#fea',
+            colorStrength: 0.3
           }
         ]
       }
@@ -580,7 +582,9 @@ PurelyAppView.render(vu => {
     {
       type: 'contacts',
       basic: {
-        title: 'Contact us'
+        title: 'Contact us',
+        imgsrc: '/images/sample2.jpg',
+        bgColor: '#eee'
       },
       contacts: {
         layout: 'simple-contacts',

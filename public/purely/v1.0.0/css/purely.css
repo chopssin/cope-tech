@@ -513,7 +513,7 @@ textarea {
 /* Contacts Layout: simple-contacts */
 .layout-simple-contacts .comp-wrap {
   flex: 2;
-  border-left: 6px solid #3a82cc;
+  border-left: 6px solid #777; /*#3a82cc;*/
   padding-left: 24px;
 }
 

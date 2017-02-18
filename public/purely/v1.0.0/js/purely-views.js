@@ -14,7 +14,8 @@ let NavView = Views.class('Nav'),
   UListView = Views.class('UList'),
   FormView = Views.class('Form'),
   ListItemView = Views.class('ListItem'),
-  ContactsView = Views.class('Contacts'),
+  
+  ContactsView = Views.class('Contacts'), // to be deprecated
 
   PurelyPageClass = Views.class('Purely.Page'),
   PurelySectionClass = Views.class('Purely.Section'),
@@ -1118,7 +1119,15 @@ PurelySectionClass.render(vu => {
       contactsClass = Views.class('Purely.Section.Contacts'),
       basicVu,
       collectionVu,
-      contactsVu;
+      contactsVu,
+      compLayout;
+
+  compLayout = collectionData && collectionData.layout 
+    || contactsData && contactsData.layout;
+
+  if (compLayout) {
+    basicData.compLayout = compLayout;
+  }
 
   basicVu = basicClass.build({
     sel: vu.sel(),
@@ -1162,6 +1171,7 @@ PurelySectionBasicClass.render(vu => {
   let title = vu.get('title') || '',
       content = vu.get('content') || '',
       layout = vu.get('layout') || 'bold-left',
+      compLayout = vu.get('compLayout') || false,
       imgsrc = vu.get('imgsrc'),
       vidsrc = vu.get('vidsrc'),
       bgColor = vu.get('bgColor'),
@@ -1191,6 +1201,9 @@ PurelySectionBasicClass.render(vu => {
   vu('@title').html(title);
   vu('@content').html(content);
   vu.$el().addClass('layout-' + layout);
+  if (compLayout) {
+    vu.$el().addClass('layout-' + compLayout);
+  }
 }); // end of Purely.Section.Basic
 
 // Purely.Section.Collection
@@ -1201,7 +1214,7 @@ PurelySectionCollectionClass.dom(vu => [
 ]);
 
 PurelySectionCollectionClass.render(vu => {
-  let layout = vu.get('layout') || 'bold-left-slide',
+  let layout = vu.get('layout'),
       data = vu.get('data'),
       itemViews = [];
 
@@ -1219,9 +1232,8 @@ PurelySectionCollectionClass.render(vu => {
   });
 
   vu.set('itemViews', itemViews);
-  vu.$el().addClass('layout-' + layout);
 
-  // Slide
+  // Slide, Grid and Waterfall animation based on layout
   if (layout.slice(-5) == 'slide' && itemViews.length > 1) {
     vu.set('turn', 0);
     setInterval(function() {
@@ -1231,9 +1243,42 @@ PurelySectionCollectionClass.render(vu => {
       });
       itemViews[turn].$el().fadeIn(900);
     }, 2600);
+  } else if (layout.slice(-4) == 'grid') {
+    // TBD
+  } else if (layout.slice(-9) == 'waterfall') {
+    // TBD  
   }
 });
 // end of Purely.Section.Collection
+
+// Purely.Section.Contacts
+PurelySectionContactsClass.dom(vu => [
+  { 'div.view-purely-section-contacts': [
+    { 'div@contacts': '' }] 
+  }
+]);
+
+PurelySectionContactsClass.render(vu => {
+  let layout = vu.get('layout'),
+      data = vu.get('data');
+
+  if (!Array.isArray(data)) { data = []; }
+  data.map((x, i) => {
+    let value = x && x.value || '',
+        label = x && x.label || '',
+        type = x && x.type || '';
+
+    if (value) {
+      vu('@contacts').append([[ 'div.contacts-item@item-' + i, [
+        { 'div.item-icon': '' }, // based on type
+        { 'div.item-label': label },
+        { 'div.item-value': value }]
+      ]]);
+    }
+  });
+});
+// end of Purely.Section.Contacts
+
 
 //-------------------------------------
 })(jQuery, Cope);

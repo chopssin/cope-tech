@@ -582,10 +582,13 @@ PurelyAppView.render(vu => {
       basic: {
         title: 'Contact us'
       },
-      contacts: [
-        { type: 'email', value: 'support@myapp.cope.tech' }, 
-        { type: 'phone', value: '+886 987 654 321' } 
-      ]
+      contacts: {
+        layout: 'simple-contacts',
+        data: [
+          { type: 'email', value: 'support@myapp.cope.tech' }, 
+          { type: 'phone', value: '+886 987 654 321' } 
+        ]
+      }
     }
   ];
   vu.set('sections', sections);

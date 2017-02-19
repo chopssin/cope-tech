@@ -411,8 +411,8 @@ SimSecClass.render(vu => {
   let view, 
       vw, // viewport width
       vh = vu.get('height') || 400,
-      sw, // screen width
-      sh, // screen height
+      sw,
+      sh = 900, 
       sr = 1, // scale rate
       randomIdx, 
       onresize;
@@ -431,13 +431,9 @@ SimSecClass.render(vu => {
   });
 
   onresize = function() {
-    console.log(vu.get().basic.title);
     vw = vu.$el().width(); 
-    sh = $(document).height(); 
-    sw = sh * vw / vh; 
+    sw = vw * sh / vh; 
     sr = vh / sh;
-
-    console.log(sr, vw, vh, sw, sh);
 
     vu.$el('@sec').css({
       width: sw + 'px',
@@ -495,7 +491,7 @@ PurelySecView.render(vu => {
 
   vu.use('height').then(v => {
     vu.$el('@wrap').css('height', v.height);
-    vu.$el('@sec').css('height', v.height);
+    vu.$el('@sec').css('height', v.height); // TBD affect its sub view
   });
 
   //@mask click showPlus
@@ -812,6 +808,9 @@ PurelyAppView.render(vu => {
         .res('mask clicked', () => {
           // Fade out all sections except for self
           // secs.about.val('fadeOut', true);
+
+          return;
+
           secs.map((x, idx) => {
             if (i != idx) {
               x.wrap.val('fadeOut', true);

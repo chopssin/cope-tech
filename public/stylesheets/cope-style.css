@@ -369,9 +369,9 @@
   display: block;
   position: relative;
   overflow: hidden;
-  -webkit-transform: scale(1, 1);
-  -moz-transform: scale(1, 1);
-  transform: scale(1, 1);
+  -webkit-transform: scale(1);
+  -moz-transform: scale(1);
+  transform: scale(1);
   -webkit-transform-origin: 0 0;
   -moz-transform-origin: 0 0;
   transform-origin: 0 0;
@@ -519,6 +519,7 @@
     position: fixed;
     width: 50%;
     left: 15%;
+    margin: 0;
   }
   .purely-app .sim-panel {
     /*position: fixed;*/
@@ -526,6 +527,7 @@
     max-width: 420px;
     left: 65%;
     padding: 0 15px;
+    margin: 0;
     margin-bottom: 40px;
     margin-left: 30px;
   }
@@ -534,7 +536,7 @@
     position: fixed;
     width: 12%;
     height: 400px;
-    top: 120px;
+    top: 100px;
     margin-bottom: 40px;
     padding: 0;
     overflow: auto;

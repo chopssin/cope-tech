@@ -1186,7 +1186,7 @@
           api[method] = function(arg) {
             let html = (typeof arg == 'string' || !isNaN(arg))
               ? arg + ''
-              : domToHtml(arg);
+              : domToHtml(arg, id);
             try { 
               $el[method](html);
             } catch (err) { console.error(err); }
@@ -1203,11 +1203,12 @@
         if (!_path) {
           return root;
         } else if (_path.charAt(0) === '@') { // eg. "@display"
-          let cmp = '[data-component="' + _path.slice(1) + '"]';
+          let cmp = '[data-component="' + _path.slice(1) + '"]',
+              newCmp = '[data-component="' + id + '-' + _path.slice(1) + '"]';
           if (cmp.indexOf(' ') > -1) {
             console.error(`Invalid data-component "${cmp}"`);
           } else {
-            return root + cmp + ', ' + root + ' ' + cmp; 
+            return root + cmp + ', ' + root + ' ' + cmp + ', ' + newCmp;
           }
         }
         return root + _path + ', ' + root + ' ' + _path;
@@ -1378,7 +1379,7 @@
               newO[k + '*' + vu.id] = o[k];
               return newO;
             });
-            html = domToHtml(domArr);
+            html = domToHtml(domArr, vu.id);
           }
 
           // Render with initial dom
@@ -1397,7 +1398,7 @@
     return my;
   }; // end of Cope.views or Cope.useViews
 
-  function readTag(tag, value) {
+  function _readTag(tag, value) {
     var parse = /^([^@#<>\.\*\(\)]+)([@#<>\.\*][^@#<>\.\*]+|\(.+\))*$/g;
     var result = parse.exec(tag);
     if (result) {
@@ -1500,9 +1501,238 @@
     }
   }; // end of readTag
 
-  function domToHtml(dom) {
+  function readTag(tag, val, vuId) {
+    let ret = {},
+        i, j, parse, tmp, tmp2,
+        err;
+
+    err = function() {
+      throw 'readTag: Syntax error';
+    };
+    ret.originalTag = tag;
+    ret.tagname = 'div';
+    ret.id = '';
+    ret.vuId = '';
+    ret.comps = [];
+    ret.classes = [];
+    ret.props = '';
+    ret.psuedoStyle = '';
+    ret.html = '';
+
+    // Extract [ ... ] to get ret.psuedoStyle
+    i = tag.indexOf('[');
+    j = tag.lastIndexOf(']');
+    if (i > -1 && i < j) {
+      ret.psuedoStyle = tag.slice(i + 1, j);
+      tag = tag.slice(0, i).concat(tag.slice(j + 1));
+    }
+     
+    // Extract ( ... ) to get ret.props
+    i = tag.indexOf('(');
+    j = tag.lastIndexOf(')');
+    if (i > -1 && i < j) {
+      ret.props = tag.slice(i + 1, j);
+      tag = tag.slice(0, i).concat(tag.slice(j + 1));
+    }
+    
+    // Check validity and find the tagname
+    parse = /^([\w]+)?([@#\[\.\*][^@#\[\.\*]+|\(.+\))*$/g;
+    tmp = parse.exec(tag);
+    if (!tmp) { return err(); }
+    ret.tagname = tmp[1] || 'div';
+    
+    // Check for id, classes, vu-id, vu-comp
+    parse = /[@#\.\*][\w\d\-]+/g;
+    tmp = tag.match(parse);
+    if (tmp && tmp.length) {
+      tmp.map(x => {
+        switch (x.charAt(0)) {
+          case '*':
+            ret.vuId = x.slice(1);
+            break;
+          case '@':
+            ret.comps = ret.comps.concat(x.slice(1));
+            break;
+          case '#':
+            ret.id = x.slice(1);
+            break;
+          case '.':
+            ret.classes = ret.classes.concat(x.slice(1));
+            break;
+          default:
+        }
+      }); 
+    }
+    
+    // Update all comps with vu-id
+    if (ret.comps.length) {
+      ret.comps = ret.comps.map(x => {
+        let prefix = (vuId || ret.vuId || ''); 
+        if (prefix) {
+          x = prefix + '-' + x;
+        }
+        return x;
+      });
+    }
+    
+    // Handle props
+    ret.props = ret.props.trim(); 
+    //tmp = {};
+    //tmp2 = ret.props.match(/([\w\-]*\s*=(\"[^\"]+\"|\'[^\']+\'))/g);
+
+    //console.log(tmp2);
+    //if (tmp2 && tmp2.length) {
+    //  tmp2.map(x => {
+    //    i = x.indexOf('=');
+    //    tmp[x.slice(0, i)] = x.slice(i + 1);
+    //    ret.props = ret.props.replace(x, '');
+    //  });
+    //}
+    //ret.props.trim()
+    //  .replace(/\s+/g, ' ')
+    //  .split(' ')
+    //  .map(x => {
+    //    if (!x) { return; }
+    //    tmp['__' + x] = true;
+    //});
+
+    //ret.props.trim()
+    //  .replace(/(\s)+/g, ' ') // __ -> _
+    //  .replace(/\s+=/g, '=') // _= -> =
+    //  .replace(/=\s/g, '=') // =_ -> =
+    //  .split(' ').map(x => {
+    //  if (!x) { return; }
+    //  i = x.indexOf('=');
+    //  if (i < 0) {
+    //    tmp['__' + x] = true;
+    //  } else {
+    //    tmp[x.slice(0, i)] = x.slice(i + 1);
+    //  }
+    //});
+    //ret.props;
+    
+    // Set the style
+    tmp = ret.psuedoStyle.split(';').map(x => {
+      let style = '',
+          s = '',
+          shortcuts;
+      shortcuts = {
+        w: 'width',
+        h: 'height',
+        m: 'margin',
+        p: 'padding',
+        c: 'color',
+        z: 'z-index',
+        fz: 'font-size'
+      };
+      if (!x) { return ''; }
+      x = x.trim();
+      
+      ['block', 'inline-block', 'inline', 'flex'].map(s => {
+        if (x == s) {
+          style = 'display:' + x;
+        }
+      });
+      
+      ['absolute', 'relatvie', 'fixed'].map(s => {
+        if (x == s) {
+          style = 'position:' + x;
+        }
+      })
+      
+      Object.keys(shortcuts).map(s => {
+        if (x.indexOf(s) == 0) {
+          style = shortcuts[s] + ':' + x.slice(s.length); 
+        }
+      });
+      
+      if (!style) {
+        style = x;
+      }
+      
+      return style;
+    }).join(';') || '';
+    
+    if (tmp) {
+      //if (!ret.props.style) { ret.props.style = ''; }
+      ret.props = ret.props + ' ' + tmp;
+    }
+    
+    // Generate html
+    tmp = ret.tagname + ' ' +
+      (ret.id ? (' id="' + ret.id + '" ') : '') +
+      (ret.classes.length ? (' class="' + ret.classes.join(' ') + '" ') : '') +
+      (ret.vuId ? (' data-vuid="' + ret.vuId + '" ') : '') +
+      (ret.comps.length ? (' ' + ret.comps.map(x => {
+        return 'data-component="' + x + '"'; 
+      }).join(' ') + ' ') : '') + 
+      ret.props;
+
+    tmp = '<' + tmp.trim() + '>';
+    if (ret.tagname != 'input' 
+          && ret.tagname != 'area'
+          && ret.tagname != 'base'
+          && ret.tagname != 'br'
+          && ret.tagname != 'col'
+          && ret.tagname != 'command'
+          && ret.tagname != 'embed'
+          && ret.tagname != 'hr'
+          && ret.tagname != 'keygen'
+          && ret.tagname != 'link'
+          && ret.tagname != 'meta'
+          && ret.tagname != 'param'
+          && ret.tagname != 'source'
+          && ret.tagname != 'img') {
+      tmp = tmp + (val || '') + '</' + ret.tagname + '>';
+    }
+    ret.html = tmp;
+
+    return ret;
+  }; // end of readTag
+
+  // domToHtml
+  function domToHtml(val, vuId) {
+    let readNode, // node => { tag: val } || [tag, val] || str 
+        readDom, // dom => [node]
+        readVal; // val => str || dom
+    
+    readNode = function(node) {
+      let tag, val, ret;
+      if (typeof node == 'string') {
+        return node;
+      } else if (Array.isArray(node)) {
+        tag = node[0];
+        val = node[1] || '';
+      } else if (typeof node == 'object') {
+        tag = Object.keys(node)[0];
+        val = node[tag];
+      }
+      return readTag(tag, readVal(val), vuId).html;
+    };
+    
+    readDom = function(nodes) {
+      if (Array.isArray(nodes)) {
+        return nodes.map(node => readNode(node)).join('');
+      } 
+      return '';
+    }
+
+    readVal = function(val) {
+      return (typeof val == 'string') ? val : readDom(val);
+    };
+    
+    return readVal(val);
+  }; // end of domToHtml
+
+  function _domToHtml(dom) {
+    // value => str || dom
+    // dom => [node]
+    // node => { tag: value }, [ tag, value ], str
     let html = '[dom]';
-    //return html;
+
+
+
+
 
     let walk = function(node, path) {
       

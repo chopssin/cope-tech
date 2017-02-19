@@ -905,8 +905,8 @@ Test.go(log => {
     },
     { 'ul': [
       { 'li': 'First li' },
-      { 'li(style = "color:#aca")@text': '' },
-      { 'li@text': '' },
+      { 'li[c#aca;p0 40px;font-size:1.5em;]@text': '' },
+      { 'li@blue': '' },
       { 'li': 'Last li' }] 
     },
     { 'div(style="font-size:12px; padding:20px")': [
@@ -922,6 +922,7 @@ Test.go(log => {
   TestView.render(vu => {
 
     vu.$el('@text').html('This text will show up in all @text');
+    vu.$el('@blue').css({ color: 'blue' }).append(' blued ');
 
     vu.$el('@dom').html(JSON.stringify(testDom, null, 2)
       .replace(/\n/g, '<br>')

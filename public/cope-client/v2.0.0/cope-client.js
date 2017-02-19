@@ -1612,6 +1612,7 @@
     //ret.props;
     
     // Set the style
+    ret.psuedoStyle = ret.psuedoStyle + ';';
     tmp = ret.psuedoStyle.split(';').map(x => {
       let style = '',
           s = '',
@@ -1653,9 +1654,9 @@
       return style;
     }).join(';') || '';
     
-    if (tmp) {
+    if (tmp && tmp != ';') {
       //if (!ret.props.style) { ret.props.style = ''; }
-      ret.props = ret.props + ' ' + tmp;
+      ret.props = ret.props + ' style="' + tmp + '"';
     }
     
     // Generate html

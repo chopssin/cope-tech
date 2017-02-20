@@ -100,16 +100,16 @@ NavBoxView.render(vu => {
   });
   vu.use('idx, height').then(v => {
     let top = v.height * v.idx;
-    let dy = v.dy || 0;
+    //let dy = v.dy || 0;
     if (!v.isDragging) {
       vu.$el().css({
         'top': top + 'px'
         //'left': '0'
       });
     } else {
+      console.log('#aca');
       vu.$el().css({
-        'top': (top + dy) + 'px'//(v.height * v.idx) + 'px'
-        //'left': '-1000px'
+        'background': '#aca'
       });
     }
   });
@@ -903,52 +903,31 @@ PurelyAppView.render(vu => {
         css: {
           width: '100%',
           height: '400px',
-          overflow: 'auto'
+          overflow: 'auto',
+          background: '#caccac'
         }
       }
     });
 
     // Nav
-    let draggedIdx, dropAt;
+    let draggedIdx, startSec;
     let Nav = makeList({
       wrapClass: NavBoxView,//PurelyViews.class('Purely.Edit.Page'),
       sel: navboxWrap.sel(),
       height: 100,
-      onclick: function(sec, idx) {
-        //let ridx = Math.floor(Math.random() * pages.length);
-        //Nav.swap(idx, ridx);
-
-      },
       ondragstart: function(sec, idx, e) {
-        //e.preventDefault();
         draggedIdx = idx;
-        sec.wrap.set('startPageY', e.pageY);
-        sec.wrap.set('isDragging', true);
-
-        //var crt = this.cloneNode(true);
-        //crt.style.backgroundColor = "red";
-        //crt.style.position = "absolute"; crt.style.top = "0px"; crt.style.left = "-100px";
-        //document.body.appendChild(crt);
-        //e.originalEvent.dataTransfer.setDragImage(crt, 0, 0);
+        startSec = sec;
+        startSec.wrap.set('isDragging', true);
       },
-      ondrag: function(sec, idx, e) {
-        console.log(e.pageY);
- 
-        sec.wrap.val('dy', e.pageY - sec.wrap.get('startPageY'));  
-      },
-      ondragenter: function(sec, idx) {
+      ondragenter: function(sec, idx, e) {
+        startSec.wrap.$el().css('background', '#aca');
+        startSec.wrap.set('isDragging', false);
         Nav.swap(draggedIdx, idx);
-        //sec.wrap.$el().css('background', '#aca');
-        // if (!sec.wrap.get('isDragged')) {
-        //   Nav.swap(dragged, idx);
-        //   sec.wrap.set('isDragged', true);
-        // }
+        draggedIdx = idx;
+        startSec.wrap.set('isDragging', true);
       },
-      ondragleave: function(sec, idx) {
-        //sec.wrap.$el().css('background', '#fff');
-      },
-      ondragend: function(sec, idx) {
-        dropAt = idx;
+      ondragend: function(sec, idx, e) {
         sec.wrap.val('isDragging', false);
       }
     });

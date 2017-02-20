@@ -63,8 +63,7 @@ NavView.dom( vu => [
   ]}
 ]);
 
-NavView.render( vu=> {
-
+NavView.render(vu => {
   // Reset items
   vu.$el('@main-items').html(`
     <li data-component="user" class="hidden user"><a>User Name</a></li>
@@ -84,7 +83,7 @@ NavView.render( vu=> {
   vu.$el().css(defaultCss);
   
   // @logo
-  vu.use('logo').then( v => {
+  vu.use('logo').then(v => {
     if (v.logo.imgsrc) {
       vu.$el('@logo').css('background-image',v.logo.imgsrc);
     }else {
@@ -102,7 +101,7 @@ NavView.render( vu=> {
     function pend(item){
       
       let method = 'append';
-
+      let comp = item.comp || new Date().getTime() + '_' + Math.floor(Math.random()*1000);
       switch (item.type) {
         case "main":
           item.el = 'main-items';
@@ -117,31 +116,25 @@ NavView.render( vu=> {
           item.el = 'nav-items';
           navItems.push(item);
       }
-
+       
       if (item.href) {
-        vu.$el(`@${item.el}`)[method](`<li data-component="${item.comp}" class="user hidden-xs"><a href="${itemhref}">${item.text}</a></li>`);
+        vu.$el(`@${item.el}`)[method](`<li data-component="${comp}" class="user hidden-xs"><a href="${item.href}">${item.text}</a></li>`);
       } else {
-        vu.$el(`@${item.el}`)[method](`<li data-component="${item.comp}" class="user hidden-xs"><a>${item.text}</a></li>`);
+        //vu.$el(`@${item.el}`)[method](`<li data-component="${comp}" class="user hidden-xs"><a>${item.text}</a></li>`);
       }
+      // setting click event  
+      vu.$el('@'+ comp).off('click').on('click',() => {
+        vu.res('comp', item.comp);
+      });
     }
     //navItems.forEach(pend);
     v.items.forEach(pend);
 
-    //setting click event
-    vu.use('items').then( v =>{
-      v.items.forEach(item => { 
-      if (item.comp) {
-        vu.$el(`@${item.comp}`).off('click').on('click',() => {
-          vu.res('comp', item.comp);
-        });
-      }
-      });
-    });
     if (navItems.length > 0) {
       vu.$el('@menu-button').removeClass('hidden');
     }
   }); //end of items
-  vu.use('usingMembers').then( v => {
+  vu.use('usingMembers').then(v => {
     if (v.usingMembers) {
       vu.$el('@user').removeClass('hidden');
       vu.$el('@signIn').addClass('hidden');
@@ -152,28 +145,28 @@ NavView.render( vu=> {
   });
 
   // animate
-  vu.$el('@menu-button').off('click').on('click', () => {
+  vu.$el('@menu-button').off('click').on('click',() => {
     vu.$el('@menu').fadeIn(300);
     $(".logo float-right").hide();
   });
 
-  vu.$el('@close-button').off('click').on('click', () => {
+  vu.$el('@close-button').off('click').on('click',() => {
     vu.$el('@menu').fadeOut(300);
     vu.$el('@user-menu').fadeOut(300);
     $(".logo float-right").show();
   });
 
-  vu.$el('@user').off('click').on('click', () => {
+  vu.$el('@user').off('click').on('click',() => {
     vu.$el('@user-menu').fadeIn(300);
     $(".logo .float-right").hide();
   });
 
   // Set @signIn click event
-  vu.$el('@signIn').off('click').on('click', () => {
+  vu.$el('@signIn').off('click').on('click',() => {
     vu.res('signIn');
   });
   // Set @signOut click event
-  vu.$el('@signOut').off('click').on('click', () => {
+  vu.$el('@signOut').off('click').on('click',() => {
     vu.res('signOut');
     vu.$el('@user-menu').fadeOut(300);
     $(".logo .float-right").hide();
@@ -183,14 +176,14 @@ NavView.render( vu=> {
 //UList
 //-comp: str, set element data-component
 //-items: array, input for list
-UListView.dom( vu => [
+UListView.dom(vu => [
   { 'div': [
     { 'ul': ''}
   ]}
 ]);
 
-UListView.render( vu => {
-  vu.use('items').then( v =>{
+UListView.render(vu => {
+  vu.use('items').then(v =>{
     v.items.forEach( obj =>{ 
       if(obj.comp && obj.href ){
         vu.$el('ul').append(`<li class="user" data-component=${obj.comp}><a href=${obj.href}>${obj.title}</a></li>`);
@@ -216,15 +209,15 @@ UListView.render( vu => {
 // BoxView
 // @box
 // -css: object, @box's style
-BoxView.dom( vu => [
+BoxView.dom(vu => [
   { 'div.view-box@box': ''}
 ]);
 
-BoxView.render( vu => {
-  vu.use('css').then( v => {
+BoxView.render(vu => {
+  vu.use('css').then(v => {
     vu.$el('@box').css(v.css);
   });
-  vu.use('text').then( v=> {
+  vu.use('text').then(v=> {
     vu.$el().html(v.text.join(' '));
   });
 });
@@ -235,11 +228,11 @@ BoxView.render( vu => {
 // - h: string, total height
 // - cut: obj, cut sequences
 // - colored: boolean, true to color automatically
-TilesView.dom( vu => [
+TilesView.dom(vu => [
   { 'div': ''}
 ]);
 
-TilesView.render( vu => {
+TilesView.render(vu => {
   let w = vu.get('w'),
       h = vu.get('h'),
       colored = vu.get('colored') || false,
@@ -373,11 +366,11 @@ TilesView.render( vu => {
 
 // Textarea
 // @textarea
-TextareaView.dom( vu => [
+TextareaView.dom(vu => [
   { 'textarea(rows="1").view-textarea': ''}
 ]);
 
-TextareaView.render( vu => {
+TextareaView.render(vu => {
   let height, 
       $this = vu.$el('textarea'),
       value = vu.get('value'),
@@ -440,7 +433,7 @@ TextareaView.render( vu => {
 // @files: a file input
 // - files: array, an array of image files
 // - multi: boolean
-ImageUploaderView.dom( vu => [
+ImageUploaderView.dom(vu => [
   { 'div.view-image-uploader.uploader': [
     { 'div@preview.preview': '' },
     { 'div.control': [
@@ -453,7 +446,7 @@ ImageUploaderView.dom( vu => [
   ]}
 ]);
 
-ImageUploaderView.render( vu => {
+ImageUploaderView.render(vu => {
 	let $files = vu.$el('@files');
 			$preview = vu.$el('@preview'),
 			$button = vu.$el('@button'),
@@ -499,7 +492,7 @@ ImageUploaderView.render( vu => {
 //     </div>
 //   </div>
 // `);
-FormView.dom( vu => [
+FormView.dom(vu => [
   { 'div.view-form': [
     { 'ul@inputs': ''}
   ]}
@@ -550,7 +543,7 @@ FormView.render(vu => {
 // -css: object, css for decoration the outer div
 // -css['@img']: object, css for decoration the img
 // -css['@caption']: object, css for decoration the caption
-PhotoView.dom( vu => [
+PhotoView.dom(vu => [
   { 'div': [
     { 'a(href="#")': [
       { 'img@img.img-responsive(src="")': ''}
@@ -615,7 +608,7 @@ PhotoView.render(vu => {
 //     </div>
 //   </div>`
 // );
-GridView.dom( vu => [
+GridView.dom(vu => [
   { 'div.view-grid': [
     { 'div.row.clear-margin@grid': ''}
   ]}
@@ -677,7 +670,7 @@ GridView.render(vu => {
 // -changeTime: numnber, set the time for slide auto-changing
 // -showArrow: boolean, set whether showing arrow or not with default value: true
 // -mode: string, set slide mode 'slide' or 'center' with default value: slide
-SlideView.dom( vu => [
+SlideView.dom(vu => [
   { 'div.view-slide': [
     { 'div.slide': [
       { 'i.slideButton.slideButtonLeft.glyphicon.glyphicon-chevron-left': ''},
@@ -693,7 +686,7 @@ SlideView.dom( vu => [
   ]}
 ]);
 
-SlideView.render( vu => {
+SlideView.render(vu => {
 
   // Default CSS Setting
   let containerCSS = {
@@ -701,7 +694,7 @@ SlideView.render( vu => {
     height: '390px'
   };
 
-  vu.use('container').then( v => {
+  vu.use('container').then(v => {
     containerCSS.width = v.container.width;
     containerCSS.height = v.container.height;
   })
@@ -709,7 +702,7 @@ SlideView.render( vu => {
   vu.$el('.view-slide').css(containerCSS);
 
   //  Loading Data
-  vu.use('data').then( v => {
+  vu.use('data').then(v => {
     if(Array.isArray(v.data)){
       let currentNumber = 0;
       let totalSlideNumber = v.data.length - 1;
@@ -824,12 +817,12 @@ SlideView.render( vu => {
     }
   })
 
-  vu.use('showArrow').then( v => {
+  vu.use('showArrow').then(v => {
     if(v.showArrow === false) vu.$el('.slideButton').remove();
   })
 
   //  setting customer caption font
-  vu.use('captionFontCSS').then( v => {
+  vu.use('captionFontCSS').then(v => {
     delete v.captionFontCSS.width;
     vu.$el('.caption').find('li').css(v.captionFontCSS);
   })
@@ -842,13 +835,13 @@ SlideView.render( vu => {
 //   -value: number or string
 //   -payload: string, the content of the option
 // "value" <- string, number or boolean, the value of the selected option 
-SelectView.dom( vu => [
+SelectView.dom(vu => [
   { 'div.view-select': [
     { 'select@select' : ''}
   ]}
 ]);
 
-SelectView.render( vu => {
+SelectView.render(vu => {
   vu.use('options').then(v => {
     if(Array.isArray(v.options)){
       v.options.forEach((o, i) =>{
@@ -894,7 +887,7 @@ ContactsView.render(vu => {
 });
 
 // Purely.Layout.Single
-PurelyLayoutSingleView.dom( vu => [
+PurelyLayoutSingleView.dom(vu => [
   { 'div.view-purely-layout-single': [
     { 'h5@title.title': ''},
     { 'p@content.content': ''},
@@ -902,7 +895,7 @@ PurelyLayoutSingleView.dom( vu => [
   ]}
 ]);  
 
-PurelyLayoutSingleView.render( vu => {
+PurelyLayoutSingleView.render(vu => {
   vu.$el().children().html('');
 
   let vals = vu.val();

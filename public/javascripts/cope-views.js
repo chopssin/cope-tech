@@ -89,6 +89,8 @@ ViewAccountCard.render(vu => {
 // NavBox
 NavBoxView.dom(vu => [{ 'div(draggable = true)': '' }]);
 NavBoxView.render(vu => {
+
+
   let height = vu.get('height') + 'px' || '50px';
       
   vu.$el().css({
@@ -107,7 +109,6 @@ NavBoxView.render(vu => {
         //'left': '0'
       });
     } else {
-      console.log('#aca');
       vu.$el().css({
         'background': '#aca'
       });
@@ -466,15 +467,19 @@ SimSecClass.render(vu => {
   });
 
   onresize = function() {
+    vu.$el().css('height', vh);
     vw = vu.$el().width(); 
+
+    console.log('vw = ' + vw + ' vh = ' + vh);
     sw = vw * sh / vh; 
     sr = vh / sh;
-
+   
     vu.$el('@sec').css({
       width: sw + 'px',
       height: sh + 'px',
-      transform: `scale(${sr})`
+      'transform': `scale(${sr})`
     });
+
   }; // end of onresize
   
   // Scale the section on resize event
@@ -761,19 +766,33 @@ PurelyAppView.render(vu => {
         secs[wrap_j].wrap.val('idx', i);
       }
     }; // end of my.swap
-
     return my;
   };
 
+  
+  // let PS = makeList({
+  //   wrapClass: PurelySecView, //PageSelectorItemView,
+  //   sel: vu.sel('@sim-page'),
+  //   height: 100,
+  //   onclick: function(sec, idx){
+  //     //TBD
+  //   }
+  // });
+
   // PS: Page Selector
-  let PS = makeList({
-    wrapClass: PurelySecView, //PageSelectorItemView,
+  let PS = PurelyViews.class('SortableList').build({
     sel: vu.sel('@sim-page'),
-    height: 400,
-    onclick: function(sec, idx){
-      //TBD
-    }
+    data: { height: 100 }
   });
+
+  // SS: Section Simulator
+  let SS = PurelyViews.class('SortableList').build({
+    sel: vu.sel('@page'),
+    data: { height: 400 }
+  });
+
+
+
 
   // Page
   let Page = makeList({
@@ -809,9 +828,9 @@ PurelyAppView.render(vu => {
   }); // end of makeList
 
   // Build the initial sections
-  sections.map((s, i) => {
-    Page.insert(i, function(wrap, secs) {
-      let build = function(wrap, p) {
+  sections.map(p => {
+    //Page.insert(i, function(wrap, secs) {
+      //let build = function(wrap, p) {
         if (!p) p = {};
         if (!p.type) p.type = 'basic';
         if (!p.basic) {
@@ -824,46 +843,64 @@ PurelyAppView.render(vu => {
         let params = p;
 
         // Initiate build settings
-        let buildSettings = {};
-        buildSettings.sel = wrap.sel('@sec');
-        buildSettings.data = params;
+        let ssData = {},
+            psData = {};
 
-        wrap.res('after', idx => {
-          Page.insert(idx, function(wrap, secs) {
-            return build(wrap);
-          });
+        // IMPORTANT!!!!!!!!!!!!!!!!!!!
+        // 
+        // wrap.res('after', idx => {
+        //   Page.insert(idx, function(wrap, secs) {
+        //     return build(wrap);
+        //   });
+        // })
+        // .res('del clicked', Page.remove)
+        // .res('mask clicked', () => {
+        //   // Fade out all sections except for self
+        //   // secs.about.val('fadeOut', true);
+
+        //   return;
+
+        //   secs.map((x, idx) => {
+        //     if (i != idx) {
+        //       x.wrap.val('fadeOut', true);
+        //     }
+        //   });
+        //   // Fade in the current section
+        //   wrap.val('fadeIn', true);
+        // });
+        
+        for (let k in params) {
+          psData[k] = params[k];
+          ssData[k] = params[k];
+        }
+        psData.height = 100;
+        ssData.height = 400;
+        console.log(psData);
+        PS.val('new', {
+          viewClass: SimSecClass,
+          data: psData
+        });
+
+        SS.val('new', {
+          viewClass: SimSecClass,
+          data: ssData
         })
-        .res('del clicked', Page.remove)
-        .res('mask clicked', () => {
-          // Fade out all sections except for self
-          // secs.about.val('fadeOut', true);
+        // PS.insert(i, function(wrap, secs) {
+        //   let psSettings = {};
+        //   Object.assign(psSettings, buildSettings);
+        //   wrap.$el().css({ 
+        //     'width': '100%'
+        //   });
+        //   psSettings.sel = wrap.sel('@sec');
+        //   psSettings.data.height = 100;
+        //   return SimSecClass.build(psSettings);
+        // });
 
-          return;
+        //return SimSecClass.build(buildSettings);
+      //}; // end of build
 
-          secs.map((x, idx) => {
-            if (i != idx) {
-              x.wrap.val('fadeOut', true);
-            }
-          });
-          // Fade in the current section
-          wrap.val('fadeIn', true);
-        });
-
-        PS.insert(i, function(wrap, secs) {
-          let psSettings = {};
-          Object.assign(psSettings, buildSettings);
-          wrap.$el().css({ 
-            'width': '100%'
-          });
-          psSettings.sel = wrap.sel('@sec');
-          return SimSecClass.build(psSettings);
-        });
-
-        return SimSecClass.build(buildSettings);
-      }; // end of build
-
-      return build(wrap, s);
-    }); // end of Page.insert
+      //return build(wrap, s);
+    //}); // end of Page.insert
   }); // end of sections.map
 
   // Panel routing
@@ -923,61 +960,23 @@ PurelyAppView.render(vu => {
   
   // Nav click event
   vu.$el('@nav').off('click').on('click', () => {
-    console.log('nav clicked');
-
-    // Build wrap for nav settings
-    let navboxWrap = PurelyViews.class('Box').build({
+    
+    let SL = PurelyViews.class('SortableList').build({
       sel: vu.sel('@sec-settings'),
-      data: {
-        css: {
-          width: '100%',
-          height: '400px',
-          overflow: 'auto',
-          background: '#caccac'
-        }
-      }
+      data: { height: 30 }
     });
 
-    // Nav
-    let draggedIdx, startSec;
-    let Nav = makeList({
-      wrapClass: NavBoxView,//PurelyViews.class('Purely.Edit.Page'),
-      sel: navboxWrap.sel(),
-      height: 100,
-      ondragstart: function(sec, idx, e) {
-        draggedIdx = idx;
-        startSec = sec;
-        startSec.wrap.set('isDragging', true);
-      },
-      ondragenter: function(sec, idx, e) {
-        startSec.wrap.$el().css('background', '#aca');
-        startSec.wrap.set('isDragging', false);
-        Nav.swap(draggedIdx, idx);
-        draggedIdx = idx;
-        startSec.wrap.set('isDragging', true);
-      },
-      ondragend: function(sec, idx, e) {
-        sec.wrap.val('isDragging', false);
-      }
-    });
-
-    pages.map((p, i) => {
-      Nav.insert(i, function(wrap, secs){
-        let vu = PurelyViews.class('ListItem').build({
-          sel: wrap.sel(),
-          data: { label: p.title }
-        });
-
-        vu.$el().off('dragenter').on('dragenter', function(e) {
-          e.stopPropagation();
-        }); 
+    pages.map(x => {
+      SL.val('new', {
+        viewClass: PurelyViews.class('ListItem'),
+        data: { label: x.title }
       });
     });
 
     vu.$el('@back').removeClass('hidden');
     vu.$el('@app-settings').addClass('hidden');
     vu.$el('@sec-settings').removeClass('hidden');
-  }); 
+  }); // Nav click event
 }); //end of PureAppView.render
 
 

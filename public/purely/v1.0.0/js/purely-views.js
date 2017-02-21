@@ -14,6 +14,7 @@ let NavView = Views.class('Nav'),
   UListView = Views.class('UList'),
   FormView = Views.class('Form'),
   ListItemView = Views.class('ListItem'),
+  SortableListClass = Views.class('SortableList');
   
   ContactsView = Views.class('Contacts'), // to be deprecated
 
@@ -1045,6 +1046,217 @@ ListItemView.render(vu => {
   }
 }); 
 
+// SortableList
+// - height: number, each block's height
+// "item clicked" <= obj, the selected item
+SortableListClass.dom(vu => [
+  { 'div.view-sortable-list': '' }
+]);
+
+SortableListClass.render(vu => {
+  let List,
+      newBlock, // { viewClass, data }
+      height,
+      renderBlock;
+
+  height = vu.map('height', h => {
+    if (!h) return 100;
+    return h;
+  });
+
+  renderBlock = vu.map('renderBlock', rb => {
+    if (!rb) {
+      rb = function(item) {
+        let cssObj = {};
+        if (item.idx < 0) {
+          vu.$el().fadeOut(300);
+          cssObj.display = 'none';
+          cssObj.top = '-9999px';
+        } else {
+          cssObj.position = 'absolute';
+          cssObj.width = '100%';
+          cssObj.height = height + 'px';
+          cssObj.top = item.idx * height + 'px';
+        }
+        if (!!cssObj) {
+          vu.$el('@' + item.comp).css(cssObj);
+        }
+      }; // end of rb
+    }
+    return rb;
+  });
+
+  // List
+  List = vu.map('List', List => {
+    if(!List) {
+      let makeList = function(o) {
+        let items = [], // { rid, comp, idx, view }
+            my = {};
+
+        my.get = function(rid) {
+          if (!rid) {
+            return items;
+          }
+          return items.filter(item => (item.rid === rid))[0] || {};
+        };
+
+        my.getByIdx = function(idx) {
+          if (isNaN(idx)) {
+            return items;
+          }
+          return items.filter(item => (item.idx === idx))[0] || {};
+        };
+
+        // s: params of the section
+        my.insert = function(newBlock, i) {
+          i = i || items.length;
+
+          // Set random Id
+          let rid = new Date().getTime() + '_' + Math.floor(Math.random()*1000),
+              item = {};
+
+          // Update items array
+          item = {
+            idx: i,
+            rid: rid,
+            comp: 'item-' + rid
+          };
+          if (i < items.length) {
+            // Handle the old array
+            items.map(item => {
+              if (item.idx >= i) {
+                item.idx = item.idx + 1;
+              } 
+            });
+          }
+
+          // Append new block in dom
+          vu().append([
+            [ 'div(draggable = true).sortable-item@' + item.comp ]
+          ]);
+
+          if (!newBlock && !newBlock.viewClass) {
+            throw 'newBlock.viewClass is invalid';
+          }
+          item.view = newBlock.viewClass.build({
+            sel: vu.sel('@' + item.comp),
+            data: newBlock && newBlock.data || {}
+          });
+          console.log(newBlock);
+
+          // Render the block
+          renderBlock(item);
+
+          Object.keys(o).map(key => {
+            if (key.indexOf('on') != 0) { return; }
+            let evt = key.slice(2);
+            vu.$el('@' + item.comp).off(evt + '.' + rid).on(evt + '.' + rid, function(e) {
+              o[key](item, e);
+            });
+          }); // end of Object.keys ... map
+
+          // Update items array
+          items = items.concat(item);
+          return item;
+        }; // end of my.insert
+
+        my.remove = function(i) {
+          items = items.reduce((arr, item) => {
+            if (item.idx === i) {
+              item.idx = -1;
+              renderBlock(item);
+              return arr;
+            } else if (item.idx > i) {
+              item.idx = item.idx - 1;
+              renderBlock(item);
+            }
+            arr = arr.concat(item);
+            return arr;
+          }, []);
+        }; // end of my.remove
+
+        my.swap = function(i, j) {
+          let item_i, item_j;
+          let arr = [];
+          arr = items.map(item => item.idx);
+          item_i = arr.indexOf(i);
+          item_j = arr.indexOf(j);
+          if (item_i != item_j) {
+            items[item_i].idx = j;
+            items[item_j].idx = i;
+            renderBlock(items[item_i]);
+            renderBlock(items[item_j]);
+          }
+        }; // end of my.swap
+        return my;
+      };// end of makeList 
+
+      let draggedRid, startSec;
+      List = makeList({
+        height: height,
+        onclick: function(item, e) {
+          vu.res('item clicked', item);
+        },
+        ondragstart: function(item, e) {
+          draggedRid = item.rid;
+          List.get(item.rid).isDragging = true;
+          //startSec = item;
+          //startSec.isDragging = true;
+        //startSec = sec;
+        //startSec.wrap.set('isDragging', true);
+        },
+        ondragenter: function(item, e) {
+          
+          console.log(draggedRid, item.idx);
+          
+          if (!item.isDragging) {
+            //List.getByIdx(draggedIdx).isDragging = false;
+            List.swap(List.get(draggedRid).idx, item.idx);
+            //draggedIdx = item.idx;
+            //List.getByIdx(item.idx).isDragging = true;
+          } 
+          // 
+          //startSec.isDragging = true;
+        },
+        ondragend: function(item, e) {
+          List.get(item.rid).isDragging = false;
+        }
+      });
+    }
+    return List;
+  }); // end of vu.map('List', ...)
+
+  // To append new block
+  vu.map('new', newBlock => {
+    if (newBlock) {
+      List.insert(newBlock);
+    }
+  });
+}); // end of SortableList
+// Usage:
+// let SL = SortableListClass.build({ 
+//   sel:'...',
+//   data: { height: 100 }
+// });
+
+// SL.res('item clicked', item => {
+//   item.view
+//   item.idx
+//   item.rid
+//   item.comp
+// })
+
+//sections.map(x => {
+//  SL.val('new', {
+//    viewClass: vc,
+//    data: x
+//  });
+//});
+
+// SL_List = SL.get('List');
+// SL_List.get() => [{ idx, rid, comp, view }]
+
+
 // Purely.Page
 PurelyPageClass.dom(vu => [{ 'div.view-purely-page': '' }]);
 PurelyPageClass.render(vu => {
@@ -1271,7 +1483,6 @@ PurelySectionContactsClass.render(vu => {
   });
 });
 // end of Purely.Section.Contacts
-
 
 //-------------------------------------
 })(jQuery, Cope);

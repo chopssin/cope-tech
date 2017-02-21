@@ -1207,7 +1207,7 @@ PurelySectionCollectionClass.dom(vu => [
 ]);
 
 PurelySectionCollectionClass.render(vu => {
-  let layout = vu.get('layout'),
+  let layout = vu.get('layout') || 'bold-left-slide',
       data = vu.get('data'),
       itemViews = [];
 

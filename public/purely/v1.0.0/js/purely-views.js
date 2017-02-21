@@ -1048,165 +1048,202 @@ ListItemView.render(vu => {
 
 // SortableList
 // - height: number, each block's height
+// "item clicked" <= obj, the selected item
 SortableListClass.dom(vu => [
   { 'div.view-sortable-list': '' }
 ]);
 
 SortableListClass.render(vu => {
   let List,
-      //blocks, // { comp(rid), idx }
       newBlock, // { viewClass, data }
-      height;
+      height,
+      renderBlock;
 
   height = vu.map('height', h => {
     if (!h) return 100;
     return h;
   });
 
-  //blocks = vu.map('blocks', blocks => {
-  //  if (!blocks) { return []; } 
-  //  return blocks;
-  //});
+  renderBlock = vu.map('renderBlock', rb => {
+    if (!rb) {
+      rb = function(item) {
+        let cssObj = {};
+        if (item.idx < 0) {
+          vu.$el().fadeOut(300);
+          cssObj.display = 'none';
+          cssObj.top = '-9999px';
+        } else {
+          cssObj.position = 'absolute';
+          cssObj.height = height + 'px';
+          cssObj.top = item.idx * height + 'px';
+        }
+        if (!!cssObj) {
+          vu.$el('@' + item.comp).css(cssObj);
+        }
+      }; // end of rb
+    }
+    return rb;
+  });
 
   // List
   List = vu.map('List', List => {
     if(!List) {
       let makeList = function(o) {
-        let items = [], //secs = [],
+        let items = [], // { rid, comp, idx, view }
             my = {};
 
-        my.render = o.render;
+        my.get = function(rid) {
+          if (!rid) {
+            return items;
+          }
+          return items.filter(item => (item.rid === rid))[0] || {};
+        };
 
-        my.get = function(i) {
-          return secs[i];
+        my.getByIdx = function(idx) {
+          if (isNaN(idx)) {
+            return items;
+          }
+          return items.filter(item => (item.idx === idx))[0] || {};
         };
 
         // s: params of the section
-        my.insert = function(i, callback) {
-          
+        my.insert = function(newBlock, i) {
+          i = i || items.length;
+
           // Set random Id
-          let rid = '.....';      
+          let rid = new Date().getTime() + '_' + Math.floor(Math.random()*1000),
+              item = {};
+
+          // Update items array
+          item = {
+            idx: i,
+            rid: rid,
+            comp: 'item-' + rid
+          };
+          if (i < items.length) {
+            // Handle the old array
+            items.map(item => {
+              if (item.idx >= i) {
+                item.idx = item.idx + 1;
+              } 
+            });
+          }
 
           // Append new block in dom
           vu().append([
-            [ 'div.sortable-item@item-' + rid ]
+            [ 'div(draggable = true).sortable-item@' + item.comp ]
           ]);
 
-          // Update items array
-          items = items.concat({
-            idx: items.length,
-            rid: rid,
-            comp: 'item-' + rid
+          if (!newBlock && !newBlock.viewClass) {
+            throw 'newBlock.viewClass is invalid';
+          }
+          item.view = newBlock.viewClass.build({
+            sel: vu.sel('@' + item.comp),
+            data: newBlock && newBlock.data || {}
           });
+          console.log(newBlock);
 
-          Object.keys(vu.get()).map(key => {
+          // Render the block
+          renderBlock(item);
+
+          Object.keys(o).map(key => {
             if (key.indexOf('on') != 0) { return; }
-            let evt = key.slice('2');
-            vu.$el('@item-' + rid).off(evt + '.' + rid).on(evt + '.' + rid, function(e) {
-              vu.get()[key](sec, sec.wrap.get('idx'), e);
+            let evt = key.slice(2);
+            vu.$el('@' + item.comp).off(evt + '.' + rid).on(evt + '.' + rid, function(e) {
+              o[key](item, e);
             });
           }); // end of Object.keys ... map
 
-          // secs.map((sec, idx) => {
-          //   Object.keys(o).map(key => {
-          //     if (key.indexOf('on') != 0) return;
-              
-          //     let evt = key.slice('2');
-          //     sec.wrap.$el().off(evt).on(evt, function(e) {
-          //       o[key](sec, sec.wrap.get('idx'), e);
-          //     });
-          //   }); // end of Object.keys ... map
-          // }); // end of secs.map
-
-          return rid;
-
-          return;
-
-          if (i > secs.length) return;
-         
-          // Handle the old array
-          secs.map(sec => {
-            let myIdx = sec.wrap.get('idx');
-            if (myIdx >= i) {
-              sec.wrap.val('idx', myIdx + 1);
-            }
-          });
-
-          // Handle the new one
-          // let wrap = o.wrapClass.build({ //PurelySecView.build({
-          //   sel: o.sel, //vu.sel('@page'),
-          //   method: 'append',
-          //   data: {
-          //     height: o.height,
-          //     idx: i
-          //   }
-          // });
-          
-
-
-          let view = callback(wrap, secs);
-
-          // secs = secs.concat({
-          //   wrap: wrap,
-          //   view: view //viewClass.build(buildSettings)
-          // });
-
-          
+          // Update items array
+          items = items.concat(item);
+          return item;
         }; // end of my.insert
 
         my.remove = function(i) {
-          secs = secs.filter(sec => {
-            if (sec.wrap.get('idx') === i) {
-              sec.wrap.$el().fadeOut(300);
-              return false;
-            } else if (sec.wrap.get('idx') > i) {
-              sec.wrap.val('idx', sec.wrap.get('idx') - 1);
+          items = items.reduce((arr, item) => {
+            if (item.idx === i) {
+              item.idx = -1;
+              renderBlock(item);
+              return arr;
+            } else if (item.idx > i) {
+              item.idx = item.idx - 1;
+              renderBlock(item);
             }
-            return true;
-          });
+            arr = arr.concat(item);
+            return arr;
+          }, []);
         }; // end of my.remove
 
         my.swap = function(i, j) {
-          let wrap_i, wrap_j;
+          let item_i, item_j;
           let arr = [];
-          arr = secs.map(sec => sec.wrap.get('idx'));
-          wrap_i = arr.indexOf(i);
-          wrap_j = arr.indexOf(j);
-          if(wrap_i != wrap_j) {
-            secs[wrap_i].wrap.val('idx', j);
-            secs[wrap_j].wrap.val('idx', i);
+          arr = items.map(item => item.idx);
+          item_i = arr.indexOf(i);
+          item_j = arr.indexOf(j);
+          if (item_i != item_j) {
+            items[item_i].idx = j;
+            items[item_j].idx = i;
+            renderBlock(items[item_i]);
+            renderBlock(items[item_j]);
           }
         }; // end of my.swap
         return my;
       };// end of makeList 
-      return makeList({
-        wrapClass: '...',
-        height: height
+
+      let draggedRid, startSec;
+      List = makeList({
+        height: height,
+        onclick: function(item, e) {
+          vu.res('item clicked', item);
+        },
+        ondragstart: function(item, e) {
+          draggedRid = item.rid;
+          List.get(item.rid).isDragging = true;
+          //startSec = item;
+          //startSec.isDragging = true;
+        //startSec = sec;
+        //startSec.wrap.set('isDragging', true);
+        },
+        ondragenter: function(item, e) {
+          
+          console.log(draggedRid, item.idx);
+          
+          if (!item.isDragging) {
+            //List.getByIdx(draggedIdx).isDragging = false;
+            List.swap(List.get(draggedRid).idx, item.idx);
+            //draggedIdx = item.idx;
+            //List.getByIdx(item.idx).isDragging = true;
+          } 
+          // 
+          //startSec.isDragging = true;
+        },
+        ondragend: function(item, e) {
+          List.get(item.rid).isDragging = false;
+        }
       });
     }
     return List;
-  });
+  }); // end of vu.map('List', ...)
 
   // To append new block
-  if (vu.get('new')) {
-    let rid = List.insert();
-    newBlock = vu.get('new');
-    newBlock.viewClass.build({
-      sel: vu.sel(),
-      method: 'append',
-      data: newBlock.data || {}
-    });
-    vu.set('new', false);
-  }
-});
-
+  vu.map('new', newBlock => {
+    if (newBlock) {
+      List.insert(newBlock);
+    }
+  });
+}); // end of SortableList
+// Usage:
 // let SL = SortableListClass.build({ 
 //   sel:'...',
-//   data: { 
-//     height: 100,
-//     onclick: function(sec, idx, e) { }
-//   }
+//   data: { height: 100 }
 // });
+
+// SL.res('item clicked', item => {
+//   item.view
+//   item.idx
+//   item.rid
+//   item.comp
+// })
 
 //sections.map(x => {
 //  SL.val('new', {
@@ -1214,6 +1251,9 @@ SortableListClass.render(vu => {
 //    data: x
 //  });
 //});
+
+// SL_List = SL.get('List');
+// SL_List.get() => [{ idx, rid, comp, view }]
 
 
 // Purely.Page

@@ -638,6 +638,20 @@ textarea {
   padding: 0;
 }
 
+/* SortableList */
+.view-sortable-list {
+  display: block;
+  position: relative;
+  height: 400px;
+  overflow: auto;
+}
+
+.view-sortable-list .sortable-item {
+  display: block;
+  position: absolute;
+  width: 100%;
+}
+
 /* Extra Small Devices, Phones */
 @media only screen and (min-width : 480px) {
 }

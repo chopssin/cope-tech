@@ -432,6 +432,8 @@ SimSecClass.render(vu => {
 
   onresize = function() {
     vw = vu.$el().width(); 
+
+    console.log('vw = ' + vw + ' vh = ' + vh);
     sw = vw * sh / vh; 
     sr = vh / sh;
 
@@ -726,7 +728,6 @@ PurelyAppView.render(vu => {
         secs[wrap_j].wrap.val('idx', i);
       }
     }; // end of my.swap
-
     return my;
   };
 
@@ -734,7 +735,7 @@ PurelyAppView.render(vu => {
   let PS = makeList({
     wrapClass: PurelySecView, //PageSelectorItemView,
     sel: vu.sel('@sim-page'),
-    height: 400,
+    height: 100,
     onclick: function(sec, idx){
       //TBD
     }
@@ -827,6 +828,7 @@ PurelyAppView.render(vu => {
             'width': '100%'
           });
           psSettings.sel = wrap.sel('@sec');
+          psSettings.data.height = 100;
           return SimSecClass.build(psSettings);
         });
 

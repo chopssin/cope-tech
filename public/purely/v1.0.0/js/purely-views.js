@@ -14,6 +14,7 @@ let NavView = Views.class('Nav'),
   UListView = Views.class('UList'),
   FormView = Views.class('Form'),
   ListItemView = Views.class('ListItem'),
+  SortableListClass = Views.class('SortableList');
   
   ContactsView = Views.class('Contacts'), // to be deprecated
 
@@ -1045,6 +1046,176 @@ ListItemView.render(vu => {
   }
 }); 
 
+// SortableList
+// - height: number, each block's height
+SortableListClass.dom(vu => [
+  { 'div.view-sortable-list': '' }
+]);
+
+SortableListClass.render(vu => {
+  let List,
+      //blocks, // { comp(rid), idx }
+      newBlock, // { viewClass, data }
+      height;
+
+  height = vu.map('height', h => {
+    if (!h) return 100;
+    return h;
+  });
+
+  //blocks = vu.map('blocks', blocks => {
+  //  if (!blocks) { return []; } 
+  //  return blocks;
+  //});
+
+  // List
+  List = vu.map('List', List => {
+    if(!List) {
+      let makeList = function(o) {
+        let items = [], //secs = [],
+            my = {};
+
+        my.render = o.render;
+
+        my.get = function(i) {
+          return secs[i];
+        };
+
+        // s: params of the section
+        my.insert = function(i, callback) {
+          
+          // Set random Id
+          let rid = '.....';      
+
+          // Append new block in dom
+          vu().append([
+            [ 'div.sortable-item@item-' + rid ]
+          ]);
+
+          // Update items array
+          items = items.concat({
+            idx: items.length,
+            rid: rid,
+            comp: 'item-' + rid
+          });
+
+          Object.keys(vu.get()).map(key => {
+            if (key.indexOf('on') != 0) { return; }
+            let evt = key.slice('2');
+            vu.$el('@item-' + rid).off(evt + '.' + rid).on(evt + '.' + rid, function(e) {
+              vu.get()[key](sec, sec.wrap.get('idx'), e);
+            });
+          }); // end of Object.keys ... map
+
+          // secs.map((sec, idx) => {
+          //   Object.keys(o).map(key => {
+          //     if (key.indexOf('on') != 0) return;
+              
+          //     let evt = key.slice('2');
+          //     sec.wrap.$el().off(evt).on(evt, function(e) {
+          //       o[key](sec, sec.wrap.get('idx'), e);
+          //     });
+          //   }); // end of Object.keys ... map
+          // }); // end of secs.map
+
+          return rid;
+
+          return;
+
+          if (i > secs.length) return;
+         
+          // Handle the old array
+          secs.map(sec => {
+            let myIdx = sec.wrap.get('idx');
+            if (myIdx >= i) {
+              sec.wrap.val('idx', myIdx + 1);
+            }
+          });
+
+          // Handle the new one
+          // let wrap = o.wrapClass.build({ //PurelySecView.build({
+          //   sel: o.sel, //vu.sel('@page'),
+          //   method: 'append',
+          //   data: {
+          //     height: o.height,
+          //     idx: i
+          //   }
+          // });
+          
+
+
+          let view = callback(wrap, secs);
+
+          // secs = secs.concat({
+          //   wrap: wrap,
+          //   view: view //viewClass.build(buildSettings)
+          // });
+
+          
+        }; // end of my.insert
+
+        my.remove = function(i) {
+          secs = secs.filter(sec => {
+            if (sec.wrap.get('idx') === i) {
+              sec.wrap.$el().fadeOut(300);
+              return false;
+            } else if (sec.wrap.get('idx') > i) {
+              sec.wrap.val('idx', sec.wrap.get('idx') - 1);
+            }
+            return true;
+          });
+        }; // end of my.remove
+
+        my.swap = function(i, j) {
+          let wrap_i, wrap_j;
+          let arr = [];
+          arr = secs.map(sec => sec.wrap.get('idx'));
+          wrap_i = arr.indexOf(i);
+          wrap_j = arr.indexOf(j);
+          if(wrap_i != wrap_j) {
+            secs[wrap_i].wrap.val('idx', j);
+            secs[wrap_j].wrap.val('idx', i);
+          }
+        }; // end of my.swap
+        return my;
+      };// end of makeList 
+      return makeList({
+        wrapClass: '...',
+        height: height
+      });
+    }
+    return List;
+  });
+
+  // To append new block
+  if (vu.get('new')) {
+    let rid = List.insert();
+    newBlock = vu.get('new');
+    newBlock.viewClass.build({
+      sel: vu.sel(),
+      method: 'append',
+      data: newBlock.data || {}
+    });
+    vu.set('new', false);
+  }
+});
+
+// let SL = SortableListClass.build({ 
+//   sel:'...',
+//   data: { 
+//     height: 100,
+//     onclick: function(sec, idx, e) { }
+//   }
+// });
+
+//sections.map(x => {
+//  SL.val('new', {
+//    viewClass: vc,
+//    data: x
+//  });
+//});
+
+
 // Purely.Page
 PurelyPageClass.dom(vu => [{ 'div.view-purely-page': '' }]);
 PurelyPageClass.render(vu => {
@@ -1271,7 +1442,6 @@ PurelySectionContactsClass.render(vu => {
   });
 });
 // end of Purely.Section.Contacts
-
 
 //-------------------------------------
 })(jQuery, Cope);

@@ -901,7 +901,7 @@ Test.go(log => {
     { 'div.color-blue(style="padding:20px;")': [
       { 'h3': 'Test Dom' },
       '<p>Wrapped in &lt;p&gt;</p>',
-      { 'p@text': '' }] 
+      [ 'p@text', '' ]] 
     },
     { 'ul': [
       { 'li': 'First li' },
@@ -909,7 +909,7 @@ Test.go(log => {
       { 'li@blue': '' },
       { 'li': 'Last li' }] 
     },
-    { 'div(style="font-size:12px; padding:20px")': [
+    { 'div[fz 12px; p 20px;]': [
       { 'h4': 'The following shows the dom' },
       { 'pre': [
         { 'code@dom': '' }]

@@ -1074,6 +1074,7 @@ SortableListClass.render(vu => {
           cssObj.top = '-9999px';
         } else {
           cssObj.position = 'absolute';
+          cssObj.width = '100%';
           cssObj.height = height + 'px';
           cssObj.top = item.idx * height + 'px';
         }

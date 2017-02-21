@@ -432,17 +432,19 @@ SimSecClass.render(vu => {
   });
 
   onresize = function() {
+    vu.$el().css('height', vh);
     vw = vu.$el().width(); 
 
-    //console.log('vw = ' + vw + ' vh = ' + vh);
+    console.log('vw = ' + vw + ' vh = ' + vh);
     sw = vw * sh / vh; 
     sr = vh / sh;
-
+   
     vu.$el('@sec').css({
       width: sw + 'px',
       height: sh + 'px',
-      transform: `scale(${sr})`
+      'transform': `scale(${sr})`
     });
+
   }; // end of onresize
   
   // Scale the section on resize event
@@ -732,7 +734,7 @@ PurelyAppView.render(vu => {
     return my;
   };
 
-  // PS: Page Selector
+  
   // let PS = makeList({
   //   wrapClass: PurelySecView, //PageSelectorItemView,
   //   sel: vu.sel('@sim-page'),
@@ -742,10 +744,20 @@ PurelyAppView.render(vu => {
   //   }
   // });
 
+  // PS: Page Selector
   let PS = PurelyViews.class('SortableList').build({
     sel: vu.sel('@sim-page'),
     data: { height: 100 }
   });
+
+  // SS: Section Simulator
+  let SS = PurelyViews.class('SortableList').build({
+    sel: vu.sel('@page'),
+    data: { height: 400 }
+  });
+
+
+
 
   // Page
   let Page = makeList({
@@ -787,9 +799,9 @@ PurelyAppView.render(vu => {
   }); // end of makeList
 
   // Build the initial sections
-  sections.map((s, i) => {
-    Page.insert(i, function(wrap, secs) {
-      let build = function(wrap, p) {
+  sections.map(p => {
+    //Page.insert(i, function(wrap, secs) {
+      //let build = function(wrap, p) {
         if (!p) p = {};
         if (!p.type) p.type = 'basic';
         if (!p.basic) {
@@ -802,39 +814,48 @@ PurelyAppView.render(vu => {
         let params = p;
 
         // Initiate build settings
-        let buildSettings = {};
-        buildSettings.sel = wrap.sel('@sec');
-        buildSettings.data = params;
+        let ssData = {},
+            psData = {};
 
-        wrap.res('after', idx => {
-          Page.insert(idx, function(wrap, secs) {
-            return build(wrap);
-          });
-        })
-        .res('del clicked', Page.remove)
-        .res('mask clicked', () => {
-          // Fade out all sections except for self
-          // secs.about.val('fadeOut', true);
+        // IMPORTANT!!!!!!!!!!!!!!!!!!!
+        // 
+        // wrap.res('after', idx => {
+        //   Page.insert(idx, function(wrap, secs) {
+        //     return build(wrap);
+        //   });
+        // })
+        // .res('del clicked', Page.remove)
+        // .res('mask clicked', () => {
+        //   // Fade out all sections except for self
+        //   // secs.about.val('fadeOut', true);
 
-          return;
+        //   return;
 
-          secs.map((x, idx) => {
-            if (i != idx) {
-              x.wrap.val('fadeOut', true);
-            }
-          });
-          // Fade in the current section
-          wrap.val('fadeIn', true);
-        });
+        //   secs.map((x, idx) => {
+        //     if (i != idx) {
+        //       x.wrap.val('fadeOut', true);
+        //     }
+        //   });
+        //   // Fade in the current section
+        //   wrap.val('fadeIn', true);
+        // });
         
-        let psSettings = {};
-        Object.assign(psSettings, buildSettings);
-        //psSettings.data.height = 100;
-        console.log(psSettings);
+        for (let k in params) {
+          psData[k] = params[k];
+          ssData[k] = params[k];
+        }
+        psData.height = 100;
+        ssData.height = 400;
+        console.log(psData);
         PS.val('new', {
           viewClass: SimSecClass,
-          data: psSettings.data
+          data: psData
         });
+
+        SS.val('new', {
+          viewClass: SimSecClass,
+          data: ssData
+        })
         // PS.insert(i, function(wrap, secs) {
         //   let psSettings = {};
         //   Object.assign(psSettings, buildSettings);
@@ -846,11 +867,11 @@ PurelyAppView.render(vu => {
         //   return SimSecClass.build(psSettings);
         // });
 
-        return SimSecClass.build(buildSettings);
-      }; // end of build
+        //return SimSecClass.build(buildSettings);
+      //}; // end of build
 
-      return build(wrap, s);
-    }); // end of Page.insert
+      //return build(wrap, s);
+    //}); // end of Page.insert
   }); // end of sections.map
 
   // Panel routing

@@ -1200,6 +1200,7 @@ SortableListClass.render(vu => {
         ondragstart: function(item, e) {
           draggedRid = item.rid;
           List.get(item.rid).isDragging = true;
+          console.log(item);
           //startSec = item;
           //startSec.isDragging = true;
         //startSec = sec;
@@ -1316,6 +1317,7 @@ PurelyPageClass.render(vu => {
 PurelySectionClass.dom(vu => [{ 'div.view-purely-section': '' }]);
 PurelySectionClass.render(vu => {
   let type = vu.get('type') || 'basic',
+      sectionLayout = vu.get('layout') || 'basic',
       basicData = vu.get('basic') || {},
       collectionData = vu.get('collection') || {},
       contactsData = vu.get('contacts') || {},
@@ -1327,8 +1329,9 @@ PurelySectionClass.render(vu => {
       contactsVu,
       compLayout;
 
-  compLayout = collectionData && collectionData.layout 
-    || contactsData && contactsData.layout;
+  console.log('Purely.Section', vu.get());
+
+  compLayout = 'comp-bold-left'; // TBD: vu.get('compLayout');
 
   if (compLayout) {
     basicData.compLayout = compLayout;
@@ -1375,7 +1378,7 @@ PurelySectionBasicClass.dom(vu => [
 PurelySectionBasicClass.render(vu => {
   let title = vu.get('title') || '',
       content = vu.get('content') || '',
-      layout = vu.get('layout') || 'bold-left',
+      layout = vu.get('layout') || 'layout-left',
       compLayout = vu.get('compLayout') || false,
       imgsrc = vu.get('imgsrc'),
       vidsrc = vu.get('vidsrc'),
@@ -1405,9 +1408,9 @@ PurelySectionBasicClass.render(vu => {
 
   vu('@title').html(title);
   vu('@content').html(content);
-  vu.$el().addClass('layout-' + layout);
+  vu.$el().addClass(layout);
   if (compLayout) {
-    vu.$el().addClass('layout-' + compLayout);
+    vu.$el().addClass(compLayout);
   }
 }); // end of Purely.Section.Basic
 
@@ -1419,7 +1422,7 @@ PurelySectionCollectionClass.dom(vu => [
 ]);
 
 PurelySectionCollectionClass.render(vu => {
-  let layout = vu.get('layout') || 'bold-left-slide',
+  let layout = vu.get('layout') || 'layout-left-slide',
       data = vu.get('data'),
       itemViews = [];
 

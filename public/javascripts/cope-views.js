@@ -285,7 +285,7 @@ SectionEditView.render( vu => {
         return basic;
       });
 
-      vu.res('vals', vu.get());
+      vu.res('data', vu.get());
     });
   }); // end of the construction of items
 
@@ -293,9 +293,9 @@ SectionEditView.render( vu => {
   typeChooser = TypeChooserView.build({
     sel: items.type.sel('@display')
   }).res('clicked', type => {
-    vu.set('type', type);
-    layoutChooser.val('type', type);
-    vu.res('vals', vu.get());
+   // vu.set('type', type);
+   // layoutChooser.val('type', type);
+   // vu.res('data', vu.get());
   });
 
   // Build layout chooser
@@ -305,13 +305,20 @@ SectionEditView.render( vu => {
       type: vu.get('type')
     }
   });
-  layoutChooser.res('clicked', layout => {
-    vu.map(vu.get('type'), typeData => {
+  layoutChooser.res('clicked', choice => {
+    console.log(choice);
+    vu.set('type', choice.type);
+    vu.map(choice.type, typeData => {
       if (!typeData) { typeData = {}; }
-      typeData.layout = layout;
+      typeData.layout = choice.compLayout; // TBD: compLayout
       return typeData;
     });
-    vu.res('vals', vu.get());
+    vu.map('basic', basic => {
+      if (!basic) { basic = {}; }
+      basic.layout = choice.layout;
+      return basic;
+    });
+    vu.res('data', vu.get());
   });
 
   // Build the preview box of background
@@ -327,7 +334,7 @@ SectionEditView.render( vu => {
         basic.imgsrc = arr[0].image;
         return basic;
       }); 
-      vu.res('vals', vu.get());
+      vu.res('data', vu.get());
     });
   });
 
@@ -388,50 +395,68 @@ TypeChooserView.render( vu => {
 // Layout Chooser
 // @layout-chooser
 LayoutChooserView.dom( vu => [
-  { 'div@layout-chooser.view-layout-chooser': [
+  { 'div.view-layout-chooser': [
     { 'div.layout-chooser-sec': [
       { 'h4': 'Section Layout' },
-      { 'div.subtitles@layout-types': [
-        { 'div': 'Basic' },
-        { 'div': 'Collection' },
-        { 'div': 'Contacts' }] 
+      { 'div.subtitles': [
+        { 'div@type-basic': 'Basic' },
+        { 'div@type-collection': 'Collection' },
+        { 'div@type-contacts': 'Contacts' }]
       },
       { 'div@type-layouts': '' }]
     },
     { 'div.layout-chooser-sec': [
       { 'h4': 'Custom Style' },
-      { 'div@comp-styles': }]
+      { 'div@comp-styles': '' }]
     }] 
   }
 ]);
 
 LayoutChooserView.render( vu => {
-
-  vu.$el().off('click').on('click', function() {
+  let layouts = {},
+      types = ['basic', 'collection', 'contacts'],
+      textPos = ['left', 'right', 'center', 'none'],
+      collectionTypes = ['slide', 'grid', 'waterfull'],
+      contactsTypes = ['contacts'];
   
+  // Init
+  vu.set('type', vu.get('type') || 'basic');
+  layouts.basic = textPos
+    .filter(pos => pos != 'none')
+    .map(pos => 'layout-' + pos);
+  layouts.collection = [];
+  layouts.contacts = [];
+
+  collectionTypes.map(ct => {
+    textPos.map(pos => {
+      layouts.collection = layouts.collection.concat('layout-' + pos + '-' + ct);
+    });
   });
- 
-  return;
 
-  let tmp = '/images/sample-layout.png';
-  let layouts = {}, 
-      textPos = ['left', 'right', 'center', 'none'];
-  layouts.collection = ['slide', 'grid', 'waterfull'];
-  layouts.contacts = ['contacts'];
+  contactsTypes.map(ct => {
+    textPos.map(pos => {
+      layouts.contacts = layouts.contacts.concat('layout-' + pos + '-' + ct);
+    });
+  });
 
-  vu.use('type').then(v => {
-    let options = layouts[v.type];
-    options.map((option, i) => {
-      console.log(option);
-      vu('@layout-chooser').append([{ 'div.col-xs-6.col-xs-4': [
-        [ 'div@block-' + i + '.bg-img.block', option ]]
-      }]);
-    
-      vu.$el(`@block-${i}`).off('click').on('click', e => {
-        vu.res('clicked', option);
-      });
-    }); // end of map
-  }); // end of use
+  types.map(type => {
+    vu.$el('@type-' + type).off('click').on('click', e => {
+      vu('@type-layouts').html('');
+      // Display type layouts
+      layouts[type].map((layout, i) => {
+        vu('@type-layouts').append([{ 'div.col-xs-6.col-xs-4': [
+          [ 'div@block-' + i + '.bg-img.block', layout ]]
+        }]);
+        vu.$el(`@block-${i}`).off('click').on('click', e => {
+          vu.set('preferences', {
+            type: type,
+            layout: layout
+          })
+          vu.res('clicked', vu.get('preferences'));
+        });
+      }); // end of layouts[type].map
+    });
+  }); // types.map
 }); // end of LayoutChooser
 
 // Purely- Purely.SimSec
@@ -769,16 +794,6 @@ PurelyAppView.render(vu => {
     return my;
   };
 
-  
-  // let PS = makeList({
-  //   wrapClass: PurelySecView, //PageSelectorItemView,
-  //   sel: vu.sel('@sim-page'),
-  //   height: 100,
-  //   onclick: function(sec, idx){
-  //     //TBD
-  //   }
-  // });
-
   // PS: Page Selector
   let PS = PurelyViews.class('SortableList').build({
     sel: vu.sel('@sim-page'),
@@ -791,8 +806,31 @@ PurelyAppView.render(vu => {
     data: { height: 400 }
   });
 
+  PS.res('item clicked', item => {
+    // TBD: Interact with SS
+  });
 
+  SS.res('item clicked', item => {
+    console.log(item);
+    // Interact with PS and EditSection
+    // Build the section editor on the right side
+    let editSection = SectionEditView.build({
+      sel: vu.sel('@sec-settings')
+    });
+      
+    // Update section simulator
+    editSection.res('data', data => {
+      item.view.val(data);
+    });
 
+    // Fill up editSection on the right side
+    // with the selected section value
+    editSection.val(item.view.val());
+    
+    vu.$el('@back').removeClass('hidden');
+    vu.$el('@app-settings').addClass('hidden');
+    vu.$el('@sec-settings').removeClass('hidden');
+  });
 
   // Page
   let Page = makeList({

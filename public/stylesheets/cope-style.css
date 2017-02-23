@@ -154,6 +154,13 @@
   font-size: 1.2em;
 }
 
+/* layout-chooser */
+.view-layout-chooser .layout-chooser-sec {
+  display: table;
+  position: relative;
+  width: 100%;
+}
+
 /* Purely - Layouts */
 .purely {
   display: block;

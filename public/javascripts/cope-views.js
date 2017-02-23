@@ -25,7 +25,6 @@ var debug = Cope.Util.setDebug('cope-views', false),
     PurelyEditSingleView = Views.class('Purely.Edit.Single'), // to be deprecated
     SectionEditView = Views.class('Purely.Edit.Section.Settings'),
     PageEditView = Views.class('Purely.Edit.Page'),
-    TypeChooserView = Views.class('Purely.TypeChooser'),
     LayoutChooserView = Views.class('Purely.LayoutChooser'),
     
     //SectionEditView & PageEditView
@@ -239,7 +238,6 @@ SectionEditView.render( vu => {
 
   let items = {};
   let keys = [ 
-    'type',
     'layout', 
     'title', 
     'content', 
@@ -289,15 +287,6 @@ SectionEditView.render( vu => {
     });
   }); // end of the construction of items
 
-  // Build type chooser
-  typeChooser = TypeChooserView.build({
-    sel: items.type.sel('@display')
-  }).res('clicked', type => {
-   // vu.set('type', type);
-   // layoutChooser.val('type', type);
-   // vu.res('data', vu.get());
-  });
-
   // Build layout chooser
   layoutChooser = LayoutChooserView.build({
     sel: items.layout.sel('@display'),
@@ -308,6 +297,8 @@ SectionEditView.render( vu => {
   layoutChooser.res('clicked', choice => {
     console.log(choice);
     vu.set('type', choice.type);
+    vu.set('layout', choice.layout);
+    vu.set('compLayout', choice.compLayout);
     vu.map(choice.type, typeData => {
       if (!typeData) { typeData = {}; }
       typeData.layout = choice.compLayout; // TBD: compLayout
@@ -331,7 +322,9 @@ SectionEditView.render( vu => {
       maxWidth: 500
     }).res('upload', arr => {
       vu.map('basic', basic => {
-        basic.imgsrc = arr[0].image;
+        if (arr && arr[0] && arr[0].image) {
+          basic.imgsrc = arr[0].image;
+        }
         return basic;
       }); 
       vu.res('data', vu.get());
@@ -362,33 +355,6 @@ PageEditView.dom( vu => [
 PageEditView.render( vu => {
   vu.$el().off('click').on('click', () => {
     console.log('ok');
-  });
-});
-
-// Type Chooser
-// @type-basic
-// @type-col
-// @type-contacts
-TypeChooserView.dom( vu => [
-  { 'div@type-chooser.view-type-chooser': [
-    { 'div@type-basic.type-option': 'Basic' },
-    { 'div@type-col.type-option': 'Collection' },
-    { 'div@type-contacts.type-option': 'Contacts' }]
-  }
-]);
-
-TypeChooserView.render( vu => {
-  //@type-basic click event
-  vu.$el('@type-basic').off('click').on('click', () => {
-    vu.res('clicked', 'basic');
-  });
-
-  vu.$el('@type-col').off('click').on('click', () => {
-    vu.res('clicked', 'collection');
-  });
-
-  vu.$el('@type-contacts').off('click').on('click', () => {
-    vu.res('clicked', 'contacts');
   });
 });
 
@@ -657,7 +623,7 @@ PurelyAppView.render(vu => {
       type: 'collection',
       basic: {
         layout: 'hide',
-        bgColor: '#fff',
+        bgColor: '#000',
         colorStrength: 0.8
       },
       collection: {

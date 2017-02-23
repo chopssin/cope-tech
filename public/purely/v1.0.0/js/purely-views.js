@@ -1071,12 +1071,12 @@ SortableListClass.render(vu => {
         if (item.idx < 0) {
           vu.$el().fadeOut(300);
           cssObj.display = 'none';
+          cssObj.position = 'absolute';
           cssObj.top = '-9999px';
         } else {
-          cssObj.position = 'absolute';
+          cssObj.position = 'relative';
           cssObj.width = '100%';
           cssObj.height = height + 'px';
-          cssObj.top = item.idx * height + 'px';
         }
         if (!!cssObj) {
           vu.$el('@' + item.comp).css(cssObj);
@@ -1130,10 +1130,22 @@ SortableListClass.render(vu => {
             });
           }
 
-          // Append new block in dom
-          vu().append([
-            [ 'div(draggable = true).sortable-item@' + item.comp ]
-          ]);
+          let target = my.getByIdx(i);
+          
+          //Append new block in dom
+          if (!target || !target.view) {
+            vu.$el().append(`
+              <div class="sortable-item" data-component="${item.comp}"></div>
+            `);
+          } else if (i < items.length) {
+            target.view.$el().before( `
+              <div class="sortable-item" data-component="${item.comp}"></div>
+            `);
+          } else {
+            target.view.$el().after( `
+              <div class="sortable-item" data-component="${item.comp}"></div>
+            `);
+          }
 
           if (!newBlock && !newBlock.viewClass) {
             throw 'newBlock.viewClass is invalid';
@@ -1142,7 +1154,6 @@ SortableListClass.render(vu => {
             sel: vu.sel('@' + item.comp),
             data: newBlock && newBlock.data || {}
           });
-          console.log(newBlock);
 
           // Render the block
           renderBlock(item);
@@ -1151,7 +1162,7 @@ SortableListClass.render(vu => {
             if (key.indexOf('on') != 0) { return; }
             let evt = key.slice(2);
             vu.$el('@' + item.comp).off(evt + '.' + rid).on(evt + '.' + rid, function(e) {
-              o[key](item, e);
+              o[key](item, e, vu.id);
             });
           }); // end of Object.keys ... map
 
@@ -1191,13 +1202,14 @@ SortableListClass.render(vu => {
         return my;
       };// end of makeList 
 
-      let draggedRid, startSec;
+      let draggedRid, startSec, startItem, startTop, startLeft, pageTop, pageLeft, box;
       List = makeList({
         height: height,
         onclick: function(item, e) {
           vu.res('item clicked', item);
         },
         ondragstart: function(item, e) {
+          e.preventDefault;
           draggedRid = item.rid;
           List.get(item.rid).isDragging = true;
           //startSec = item;
@@ -1205,21 +1217,61 @@ SortableListClass.render(vu => {
         //startSec = sec;
         //startSec.wrap.set('isDragging', true);
         },
-        ondragenter: function(item, e) {
+        // ondragenter: function(item, e) {
           
-          console.log(draggedRid, item.idx);
+        //   console.log(draggedRid, item.idx);
           
-          if (!item.isDragging) {
-            //List.getByIdx(draggedIdx).isDragging = false;
-            List.swap(List.get(draggedRid).idx, item.idx);
-            //draggedIdx = item.idx;
-            //List.getByIdx(item.idx).isDragging = true;
-          } 
-          // 
-          //startSec.isDragging = true;
+        //   if (!item.isDragging) {
+        //     //List.getByIdx(draggedIdx).isDragging = false;
+        //     List.swap(List.get(draggedRid).idx, item.idx);
+        //     //draggedIdx = item.idx;
+        //     //List.getByIdx(item.idx).isDragging = true;
+        //   } 
+        //   // 
+        //   //startSec.isDragging = true;
+        // },
+        // ondragend: function(item, e) {
+        //   List.get(item.rid).isDragging = false;
+        // }
+        onmousedown: function (item, e) {
+          let defaultCss = {
+            css: {
+              background: '#333',
+              border: '3px solid #3da',
+              height: '100%',
+            }
+          }
+          startItem = vu.$el('@' + item.comp);
+          vu.$el('@' + item.comp).css({
+            'position': 'absolute',
+            'z-index': '9999' 
+          });
+          pageTop = e.pageY;
+          pageLeft = e.pageX;
+          //box = List.insert({viewClass:BoxView,data: defaultCss}, item.idx);
+          vu.$el().eq(item.idx).prepend('<div class="block" style="height:100px;"></div>');
         },
-        ondragend: function(item, e) {
-          List.get(item.rid).isDragging = false;
+        onmouseenter: function (item, e) {
+          e.stopPropagation();
+          if (startItem) {
+            console.log('ok');
+            $('.block').remove();
+            if($('.block').length < 1) {
+              vu.$el().eq(item.idx).prepend('<div class="block" style="height:100px;"></div>');
+            }
+          }  
+        },
+        onmousemove: function (item, e) {
+          e.stopPropagation();
+          if(startItem) {
+            startItem.css({
+             'top': e.pageY - pageTop,
+             'left': e.pageX - pageLeft
+            })
+          }
+        },
+        onmouseup: function (item, e) {
+          startItem = '';
         }
       });
     }

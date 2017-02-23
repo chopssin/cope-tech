@@ -846,7 +846,6 @@ PurelyAppView.render(vu => {
         }
         psData.height = 100;
         ssData.height = 400;
-        console.log(psData);
         PS.val('new', {
           viewClass: SimSecClass,
           data: psData

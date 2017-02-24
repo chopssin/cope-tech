@@ -1071,12 +1071,12 @@ SortableListClass.render(vu => {
         if (item.idx < 0) {
           vu.$el().fadeOut(300);
           cssObj.display = 'none';
+          cssObj.position = 'absolute';
           cssObj.top = '-9999px';
         } else {
-          cssObj.position = 'absolute';
+          cssObj.position = 'relative';
           cssObj.width = '100%';
           cssObj.height = height + 'px';
-          cssObj.top = item.idx * height + 'px';
         }
         if (!!cssObj) {
           vu.$el('@' + item.comp).css(cssObj);
@@ -1107,20 +1107,26 @@ SortableListClass.render(vu => {
           return items.filter(item => (item.idx === idx))[0] || {};
         };
 
+        my.getByOrder = function(i) {
+          return items[i];
+        };
+
         // s: params of the section
         my.insert = function(newBlock, i) {
-          i = i || items.length;
+          i = !isNaN(i) ? i : items.length;
 
           // Set random Id
           let rid = new Date().getTime() + '_' + Math.floor(Math.random()*1000),
               item = {};
-
+          let target = my.getByIdx(i);
           // Update items array
           item = {
             idx: i,
             rid: rid,
             comp: 'item-' + rid
           };
+          
+
           if (i < items.length) {
             // Handle the old array
             items.map(item => {
@@ -1129,11 +1135,21 @@ SortableListClass.render(vu => {
               } 
             });
           }
-
-          // Append new block in dom
-          vu().append([
-            [ 'div(draggable = true).sortable-item@' + item.comp ]
-          ]);
+          //let target = my.getByIdx(i);
+          //Append new block in dom
+          if (!target || !target.view) {
+            vu.$el().append(`
+              <div class="sortable-item" data-component="${item.comp}"></div>
+            `);
+          } else if (i < items.length) {
+            vu.$el('@' + target.comp).before( `
+              <div class="sortable-item" data-component="${item.comp}"></div>
+            `);
+          } else {
+            vu.$el('@' + target.comp).after( `
+              <div class="sortable-item" data-component="${item.comp}"></div>
+            `);
+          }
 
           if (!newBlock && !newBlock.viewClass) {
             throw 'newBlock.viewClass is invalid';
@@ -1150,7 +1166,7 @@ SortableListClass.render(vu => {
             if (key.indexOf('on') != 0) { return; }
             let evt = key.slice(2);
             vu.$el('@' + item.comp).off(evt + '.' + rid).on(evt + '.' + rid, function(e) {
-              o[key](item, e);
+              o[key](item, e, vu.id);
             });
           }); // end of Object.keys ... map
 
@@ -1190,36 +1206,145 @@ SortableListClass.render(vu => {
         return my;
       };// end of makeList 
 
-      let draggedRid, startSec;
+      let draggedRid,
+          startItem, 
+          startPageX, 
+          startPageY, 
+          box, 
+          elHeight;
       List = makeList({
         height: height,
         onclick: function(item, e) {
           vu.res('item clicked', item);
         },
         ondragstart: function(item, e) {
+          e.preventDefault;
           draggedRid = item.rid;
           List.get(item.rid).isDragging = true;
-          console.log(item);
-          //startSec = item;
-          //startSec.isDragging = true;
-        //startSec = sec;
-        //startSec.wrap.set('isDragging', true);
         },
-        ondragenter: function(item, e) {
-          
-          console.log(draggedRid, item.idx);
-          
-          if (!item.isDragging) {
-            //List.getByIdx(draggedIdx).isDragging = false;
-            List.swap(List.get(draggedRid).idx, item.idx);
-            //draggedIdx = item.idx;
-            //List.getByIdx(item.idx).isDragging = true;
-          } 
-          // 
-          //startSec.isDragging = true;
+        onmousedown: function (item, e) {
+          draggedRid = item.rid;
+          startItem = item; //vu.$el('@' + item.comp); // .col-item wrap of the dragged item
+          let itemRectAbs = item.view.$el().offset();
+          let itemRect = item.view.$el().parent().position();
+          let itemHeight = vu.$el('@' + startItem.comp).height();//startItem.height();
+          vu.$el('@' + startItem.comp).css({
+            'position': 'absolute',
+            'z-index': '9999' 
+          });
+
+          startPageX = e.pageX - itemRect.left;
+          startPageY = e.pageY - itemRect.top;
+          mousePosX = startPageX - itemRectAbs.left;
+          mousePosY = startPageY - itemRectAbs.top;
+        
+          // pageTop = e.pageY - itemHeight*item.idx;
+          // pageLeft = e.pageX;
+          vu.$el('@' + item.comp).after(`<div style="height:${itemHeight}px;" class="block"></div>`);
+          vu.res('item clicked', item);
         },
-        ondragend: function(item, e) {
-          List.get(item.rid).isDragging = false;
+        onmousemove: function (item, e) {
+          e.stopPropagation();
+          let targetRect = item.view.$el()[0].getBoundingClientRect();
+          if(startItem) {
+            vu.$el('@' + startItem.comp).css({
+             'top': e.pageY - startPageY,
+             'left': e.pageX - startPageX 
+            });
+          }
+
+          if(startItem){
+            List.get().filter(item => item.rid != startItem.rid).map(item => {
+              let itemRect = item.view.$el()[0].getBoundingClientRect();
+                  //currRect = e.target.getBoundingClientRect(),
+                  //itemRectRangeY = itemRect.top + itemRect.height,
+                  //itemRectRangeX = itemRect.left + itemRect.width; 
+
+              let originVect = {},
+                  mouseVect = {}
+
+              originVect.x = itemRect.left + (itemRect.width / 2);
+              originVect.y = itemRect.top + (itemRect.height / 2);
+              mouseVect.x = e.pageX - originVect.x; // must less than w/2
+              mouseVect.y = e.pageY - originVect.y; // must less than h/2
+//console.log(mouseVect,originVect, itemRect);
+              if ((Math.abs(mouseVect.x) < (itemRect.width / 2))
+                && (Math.abs(mouseVect.y) < (itemRect.height / 2))) { // isOver
+                let d = startItem.idx - item.idx; // direction
+                //console.log(d, mouseVect.y, item);
+                if ((d * mouseVect.y) < 0) { // move!!!
+                  //console.log('Move',item.idx);
+
+                  let arr = List.get().map(x => x.idx),
+                      startIdx = startItem.idx,
+                      insertIdx = item.idx,
+                      tmp,
+                      cutArr = [];
+
+                  if (startIdx > insertIdx) {
+                    tmp = startIdx;
+                    startIdx = insertIdx;
+                    insertIdx = tmp;
+                    vu.$el('@' + item.comp).before(vu.$el('.block'));
+                  } else {
+                    vu.$el('@' + item.comp).after(vu.$el('.block'));
+                  }
+
+                  cutArr = arr.slice(startIdx, insertIdx + 1);
+                  console.log(cutArr);
+                  cutArr = cutArr.map((x, i, arr) => {
+                    console.log((i - 1 + arr.length) % arr.length);
+                    return arr[(i - 1 + arr.length) % arr.length];
+                  });
+                  console.log(cutArr);
+                  arr = arr
+                    .slice(0, startIdx)
+                    .concat(cutArr)
+                    .concat(arr.slice(insertIdx + 1));
+
+                  arr.map((idx, i) => {
+                    List.getByOrder(i).idx = idx;
+                  });
+                } // end of "move"
+              }
+            });
+          }
+        },
+        onmouseup: function (item, e) {
+          if(startItem){
+            vu.$el('@' + startItem.comp).css({
+              'position': 'relative',
+              'top': 'auto',
+              'left': 'auto',
+              'z-index': 1
+            });
+            //reset
+            
+            if(vu.$el('.block')) {
+              vu.$el('.block').after(vu.$el('@' + startItem.comp));
+              vu.$el('.block').remove();
+              itemHeight = 0;
+            }
+            startItem = '';
+          }
+        },
+        onmouseleave: function(item, e){
+          if(startItem){
+            vu.$el('@' + startItem.comp).css({
+              'position': 'relative',
+              'top': 'auto',
+              'left': 'auto',
+              'z-index': 1
+            });
+            //reset
+
+            if(vu.$el('.block')) {
+              vu.$el('.block').after(vu.$el('@' + startItem.comp));
+              vu.$el('.block').remove();
+              itemHeight = 0;
+            }
+            startItem = '';
+          }
         }
       });
     }
@@ -1336,6 +1461,13 @@ PurelySectionClass.render(vu => {
     }
   }
 
+  compLayout = collectionData && collectionData.layout 
+    || contactsData && contactsData.layout;
+
+  if (compLayout) {
+    basicData.compLayout = compLayout;
+  }
+
   basicData.layout = layout;
   basicVu = basicClass.build({
     sel: vu.sel(),
@@ -1385,7 +1517,7 @@ PurelySectionBasicClass.dom(vu => [
 PurelySectionBasicClass.render(vu => {
   let title = vu.get('title') || '',
       content = vu.get('content') || '',
-      layout = vu.get('layout') || 'layout-left',
+      layout = vu.get('layout') || 'bold-left',
       compLayout = vu.get('compLayout') || false,
       imgsrc = vu.get('imgsrc'),
       vidsrc = vu.get('vidsrc'),
@@ -1421,9 +1553,9 @@ PurelySectionBasicClass.render(vu => {
 
   vu('@title').html(title);
   vu('@content').html(content);
-  vu.$el().addClass(layout);
+  vu.$el().addClass('layout-' + layout);
   if (compLayout) {
-    vu.$el().addClass(compLayout);
+    vu.$el().addClass('layout-' + compLayout);
   }
 }); // end of Purely.Section.Basic
 

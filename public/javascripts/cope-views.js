@@ -222,8 +222,7 @@ SectionEditView.render( vu => {
   let typeChooser,
       layoutChooser;
 
-  //let vals = vu.val() || {};
-  //if (!vals.basic) vals.basic = {}; 
+  // Init basic data
   vu.map('basic', basic => {
     if (!basic) { return {}; }
     return basic;
@@ -238,10 +237,12 @@ SectionEditView.render( vu => {
 
   let items = {};
   let keys = [ 
-    'layout', 
     'title', 
     'content', 
-    'background'
+    'textColor',
+    'bgColor',
+    'background',
+    'layout'
   ]; 
 
   switch (vu.get('type')) {
@@ -256,6 +257,12 @@ SectionEditView.render( vu => {
 
     let data = {};
     data.label = upper(key);
+
+    if (key === 'title') { 
+      data.editable = true;
+      data.value = vu.get('basic').title || '';
+      data.placeholder = 'Title the section';
+    }
     
     if (key === 'content') {
       data.editable = true;
@@ -264,10 +271,18 @@ SectionEditView.render( vu => {
       data.placeholder = 'Compose more about this section';
     }
 
-    if (key === 'title') { 
+    if (key === 'textColor') {
+      data.label = 'Text Color';
       data.editable = true;
-      data.value = vu.get('basic').title || '';
-      data.placeholder = 'Title the section';
+      data.value = vu.get('basic').textColor || '';
+      data.placeholder = '#333 or rgb(20, 20, 20)';
+    }
+
+    if (key === 'bgColor') {
+      data.label = 'Background Color Mask';
+      data.editable = true;
+      data.value = vu.get('basic').bgColor || '';
+      data.placeholder = '#333 or rgb(20, 20, 20)';
     }
     
     items[key] = PurelyViews.class('ListItem').build({
@@ -372,8 +387,8 @@ LayoutChooserView.dom( vu => [
       { 'div@type-layouts': '' }]
     },
     { 'div.layout-chooser-sec': [
-      { 'h4': 'Custom Style' },
-      { 'div@comp-styles': '' }]
+      { 'h4@comp-custom-title': '' },
+      { 'div@comp-custom-list': '' }]
     }] 
   }
 ]);
@@ -393,12 +408,14 @@ LayoutChooserView.render( vu => {
   layouts.collection = [];
   layouts.contacts = [];
 
+  // Build collection types
   collectionTypes.map(ct => {
     textPos.map(pos => {
       layouts.collection = layouts.collection.concat('layout-' + pos + '-' + ct);
     });
   });
 
+  // Build contacts types
   contactsTypes.map(ct => {
     textPos.map(pos => {
       layouts.contacts = layouts.contacts.concat('layout-' + pos + '-' + ct);
@@ -423,6 +440,14 @@ LayoutChooserView.render( vu => {
       }); // end of layouts[type].map
     });
   }); // types.map
+
+  // Build custom part for collection or contacts 
+  customTitle = 'TBD'; // TBD !!!!!!!
+  switch (vu.get('type')) {
+    case 'collection': 
+    vu.$el('@comp-custom-title').html();
+    vu.$el('@comp-custom-list')
+  }
 }); // end of LayoutChooser
 
 // Purely- Purely.SimSec
@@ -461,7 +486,6 @@ SimSecClass.render(vu => {
     vu.$el().css('height', vh);
     vw = vu.$el().width(); 
 
-    console.log('vw = ' + vw + ' vh = ' + vh);
     sw = vw * sh / vh; 
     sr = vh / sh;
    
@@ -621,32 +645,35 @@ PurelyAppView.render(vu => {
   sections = sections || [
     {
       type: 'collection',
+      layout: 'layout-left-slide',
       basic: {
-        layout: 'hide',
+        textColor: '#fff',
         bgColor: '#000',
-        colorStrength: 0.8
+        bgColorStrength: 0.8
       },
       collection: {
-        layout: 'bold-left-slide',
+        layout: 'comp-bold-left',
         //col: 'Shoes',
         //sort: 'recent',
         data: [
           {
             title: 'Build your dream simply',
-            imgsrc: '/images/sample1.jpg'
+            imgsrc: '/images/sample1.jpg',
+            textColor: '#333'
           },
           {
             title: 'And purely',
-            bgColor: '#fea',
-            colorStrength: 0.3
+            textColor: '#fff',
+            bgColor: '#000',
+            colorStrength: 0.8
           }
         ]
       }
     },
     {
       type: 'basic',
+      layout: 'layout-right',
       basic: {
-        layout: 'single',
         title: 'Story',
         content: SAMPLE_TEXT,
         imgsrc: '/images/sample3.jpg',
@@ -655,8 +682,8 @@ PurelyAppView.render(vu => {
     },
     {
       type: 'basic',
+      layout: 'layout-left',
       basic: {
-        layout: 'single',
         title: 'Our Brand',
         content: SAMPLE_TEXT,
         imgsrc: '/images/sample1.jpg'
@@ -667,10 +694,11 @@ PurelyAppView.render(vu => {
       basic: {
         title: 'Contact us',
         imgsrc: '/images/sample2.jpg',
-        bgColor: '#eee'
+        bgColor: '#000',
+        textColor: '#fff'
       },
       contacts: {
-        layout: 'simple-contacts',
+        layout: 'comp-simple-contacts',
         data: [
           { type: 'email', value: 'support@myapp.cope.tech' }, 
           { type: 'phone', value: '+886 987 654 321' } 
@@ -879,7 +907,6 @@ PurelyAppView.render(vu => {
         }
         psData.height = 100;
         ssData.height = 400;
-        console.log(psData);
         PS.val('new', {
           viewClass: SimSecClass,
           data: psData

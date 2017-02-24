@@ -1142,7 +1142,6 @@ SortableListClass.render(vu => {
             sel: vu.sel('@' + item.comp),
             data: newBlock && newBlock.data || {}
           });
-          console.log(newBlock);
 
           // Render the block
           renderBlock(item);
@@ -1317,7 +1316,6 @@ PurelyPageClass.render(vu => {
 PurelySectionClass.dom(vu => [{ 'div.view-purely-section': '' }]);
 PurelySectionClass.render(vu => {
   let type = vu.get('type') || 'basic',
-      sectionLayout = vu.get('layout') || 'basic',
       basicData = vu.get('basic') || {},
       collectionData = vu.get('collection') || {},
       contactsData = vu.get('contacts') || {},
@@ -1325,32 +1323,41 @@ PurelySectionClass.render(vu => {
       collectionClass = Views.class('Purely.Section.Collection'),
       contactsClass = Views.class('Purely.Section.Contacts'),
       basicVu,
-      collectionVu,
-      contactsVu,
-      compLayout;
+      layout = vu.get('layout'),
+      compLayout = vu.get('compLayout'),
+      colType;
 
-  console.log('Purely.Section', vu.get());
-
-  compLayout = 'comp-bold-left'; // TBD: vu.get('compLayout');
-
-  if (compLayout) {
-    basicData.compLayout = compLayout;
+  // Default layouts
+  if (!layout) {
+    switch (type) {
+      case 'basic': layout = 'layout-left'; break;
+      case 'collection': layout = 'layout-left-slide'; break;
+      case 'contacts': layout = 'layout-left-contacts'; break;
+    }
   }
 
+  basicData.layout = layout;
   basicVu = basicClass.build({
     sel: vu.sel(),
     data: basicData
   });
 
+  //console.log('Purely.Section', vu.get());
   switch (type) {
     case 'collection':
-      collectionVu = collectionClass.build({
+      // Handle collection type    
+      let tmpIdx = layout.lastIndexOf('-');
+      if (tmpIdx > -1) { colType = layout.slice(tmpIdx + 1); }
+      collectionData.layout = compLayout;
+      collectionData.collectionType = colType;
+      collectionClass.build({
         sel: basicVu.sel('@comp'),
         data: collectionData
       });
       break;
     case 'contacts':
-      contactsVu = contactsClass.build({
+      contactsData.layout = compLayout;
+      contactsClass.build({
         sel: basicVu.sel('@comp'),
         data: contactsData
       });
@@ -1382,8 +1389,9 @@ PurelySectionBasicClass.render(vu => {
       compLayout = vu.get('compLayout') || false,
       imgsrc = vu.get('imgsrc'),
       vidsrc = vu.get('vidsrc'),
+      textColor = vu.get('textColor'),
       bgColor = vu.get('bgColor'),
-      colorStrength = vu.get('colorStrength');
+      bgColorStrength = vu.get('bgColorStrength');
 
   title = title.replace(/\n/g, ' ');
   content = content.replace(/\n/g, '<br>');
@@ -1400,10 +1408,15 @@ PurelySectionBasicClass.render(vu => {
       'background-color': bgColor  
     });
   } 
-  if (!isNaN(colorStrength)) {
+  if (!isNaN(bgColorStrength)) {
     vu.$el('@bg-mask').css({
-      'opacity': colorStrength  
+      'opacity': bgColorStrength  
     });
+  }
+  if (textColor) {
+    vu.$el().css({
+      'color': textColor
+    })
   }
 
   vu('@title').html(title);
@@ -1422,7 +1435,8 @@ PurelySectionCollectionClass.dom(vu => [
 ]);
 
 PurelySectionCollectionClass.render(vu => {
-  let layout = vu.get('layout') || 'layout-left-slide',
+  let layout = vu.get('layout') || 'comp-bold-left',
+      colType = vu.get('collectionType') || 'slide',
       data = vu.get('data'),
       itemViews = [];
 
@@ -1442,7 +1456,7 @@ PurelySectionCollectionClass.render(vu => {
   vu.set('itemViews', itemViews);
 
   // Slide, Grid and Waterfall animation based on layout
-  if (layout.slice(-5) == 'slide' && itemViews.length > 1) {
+  if (colType == 'slide' && itemViews.length > 1) {
     vu.set('turn', 0);
     setInterval(function() {
       let turn = vu.map('turn', turn => (turn + 1) % itemViews.length);
@@ -1456,6 +1470,9 @@ PurelySectionCollectionClass.render(vu => {
   } else if (layout.slice(-9) == 'waterfall') {
     // TBD  
   }
+  
+  // Add comp class
+  vu.$el().addClass(layout);
 });
 // end of Purely.Section.Collection
 
@@ -1467,7 +1484,7 @@ PurelySectionContactsClass.dom(vu => [
 ]);
 
 PurelySectionContactsClass.render(vu => {
-  let layout = vu.get('layout'),
+  let layout = vu.get('layout') || 'comp-simple-list',
       data = vu.get('data');
 
   if (!Array.isArray(data)) { data = []; }
@@ -1484,6 +1501,9 @@ PurelySectionContactsClass.render(vu => {
       ]]);
     }
   });
+
+  // Add comp class
+  vu.$el().addClass(layout);
 });
 // end of Purely.Section.Contacts
 

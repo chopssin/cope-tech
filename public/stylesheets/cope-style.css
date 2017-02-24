@@ -160,6 +160,10 @@
   position: relative;
   width: 100%;
 }
+.view-layout-chooser .subtitles > div {
+  display: inline-block;
+  padding-right: 16px;
+}
 
 /* Purely - Layouts */
 .purely {

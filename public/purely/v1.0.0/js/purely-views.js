@@ -1067,7 +1067,8 @@ SortableListClass.render(vu => {
   renderBlock = vu.map('renderBlock', rb => {
     if (!rb) {
       rb = function(item) {
-        let cssObj = {};
+        let cssObj = {}, 
+            itemHeight = item.height || height;
         if (item.idx < 0) {
           vu.$el().fadeOut(300);
           cssObj.display = 'none';
@@ -1076,7 +1077,7 @@ SortableListClass.render(vu => {
         } else {
           cssObj.position = 'relative';
           cssObj.width = '100%';
-          cssObj.height = height + 'px';
+          cssObj.height = itemHeight + 'px';
         }
         if (!!cssObj) {
           vu.$el('@' + item.comp).css(cssObj);
@@ -1123,9 +1124,9 @@ SortableListClass.render(vu => {
           item = {
             idx: i,
             rid: rid,
-            comp: 'item-' + rid
+            comp: 'item-' + rid,
+            height: newBlock.height || height
           };
-          
 
           if (i < items.length) {
             // Handle the old array
@@ -1255,31 +1256,30 @@ SortableListClass.render(vu => {
 
           if(startItem){
             List.get().filter(item => item.rid != startItem.rid).map(item => {
-              let itemRect = item.view.$el()[0].getBoundingClientRect();
-                  //currRect = e.target.getBoundingClientRect(),
-                  //itemRectRangeY = itemRect.top + itemRect.height,
-                  //itemRectRangeX = itemRect.left + itemRect.width; 
+              let itemRect = item.view.$el().offset(),//[0].getBoundingClientRect(),
+                  originVect = {},
+                  mouseVect = {};
 
-              let originVect = {},
-                  mouseVect = {}
+              itemRect.width = item.view.$el().width();
+              itemRect.height = item.view.$el().height();
 
               originVect.x = itemRect.left + (itemRect.width / 2);
               originVect.y = itemRect.top + (itemRect.height / 2);
               mouseVect.x = e.pageX - originVect.x; // must less than w/2
               mouseVect.y = e.pageY - originVect.y; // must less than h/2
-//console.log(mouseVect,originVect, itemRect);
+              
+              //console.log(mouseVect,originVect, itemRect);
               if ((Math.abs(mouseVect.x) < (itemRect.width / 2))
                 && (Math.abs(mouseVect.y) < (itemRect.height / 2))) { // isOver
                 let d = startItem.idx - item.idx; // direction
                 //console.log(d, mouseVect.y, item);
                 if ((d * mouseVect.y) < 0) { // move!!!
-                  //console.log('Move',item.idx);
-
-                  let arr = List.get().map(x => x.idx),
+                  let arr = List.get().map((x, i) => i), // 0, 1, ..., N
                       startIdx = startItem.idx,
                       insertIdx = item.idx,
                       tmp,
-                      cutArr = [];
+                      cutArr = [],
+                      sortedRids = {};
 
                   if (startIdx > insertIdx) {
                     tmp = startIdx;
@@ -1291,19 +1291,21 @@ SortableListClass.render(vu => {
                   }
 
                   cutArr = arr.slice(startIdx, insertIdx + 1);
-                  console.log(cutArr);
+                  //console.log(cutArr);
                   cutArr = cutArr.map((x, i, arr) => {
-                    console.log((i - 1 + arr.length) % arr.length);
                     return arr[(i - 1 + arr.length) % arr.length];
                   });
-                  console.log(cutArr);
                   arr = arr
                     .slice(0, startIdx)
                     .concat(cutArr)
                     .concat(arr.slice(insertIdx + 1));
+                  
+                  arr.map((idx, i) => {
+                    sortedRids[i] = List.getByIdx(i).rid; // items[i] <- rid
+                  });
 
                   arr.map((idx, i) => {
-                    List.getByOrder(i).idx = idx;
+                    List.get(sortedRids[i]).idx = idx;
                   });
                 } // end of "move"
               }

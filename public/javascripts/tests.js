@@ -1504,6 +1504,28 @@ Test.go(log => {
   log.ok(); 
 });
 
+Test.go(log => {
+  log.title('Purely - SortableList');
+  Vbox.append('sortable-list');
+  let sl = Views.class('SortableList').build({
+    sel: '#sortable-list'
+  });
+  
+  [50, 80, 100, 40, 20].map(h => {
+    sl.val('new', {
+      viewClass: Views.class('Box'),
+      height: h,
+      data: {
+        css: {
+          'height': '100%',
+          'width': '100%',
+          'background': `rgb(${h}, ${h}, ${h})`
+        }
+      }
+    });
+  });
+});
+
 // end Tests
 
 })(jQuery, Cope);

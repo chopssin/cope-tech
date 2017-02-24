@@ -495,7 +495,6 @@ SimSecClass.render(vu => {
     vu.$el().css('height', vh);
     vw = vu.$el().width(); 
 
-    console.log('vw = ' + vw + ' vh = ' + vh);
     sw = vw * sh / vh; 
     sr = vh / sh;
    

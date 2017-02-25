@@ -625,10 +625,10 @@ PurelyAppView.render(vu => {
   let pages = vu.get('pages'), 
       sections = vu.get('sections');
   // Set the whole page css
-  vu.$el('.sim-sections').css({
-    'background-color': '#aca',
-    'background-image': 'url("/images/sample1.jpg")'
-  });
+  //vu.$el('.sim-sections').css({
+  //  'background-color': '#000',
+  //  'background-image': 'url("/images/sample4.jpg")'
+  //});
 
   // pages data
   pages = [{
@@ -676,8 +676,7 @@ PurelyAppView.render(vu => {
       basic: {
         title: 'Story',
         content: SAMPLE_TEXT,
-        imgsrc: '/images/sample3.jpg',
-        bgColor: '#fff'
+        textColor: '#fff'
       }
     },
     {
@@ -788,15 +787,25 @@ PurelyAppView.render(vu => {
     return my;
   };
 
+  // Build page for page selector
+  let pageThumbs = PurelyViews.class('Purely.Page').build({
+    sel: vu.sel('@sim-page')
+  });
+
   // PS: Page Selector
   let PS = PurelyViews.class('SortableList').build({
-    sel: vu.sel('@sim-page'),
+    sel: pageThumbs.sel('@page'),//vu.sel('@sim-page'),
     data: { height: 100 }
+  });
+
+  // Build page for section simulator
+  let page = PurelyViews.class('Purely.Page').build({
+    sel: vu.sel('@page')
   });
 
   // SS: Section Simulator
   let SS = PurelyViews.class('SortableList').build({
-    sel: vu.sel('@page'),
+    sel: page.sel('@page'),
     data: { height: 400 }
   });
 
@@ -826,112 +835,36 @@ PurelyAppView.render(vu => {
     vu.$el('@sec-settings').removeClass('hidden');
   });
 
-  // Page
-  let Page = makeList({
-    wrapClass: PurelySecView,
-    sel: vu.sel('@page'),
-    height: 400,
-    onclick: function(sec, idx) {
-
-      let vals = sec.view.get(); //vu.get('sections')[idx];
-
-      // Build the section editor on the right side
-      let editSection = SectionEditView.build({
-        sel: vu.sel('@sec-settings')
-      });
-
-      // Update left side section view
-      editSection.res('vals', vals => {
-        sec.view.val(vals);
-        // TBD: PS.get(idx).view.val(vals);
-      });
-
-      editSection.res('bg', bgBox => {
-        console.log('dadadadad');
-      });
-      // Fill up editSection on the right side
-      // with the selected section value
-      editSection.val(vals);
-      
-      vu.$el('@back').removeClass('hidden');
-      vu.$el('@app-settings').addClass('hidden');
-      vu.$el('@sec-settings').removeClass('hidden');
-    } // end of onClick
-  }); // end of makeList
-
   // Build the initial sections
   sections.map(p => {
-    //Page.insert(i, function(wrap, secs) {
-      //let build = function(wrap, p) {
-        if (!p) p = {};
-        if (!p.type) p.type = 'basic';
-        if (!p.basic) {
-          p.basic = {
-            title: 'Section Title',
-            content: 'More about this section.'
-          };
-        }
-        
-        let params = p;
+    if (!p) p = {};
+    if (!p.type) p.type = 'basic';
+    if (!p.basic) {
+      p.basic = {
+        title: 'Section Title',
+        content: 'More about this section.'
+      };
+    }
+    
+    let params = p,
+        ssData = {},
+        psData = {};
+    
+    for (let k in params) {
+      psData[k] = params[k];
+      ssData[k] = params[k];
+    }
+    psData.height = 100;
+    ssData.height = 400;
+    PS.val('new', {
+      viewClass: SimSecClass,
+      data: psData
+    });
 
-        // Initiate build settings
-        let ssData = {},
-            psData = {};
-
-        // IMPORTANT!!!!!!!!!!!!!!!!!!!
-        // 
-        // wrap.res('after', idx => {
-        //   Page.insert(idx, function(wrap, secs) {
-        //     return build(wrap);
-        //   });
-        // })
-        // .res('del clicked', Page.remove)
-        // .res('mask clicked', () => {
-        //   // Fade out all sections except for self
-        //   // secs.about.val('fadeOut', true);
-
-        //   return;
-
-        //   secs.map((x, idx) => {
-        //     if (i != idx) {
-        //       x.wrap.val('fadeOut', true);
-        //     }
-        //   });
-        //   // Fade in the current section
-        //   wrap.val('fadeIn', true);
-        // });
-        
-        for (let k in params) {
-          psData[k] = params[k];
-          ssData[k] = params[k];
-        }
-        psData.height = 100;
-        ssData.height = 400;
-        PS.val('new', {
-          viewClass: SimSecClass,
-          data: psData
-        });
-
-        SS.val('new', {
-          viewClass: SimSecClass,
-          data: ssData
-        })
-        // PS.insert(i, function(wrap, secs) {
-        //   let psSettings = {};
-        //   Object.assign(psSettings, buildSettings);
-        //   wrap.$el().css({ 
-        //     'width': '100%'
-        //   });
-        //   psSettings.sel = wrap.sel('@sec');
-        //   psSettings.data.height = 100;
-        //   return SimSecClass.build(psSettings);
-        // });
-
-        //return SimSecClass.build(buildSettings);
-      //}; // end of build
-
-      //return build(wrap, s);
-    //}); // end of Page.insert
+    SS.val('new', {
+      viewClass: SimSecClass,
+      data: ssData
+    })
   }); // end of sections.map
 
   // Panel routing

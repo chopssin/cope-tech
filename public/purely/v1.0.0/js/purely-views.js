@@ -1385,58 +1385,51 @@ SortableListClass.render(vu => {
 
 
 // Purely.Page
-PurelyPageClass.dom(vu => [{ 'div.view-purely-page': '' }]);
+PurelyPageClass.dom(vu => [{ 'div.view-purely-page': [
+  { 'div@page.purely-page': '' },
+  { 'div.page-color-mask._bg': '' },
+  { 'div.page-bg._bg': '' }] 
+}]);
+
 PurelyPageClass.render(vu => {
   let sectionsData = [], // to store sections data
       sampleSectionsData = [], // default sample sections
       sampleText = ''; // default sample text to fill up with
 
-  // Set sample sections data
-  sampleSectionsData = [{
-    type: 'collection', 
-    basic: {
-      layout: 'hide', // Hide will hide every thing in basic
-      title: 'Featuring'
-    },
-    collection: {
-      layout: 'cover-slide', // col: <colID>, sort: 'recent' || 'featured'
-      data: [
-        { title: 'Build your dream simply', imgsrc: '/images/sample1.jpg' },
-        { title: 'And share it purely', imgsrc: '/images/sample2.jpg' }
-      ]
-    }
-  }, {
-    type: 'basic',
-    basic: {
-      layout: 'bold-left', // default
-      title: 'Story',
-      content: SAMPLE_TEXT
-    }
-  }, {
-    type: 'contacts',
-    basic: { // basic layout would be 'bold-left'
-      title: 'Contacts'
-    },
-    contacts: {
-      layout: 'simple',
-      data: [
-        { type: 'email', value: 'My Email' },
-        { type: 'phone', value: 'My Phone Number' }
-      ]
-    }
-  }];
+  // Fixed on mouse enter
+  vu.$el('@page').off('mouseenter mouseleave')
+    .on('mouseenter', function() {
+    let vuOffset = vu.$el().offset();
+    let vuPos = vu.$el().position();
+    let cssObj = {
+      position: 'fixed',
+      top: vuOffset.top - vuPos.top,
+      left: vuOffset.left - vuPos.left
+    };
+    vu.$el('._bg').css(cssObj);
+  }).on('mouseleave', function() {
+    let vuOffset = vu.$el().offset();
+    let vuPos = vu.$el().position();
+    let cssObj = {
+      position: 'absolute',
+      top: 0 - vuPos.top,
+      left: 0 - vuPos.left
+    };
+    vu.$el('._bg').css(cssObj);
+  }); // end of mouseleave
+  
 
   // Build and render dom based on sections
-  sectionsData = vu.get('sections') || sampleSectionsData;
-  vu.set('sections', sectionsData.map((secData, i) => {
+  //sectionsData = vu.get('sections') || [];
+  //vu.set('sections', sectionsData.map((secData, i) => {
     //vu.$el().append('<div data-component="sec-' + i + '"></div>');
-    vu().append([['div.sec-wrap@sec-' + i]]);
+    //vu().append([['div.sec-wrap@sec-' + i]]);
 
-    return PurelySectionView.build({
-      sel: vu.sel('@sec-' + i),
-      data: secData
-    }); 
-  })); // end of vu.set('sections', ... map ... )
+    //return PurelySectionView.build({
+    //  sel: vu.sel('@sec-' + i),
+    //  data: secData
+    //}); 
+  //})); // end of vu.set('sections', ... map ... )
 }); // end of Purely.Page
 
 // Purely.Section
@@ -1555,9 +1548,9 @@ PurelySectionBasicClass.render(vu => {
 
   vu('@title').html(title);
   vu('@content').html(content);
-  vu.$el().addClass('layout-' + layout);
+  vu.$el().addClass(layout);
   if (compLayout) {
-    vu.$el().addClass('layout-' + compLayout);
+    vu.$el().addClass(compLayout);
   }
 }); // end of Purely.Section.Basic
 

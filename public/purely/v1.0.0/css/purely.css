@@ -405,6 +405,37 @@ textarea {
   background-color: rgba(128, 128, 128, 0.8);
 }
 
+/* Purely.Page */
+.view-purely-page {
+  display: table;
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.view-purely-page > * {
+  position: relative;
+  z-index: 3;
+}
+
+.view-purely-page > .page-color-mask,
+.view-purely-page > .page-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  margin: 0;
+  padding: 0;
+  z-index: 2;
+  background: #aaccaa;
+}
+
+.view-purely-page > .page-bg {
+  z-index: 1;
+}
+
 /* Purely.Section */
 .view-purely-section {
   display: block;

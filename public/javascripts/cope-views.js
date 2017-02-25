@@ -789,7 +789,8 @@ PurelyAppView.render(vu => {
 
   // Build page for page selector
   let pageThumbs = PurelyViews.class('Purely.Page').build({
-    sel: vu.sel('@sim-page')
+    sel: vu.sel('@sim-page'),
+    data: { bgAbs: true }
   });
 
   // PS: Page Selector

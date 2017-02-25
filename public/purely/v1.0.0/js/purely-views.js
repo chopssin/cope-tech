@@ -1385,6 +1385,7 @@ SortableListClass.render(vu => {
 
 
 // Purely.Page
+// - bgAbs: boolean, true to set _bg position 'absolute'
 PurelyPageClass.dom(vu => [{ 'div.view-purely-page': [
   { 'div@page.purely-page': '' },
   { 'div.page-color-mask._bg': '' },
@@ -1396,40 +1397,27 @@ PurelyPageClass.render(vu => {
       sampleSectionsData = [], // default sample sections
       sampleText = ''; // default sample text to fill up with
 
-  // Fixed on mouse enter
-  vu.$el('@page').off('mouseenter mouseleave')
-    .on('mouseenter', function() {
-    let vuOffset = vu.$el().offset();
-    let vuPos = vu.$el().position();
-    let cssObj = {
-      position: 'fixed',
-      top: vuOffset.top - vuPos.top,
-      left: vuOffset.left - vuPos.left
-    };
+  // Set the position of background based on values
+  vu.map('bgAbs', bgAbs => {
+    let vuOffset = vu.$el().offset(),
+        vuPos = vu.$el().position(),
+        cssObj = {};
+    if (!bgAbs) {
+      cssObj = {
+        position: 'fixed',
+        top: vuOffset.top - vuPos.top,
+        left: vuOffset.left - vuPos.left
+      }
+    } else {
+      cssObj = {
+        position: 'absolute',
+        top: 0 - vuPos.top,
+        left: 0 - vuPos.left
+      }; 
+    }
     vu.$el('._bg').css(cssObj);
-  }).on('mouseleave', function() {
-    let vuOffset = vu.$el().offset();
-    let vuPos = vu.$el().position();
-    let cssObj = {
-      position: 'absolute',
-      top: 0 - vuPos.top,
-      left: 0 - vuPos.left
-    };
-    vu.$el('._bg').css(cssObj);
-  }); // end of mouseleave
-  
-
-  // Build and render dom based on sections
-  //sectionsData = vu.get('sections') || [];
-  //vu.set('sections', sectionsData.map((secData, i) => {
-    //vu.$el().append('<div data-component="sec-' + i + '"></div>');
-    //vu().append([['div.sec-wrap@sec-' + i]]);
-
-    //return PurelySectionView.build({
-    //  sel: vu.sel('@sec-' + i),
-    //  data: secData
-    //}); 
-  //})); // end of vu.set('sections', ... map ... )
+    return bgAbs;
+  }); // end of map('bgAbs')
 }); // end of Purely.Page
 
 // Purely.Section

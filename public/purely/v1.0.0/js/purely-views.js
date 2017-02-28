@@ -368,63 +368,36 @@ TilesView.render(vu => {
 // Textarea
 // @textarea
 TextareaView.dom(vu => [
-  { 'textarea(rows="1").view-textarea': ''}
+  { 'textarea(rows=1).view-textarea': '' }
 ]);
 
 TextareaView.render(vu => {
   let height, 
-      $this = vu.$el('textarea'),
-      value = vu.get('value'),
-      content;
+      $this = vu.$el(),
+      value = vu.get('value');
 
-  // Replace html entities:
-  // "<" -> "&lt;"
-  // ">" -> "&gt;"
-  // " " -> "&nbsp;"
-  // "\n" -> "<br>"
-
-  let autosize = function(e) {
-
-    console.log('resize', this.scrollHeight);
+  let autosize = function() {
 
     // Update the value
-    let updatedValue = this.value.trim();
-      //.replace(/<div[^\>]*>|<br>/g, '\n')
-      //.replace(/<[^<>]+>/g, '')
-      //.replace(/\&nbsp\;/g, ' ')
-      //.replace(/&gt;/g,'>')
-      //.replace(/&lt;/g,'<')
-      //.trim() || '';
-    
+    let updatedValue = $this.val().trim();
     vu.set('value', updatedValue);
     vu.res('value', updatedValue);
 
-    this.style.height = 'auto';
-    this.style.height = (this.scrollHeight) + 'px';
+    $this.css('height', 'auto');
+    setTimeout(function() {
+      $this.css('height', $this[0].scrollHeight + 'px');
+    });
   };
   
   // Insert the value
   $this.val(value);
-
-  $this.each(function () {
-    let lineH = 28,
-        initH = lineH + 6;
-
-    // Calculate initial scroll height via the value
-    if (value && value.length) {
-      initH += lineH * (value.match(/\n/g) || []).length;
-    }
-    this.style.height = 'auto';
-    this.setAttribute('style', 'height:' + (this.scrollHeight || initH) + 'px;overflow:hidden;');
-  })
-  .off('keyup')
-  .off('focus')
+  $this.off('keypress focus')
   .on('focus', autosize)
-  .on('keyup', autosize);
+  .on('keydown', autosize);
 
   setTimeout(function() {
-    $this.click();
-  }, 1000);
+    autosize();
+  });
 });
 
 
@@ -964,15 +937,85 @@ ListItemView.dom(vu => [
   { 'div.view-list-item': [ 
     { 'div@label.item-label': '' },
     { 'div@display.item-display': '' },
-    { 'div@value-wrap.hidden.color-orange': [
-      { 'input@value(type="text").item-input': '' }] 
-    }]
+    { 'div@editable.hidden.color-orange': '' }]
   }
 ]);
 
 ListItemView.render(vu => {
-  let $textInput = vu.$el('input');
-  
+  let type = vu.map('type', x => x || 'text'),
+      displayValue = '',
+      $textInput,
+      editable = vu.get('editable'),
+      placeholder = vu.get('placeholder') 
+        ? ' placeholder = "' + vu.get('placeholder') + '" '
+        : '';
+
+  vu.map('value', x => x || '');
+
+  // Set editable input
+  switch (type) {
+    case 'text':
+      vu('@editable').html([
+        [ 'input(type="text"' 
+          + placeholder
+          + 'value = "' + vu.get('value') + '"'
+          + ')' ]
+      ]);
+      displayValue = (vu.get('value') + '')
+        .replace(/\n/g, '<br>');
+      $textInput = vu.$el('@editable').find('input');
+      break;
+    case 'textarea':
+      $textInput = TextareaView.build({
+        sel: vu.sel('@editable'),
+        data: {
+          value: vu.val('value')
+        }
+      }).$el();
+      displayValue = (vu.get('value') + '')
+        .replace(/\n/g, '<br>');
+      break;
+    case 'media':
+      break;
+    default:
+  }
+
+  if (editable) {
+    vu.$el().addClass('hover-effect')
+      .off('click').on('click', e => {
+        vu.val('edit', true);
+      });
+  }
+
+  // Set label
+  vu('@label').html(vu.map('label', x => x || ''));
+
+  // Render with value
+  vu('@display').html(displayValue);
+
+  // Edit mode
+  if (vu.val('edit')) {
+    vu.$el('@display').addClass('hidden');
+    vu.$el('@editable').removeClass('hidden');
+    if ($textInput) {
+      $textInput.focus();
+      $textInput.off('keyup').on('keyup', e => {
+        let newVal = $textInput.val().trim();
+        if (!newVal) newVal = '';
+        vu.set('value', newVal);
+        vu.res('value', newVal);
+      }).off('focusout').on('focusout', e => {
+        vu.res('done', vu.get('value'));
+        vu.val('edit', false);
+      });
+    }
+  } else {
+    vu.$el('@display').removeClass('hidden');
+    vu.$el('@editable').addClass('hidden');
+  }
+
+  return;
+
   // Use textarea instead
   if (vu.get('textarea')) {
     TextareaView.build({
@@ -1385,11 +1428,10 @@ SortableListClass.render(vu => {
 
 
 // Purely.Page
-// - bgAbs: boolean, true to set _bg position 'absolute'
+// - bgFixed: boolean, true to set @mask position 'fixed'
 PurelyPageClass.dom(vu => [{ 'div.view-purely-page': [
   { 'div@page.purely-page': '' },
-  { 'div.page-color-mask._bg': '' },
-  { 'div.page-bg._bg': '' }] 
+  { 'div@mask.page-color-mask': '' }] 
 }]);
 
 PurelyPageClass.render(vu => {
@@ -1398,11 +1440,11 @@ PurelyPageClass.render(vu => {
       sampleText = ''; // default sample text to fill up with
 
   // Set the position of background based on values
-  vu.map('bgAbs', bgAbs => {
+  vu.map('bgFixed', bgAbs => {
     let vuOffset = vu.$el().offset(),
         vuPos = vu.$el().position(),
         cssObj = {};
-    if (!bgAbs) {
+    if (bgFixed) {
       cssObj = {
         position: 'fixed',
         top: vuOffset.top - vuPos.top,
@@ -1415,71 +1457,46 @@ PurelyPageClass.render(vu => {
         left: 0 - vuPos.left
       }; 
     }
-    vu.$el('._bg').css(cssObj);
+    vu.$el('@mask').css(cssObj);
     return bgAbs;
   }); // end of map('bgAbs')
 }); // end of Purely.Page
 
 // Purely.Section
-PurelySectionClass.dom(vu => [{ 'div.view-purely-section': '' }]);
+PurelySectionClass.dom(vu => [
+  { 'div.view-purely-section': [
+    { 'div.layer-text': [
+      { 'div.text-wrap': [
+        { 'h2@title': '' },
+        { 'p@content': '' }] 
+      }] 
+    }, 
+    { 'div@comp.layer-comp': '' }, 
+    { 'div@mask.layer-mask': '' }, 
+    { 'div@background.layer-bg': '' }] 
+  }
+]);
+
 PurelySectionClass.render(vu => {
-  let type = vu.get('type') || 'basic',
-      basicData = vu.get('basic') || {},
-      collectionData = vu.get('collection') || {},
-      contactsData = vu.get('contacts') || {},
-      basicClass = Views.class('Purely.Section.Basic'),
-      collectionClass = Views.class('Purely.Section.Collection'),
-      contactsClass = Views.class('Purely.Section.Contacts'),
-      basicVu,
-      layout = vu.get('layout'),
-      compLayout = vu.get('compLayout'),
-      colType;
+  let type = vu.get('type'),
+      style = vu.get('style'),
+      title = vu.map('title', x => x || ''),
+      content = vu.map('content', x => x || '');
 
-  // Default layouts
-  if (!layout) {
-    switch (type) {
-      case 'basic': layout = 'layout-left'; break;
-      case 'collection': layout = 'layout-left-slide'; break;
-      case 'contacts': layout = 'layout-left-contacts'; break;
-    }
-  }
+  if (title) { vu.$el('@title').text(title); }
+  if (content) { vu.$el('@content').text(content); }
 
-  compLayout = collectionData && collectionData.layout 
-    || contactsData && contactsData.layout;
-
-  if (compLayout) {
-    basicData.compLayout = compLayout;
-  }
-
-  basicData.layout = layout;
-  basicVu = basicClass.build({
-    sel: vu.sel(),
-    data: basicData
-  });
-
-  //console.log('Purely.Section', vu.get());
   switch (type) {
+    case 'basic':
+      break;
     case 'collection':
-      // Handle collection type    
-      let tmpIdx = layout.lastIndexOf('-');
-      if (tmpIdx > -1) { colType = layout.slice(tmpIdx + 1); }
-      collectionData.layout = compLayout;
-      collectionData.collectionType = colType;
-      collectionClass.build({
-        sel: basicVu.sel('@comp'),
-        data: collectionData
-      });
       break;
     case 'contacts':
-      contactsData.layout = compLayout;
-      contactsClass.build({
-        sel: basicVu.sel('@comp'),
-        data: contactsData
-      });
       break;
     default:
   }
-}); // end of Purely.Section
+}); 
+// End of Purely.Section
 
 // Purely.Section.Basic
 // @title

@@ -1,6 +1,6 @@
 (function($, Cope) {
-var debug = Cope.Util.setDebug('cope-views', false),
-    //Editor = Cope.useEditor(),
+
+let debug = Cope.Util.setDebug('cope-views', false),
     PurelyViews = Cope.views('Purely'), // use Purely views
     
     Views = Cope.views('Cope'), // global views
@@ -23,16 +23,27 @@ var debug = Cope.Util.setDebug('cope-views', false),
 
     PurelyEditNavView = Views.class('Purely.Edit.Nav.Settiings'),// to be depreacted
     PurelyEditSingleView = Views.class('Purely.Edit.Single'), // to be deprecated
-    SectionEditView = Views.class('Purely.Edit.Section.Settings'),
+    SectionEditView = Views.class('Purely.Edit.Section.Settings'), // to be deprecated
+    SectionEditorClass = Views.class('SectionEditor'),
     PageEditView = Views.class('Purely.Edit.Page'),
     LayoutChooserView = Views.class('Purely.LayoutChooser'),
     
-    //SectionEditView & PageEditView
-    SectionEditView = Views.class('Purely.Edit.Section.Settings'),
-    PageEditView = Views.class('Purely.Edit.Page'),
-
     priViews = Cope.useViews(), // private views
     ViewAddInput = priViews.class('AddInput');
+
+let phr = function(str, lang) {
+  let phrases = {};
+  phrases.tw = {};
+  phrases.tw['Done'] = '確定';
+  phrases.tw['Basic'] = '基本';
+  phrases.tw['Collection'] = '多重彙集';
+  phrases.tw['Contacts'] = '聯絡';
+  phrases.tw['Section Type'] = '區塊類型';
+  if (!lang || lang == 'en') {
+    return str;
+  }
+  return phrases[lang][str] || str;
+};
 
 // "AppCard"  
 ViewAppCard.dom(function() {
@@ -208,6 +219,97 @@ PurelyEditSingleView.render( vu => {
   });
 });
 
+// SectionEditor
+SectionEditorClass.dom(vu => [
+  { 'div': [
+    { '@type-chooser.hidden': [
+      { 'h3': phr('Section Type') },
+      { 'ul': [
+        { 'li@type-basic': phr('Basic') },
+        { 'li@type-collection': phr('Collection') },
+        { 'li@type-contacts': phr('Contacts') }] 
+      },
+      { 'div': [
+        { '@done': phr('Done') }]
+      }]
+    }, // end of @type-chooser
+    { '@settings': '' }]
+  }
+]);
+
+SectionEditorClass.render(vu => {
+  let settings = {}, 
+      styles,
+      type,
+      media,
+      upper,
+      types = ['basic', 'collection', 'contacts'];
+  
+  upper = function(str) {
+    if (str.length < 1) return '';
+    return str.slice(0, 1).toUpperCase().concat(str.slice(1));
+  };
+
+  // Set fallbacks
+  style = vu.map('style', s => s 
+    || 'text-pos-left/comp-pos-right/mask-bright/mask-7');
+
+  // Tidy up data
+  settings.basic = [
+    { label: phr('Type'), value: upper(vu.get('type')) },
+    { type: 'text', label: phr('Title'), value: vu.get('title') },
+    { type: 'textarea', label: phr('Content'), value: vu.get('content') },
+    { type: 'media', label: 'Media', value: vu.get('media') }
+  ];
+  settings.collection = [
+    { label: phr('Type'), value: upper(vu.get('type')) },
+    { type: 'text', label: phr('Title'), value: vu.get('title') },
+    { type: 'textarea', label: phr('Content'), value: vu.get('content') },
+    { type: 'select', label: phr('Collection'), value: vu.get('colName'), options: [] },
+    { type: 'select', label: phr('Sorted By'), value: vu.get('sort'), options: [] },
+    { type: 'number', label: phr('Max Number'), value: vu.get('limit') }
+  ];
+  settings.contacts = [
+    { label: phr('Type'), value: upper(vu.get('type')) },
+    { type: 'text', label: phr('Title'), value: vu.get('title') },
+    { type: 'textarea', label: phr('Content'), value: vu.get('content') }
+  ];
+  
+  // Render based on data
+  vu.$el('@settings').html('');
+  switch (vu.get('type')) {
+    case 'basic':
+    case 'collection':
+    case 'contacts':
+      settings[vu.get('type')].map((x, i) => {
+        PurelyViews.class('ListItem').build({
+          sel: vu.sel('@settings'), 
+          method: 'append',
+          data: {
+            type: x.type,
+            label: x.label,
+            value: x.value,
+            editable: (i > 0)
+          }
+        });
+      });
+      vu.$el('@type-chooser').addClass('hidden');
+      vu.$el('@settings').removeClass('hidden');
+      break;
+    default:
+      types.map(x => {
+        vu.$el('@type-' + x).off('click').on('click', e => {
+          type = x;
+        });
+      });
+      vu.$el('@type-chooser').removeClass('hidden');
+      vu.$el('@settings').addClass('hidden');
+  }
+  vu.$el('@done').off('click').on('click', e => {
+    vu.val('type', type);
+  });
+});
+// End fo SectionEditor
 
 // Purely.Edit.Section.Settings
 // @section-edit
@@ -592,13 +694,15 @@ PurelySecView.render(vu => {
 });
 
 // Purely - Purely.App
+// - sim-page-thumbs
+// - sim-page-secs
 PurelyAppView.dom(vu => [
   { 'div.purely-app': [
     { 'div.sim-wrap': [
       { 'div.cope-card.bg-w.full(style="display:flex; padding:0; margin-bottom:16px;")': [
         { 'div@nav.col-xs-12(style="padding:0")': 'Nav' }] 
       },
-      { 'div.cope-card.full(style="padding:0")': [
+      { 'div@sim-wrap-card.cope-card.full(style="padding:0")': [
         { 'div.sim-sections': [
           { 'div@page': '' }]
         }]
@@ -609,7 +713,7 @@ PurelyAppView.dom(vu => [
       { 'div@app-settings': 'app-settings' }, // app-settings
       { 'div@sec-settings.hidden': 'sec-settings' }] // sec-settings
     }, 
-    { 'div.sim-page.cope-card.bg-w': [
+    { 'div@sim-page-card.sim-page.cope-card.bg-w': [
       { 'div@sim-page.inner': '' }] 
     }]
   }
@@ -620,10 +724,10 @@ PurelyAppView.render(vu => {
   // Reset
   vu.$el('@page').html('');
 
-  let SAMPLE_TEXT = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nec est sed turpis tincidunt mollis. Duis nec justo tortor. Aliquam dictum dignissim molestie. Fusce maximus sit amet felis auctor pellentesque. \n\nSed dapibus nibh id rutrum elementum. Aliquam semper, ipsum in ultricies finibus, diam libero hendrerit felis, nec pharetra mi tellus at leo. Duis ultricies ultricies risus, sed convallis ex molestie at. Nulla facilisi. Ut sodales venenatis massa, nec venenatis quam semper eget.';
+  let sampleText = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nec est sed turpis tincidunt mollis. Duis nec justo tortor. Aliquam dictum dignissim molestie. Fusce maximus sit amet felis auctor pellentesque. \n\nSed dapibus nibh id rutrum elementum. Aliquam semper, ipsum in ultricies finibus, diam libero hendrerit felis, nec pharetra mi tellus at leo. Duis ultricies ultricies risus, sed convallis ex molestie at. Nulla facilisi. Ut sodales venenatis massa, nec venenatis quam semper eget.';
 
   let pages = vu.get('pages'), 
-      sections = vu.get('sections');
+      sections;
   // Set the whole page css
   //vu.$el('.sim-sections').css({
   //  'background-color': '#000',
@@ -642,194 +746,80 @@ PurelyAppView.render(vu => {
   }];
 
   // sections data
-  sections = sections || [
+  sections = vu.map('sections', sections => sections || [
     {
       type: 'collection',
-      layout: 'layout-left-slide',
-      basic: {
-        textColor: '#fff',
-        bgColor: '#000',
-        bgColorStrength: 0.8
+      title: 'Featuring',
+      content: 'Annual big issues',
+      colName: 'Blog',
+      sort: 'featured',
+      limit: 6
+    },
+    { 
+      type: 'basic',
+      title: 'Title',
+      content: sampleText,
+      media: {
+        imgsrc: '/images/sample4.jpg'
       },
-      collection: {
-        layout: 'comp-bold-left',
-        //col: 'Shoes',
-        //sort: 'recent',
-        data: [
-          {
-            title: 'Build your dream simply',
-            imgsrc: '/images/sample1.jpg',
-            textColor: '#333'
-          },
-          {
-            title: 'And purely',
-            textColor: '#fff',
-            bgColor: '#000',
-            colorStrength: 0.8
-          }
-        ]
-      }
-    },
-    {
-      type: 'basic',
-      layout: 'layout-right',
-      basic: {
-        title: 'Story',
-        content: SAMPLE_TEXT,
-        textColor: '#fff'
-      }
-    },
-    {
-      type: 'basic',
-      layout: 'layout-left',
-      basic: {
-        title: 'Our Brand',
-        content: SAMPLE_TEXT,
-        imgsrc: '/images/sample1.jpg'
-      }
+      style: 'mask-dark/mask-7'
     },
     {
       type: 'contacts',
-      basic: {
-        title: 'Contact us',
-        imgsrc: '/images/sample2.jpg',
-        bgColor: '#000',
-        textColor: '#fff'
-      },
-      contacts: {
-        layout: 'comp-simple-contacts',
-        data: [
-          { type: 'email', value: 'support@myapp.cope.tech' }, 
-          { type: 'phone', value: '+886 987 654 321' } 
-        ]
-      }
+      title: 'Opening',
+      content: 'Weekdays | 09:00 - 17:00',
+      style: 'mask-dark/mask-7'
     }
-  ];
-  vu.set('sections', sections);
-
-  // makeList
-  // o: Object
-  let makeList = function(o) {
-    let secs = [],
-        my = {};
-
-    my.render = o.render;
-
-    my.get = function(i) {
-      return secs[i];
-    };
-
-    // s: params of the section
-    my.insert = function(i, callback) {
-
-      if (i > secs.length) return;
-     
-      // Handle the old array
-      secs.map(sec => {
-        let myIdx = sec.wrap.get('idx');
-        if (myIdx >= i) {
-          sec.wrap.val('idx', myIdx + 1);
-        }
-      });
-
-      // Handle the new one
-      let wrap = o.wrapClass.build({ //PurelySecView.build({
-        sel: o.sel, //vu.sel('@page'),
-        method: 'append',
-        data: {
-          height: o.height,
-          idx: i
-        }
-      });
-
-      let view = callback(wrap, secs);
-
-      secs = secs.concat({
-        wrap: wrap,
-        view: view //viewClass.build(buildSettings)
-      });
-
-      secs.map((sec, idx) => {
-        Object.keys(o).map(key => {
-          if (key.indexOf('on') != 0) return;
-          
-          let evt = key.slice('2');
-          sec.wrap.$el().off(evt).on(evt, function(e) {
-            o[key](sec, sec.wrap.get('idx'), e);
-          });
-        }); // end of Object.keys ... map
-      }); // end of secs.map
-    }; // end of my.insert
-
-    my.remove = function(i) {
-      secs = secs.filter(sec => {
-        if (sec.wrap.get('idx') === i) {
-          sec.wrap.$el().fadeOut(300);
-          return false;
-        } else if (sec.wrap.get('idx') > i) {
-          sec.wrap.val('idx', sec.wrap.get('idx') - 1);
-        }
-        return true;
-      });
-    }; // end of my.remove
-
-    my.swap = function(i, j) {
-      let wrap_i, wrap_j;
-      let arr = [];
-      arr = secs.map(sec => sec.wrap.get('idx'));
-      wrap_i = arr.indexOf(i);
-      wrap_j = arr.indexOf(j);
-      if(wrap_i != wrap_j) {
-        secs[wrap_i].wrap.val('idx', j);
-        secs[wrap_j].wrap.val('idx', i);
-      }
-    }; // end of my.swap
-    return my;
-  };
-
-  // Build page for page selector
-  let pageThumbs = PurelyViews.class('Purely.Page').build({
-    sel: vu.sel('@sim-page'),
-    data: { bgAbs: true }
-  });
+  ]);
 
   // PS: Page Selector
   let PS = PurelyViews.class('SortableList').build({
-    sel: pageThumbs.sel('@page'),//vu.sel('@sim-page'),
+    sel: vu.sel('@sim-page'),//vu.sel('@sim-page'),
     data: { height: 100 }
-  });
-
-  // Build page for section simulator
-  let page = PurelyViews.class('Purely.Page').build({
-    sel: vu.sel('@page')
   });
 
   // SS: Section Simulator
   let SS = PurelyViews.class('SortableList').build({
-    sel: page.sel('@page'),
+    sel: vu.sel('@page'),
     data: { height: 400 }
   });
+
+  let pagePS = vu.map('sim-page-thumbs', s => vu.$el('@sim-page-card')),
+      pageSS = vu.map('sim-page-secs', s => vu.$el('@sim-wrap-card'));
+
+  pagePS.css({
+    background: '#aaccaa'
+  })
+
+  // TBD: why the height is so confined????
+  pageSS.css({
+    background: '#aaccaa'
+  })
 
   PS.res('item clicked', item => {
     // TBD: Interact with SS
   });
 
   SS.res('item clicked', item => {
-    console.log(item);
+    console.log(item.view.val());
     // Interact with PS and EditSection
     // Build the section editor on the right side
-    let editSection = SectionEditView.build({
-      sel: vu.sel('@sec-settings')
+    //let editSection = SectionEditView.build({
+    //  sel: vu.sel('@sec-settings')
+    //})
+    let sectionEditor = SectionEditorClass.build({
+      sel: vu.sel('@sec-settings'),
+      data: item.view.val()
     });
       
     // Update section simulator
-    editSection.res('data', data => {
-      item.view.val(data);
-    });
+    //editSection.res('data', data => {
+    //  item.view.val(data);
+    //});
 
     // Fill up editSection on the right side
     // with the selected section value
-    editSection.val(item.view.val());
+    // editSection.val(item.view.val());
     
     vu.$el('@back').removeClass('hidden');
     vu.$el('@app-settings').addClass('hidden');
@@ -837,18 +827,8 @@ PurelyAppView.render(vu => {
   });
 
   // Build the initial sections
-  sections.map(p => {
-    if (!p) p = {};
-    if (!p.type) p.type = 'basic';
-    if (!p.basic) {
-      p.basic = {
-        title: 'Section Title',
-        content: 'More about this section.'
-      };
-    }
-    
-    let params = p,
-        ssData = {},
+  sections.map(params => {
+    let ssData = {},
         psData = {};
     
     for (let k in params) {
@@ -899,6 +879,12 @@ PurelyAppView.render(vu => {
     }, {
       'label': 'Status',
       'value': vals.stat || ''
+    }, {
+      'label': 'Background Color Mask',
+      'value': 'TBD'
+    }, {
+      'label': 'Background',
+      'value': 'TBD'
     }].map(x => {
       return PurelyViews.class('ListItem').build({
         sel: vu.sel('@app-settings'),

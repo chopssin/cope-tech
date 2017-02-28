@@ -367,6 +367,7 @@ TilesView.render(vu => {
 
 // Textarea
 // @textarea
+// - value: string, current value
 TextareaView.dom(vu => [
   { 'textarea(rows=1).view-textarea': '' }
 ]);
@@ -376,24 +377,28 @@ TextareaView.render(vu => {
       $this = vu.$el(),
       value = vu.get('value');
 
-  let autosize = function() {
-
-    // Update the value
-    let updatedValue = $this.val().trim();
-    vu.set('value', updatedValue);
-    vu.res('value', updatedValue);
+  let autosize = function(noRender) {
+    update();
 
     $this.css('height', 'auto');
     setTimeout(function() {
       $this.css('height', $this[0].scrollHeight + 'px');
     });
   };
+
+  let update = function() {
+    // Update the value
+    let updatedValue = $this.val().trim();
+    vu.set('value', updatedValue);
+    vu.res('value', updatedValue);
+  };
   
   // Insert the value
   $this.val(value);
-  $this.off('keypress focus')
+  $this.off('keyup keydown focus')
   .on('focus', autosize)
-  .on('keydown', autosize);
+  .on('keydown', autosize)
+  .on('keyup', update);
 
   setTimeout(function() {
     autosize();
@@ -964,14 +969,30 @@ ListItemView.render(vu => {
       displayValue = (vu.get('value') + '')
         .replace(/\n/g, '<br>');
       $textInput = vu.$el('@editable').find('input');
+      $textInput.off('keyup').on('keyup', e => {
+        vu.res('value', vu.map('value', x => {
+          let newVal = $textInput.val().trim();
+          if (!newVal) newVal = '';
+          return newVal;
+        }));
+        if (e.which === 13) {
+          vu.res('done', vu.get('value'));
+          vu.val('edit', false);
+        }
+      })
       break;
     case 'textarea':
-      $textInput = TextareaView.build({
+      let textarea = TextareaView.build({
         sel: vu.sel('@editable'),
         data: {
           value: vu.val('value')
         }
-      }).$el();
+      });
+      textarea.res('value', value => {
+        vu.set('value', value);
+        vu.res('value', value);
+      });
+      $textInput = textarea.$el();
       displayValue = (vu.get('value') + '')
         .replace(/\n/g, '<br>');
       break;
@@ -999,12 +1020,7 @@ ListItemView.render(vu => {
     vu.$el('@editable').removeClass('hidden');
     if ($textInput) {
       $textInput.focus();
-      $textInput.off('keyup').on('keyup', e => {
-        let newVal = $textInput.val().trim();
-        if (!newVal) newVal = '';
-        vu.set('value', newVal);
-        vu.res('value', newVal);
-      }).off('focusout').on('focusout', e => {
+      $textInput.off('focusout').on('focusout', e => {
         vu.res('done', vu.get('value'));
         vu.val('edit', false);
       });
@@ -1088,6 +1104,7 @@ ListItemView.render(vu => {
     }); // end of map
   }
 }); 
+// End of ListItem
 
 // SortableList
 // - height: number, each block's height

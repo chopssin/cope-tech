@@ -1990,8 +1990,9 @@
       $('body').css('overflow', 'hidden');
     };
 
-    let closeModal = function() {
+    let closeModal = function(vu) {
       myModal.$el('@lightbox').click();
+      if (vu) { vu.res('modal closed'); }
     };
 
     // Built-in Views
@@ -2049,7 +2050,7 @@
         .off('click').on('click', e => {
           debug('Cope.modal', vu.get('value'));
           vu.res('value', vu.get('value'));
-          closeModal();
+          closeModal(vu);
         });
     }); // end of "text"
 
@@ -2206,8 +2207,8 @@
 
       $right.html('Upload')
         .off('click').on('click', e => {
-          closeModal();
           vu.res('upload', vu.get('files'));
+          closeModal(vu);
         });
     }); // end of fileInputView.render
 

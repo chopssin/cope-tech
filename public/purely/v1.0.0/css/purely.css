@@ -440,173 +440,184 @@ textarea {
   display: block;
   position: relative;
   width: 100%;
-  height: 100%;
   padding: 0;
   margin: 0;
 }
 
-/* Default styles of Purely Section */
-.view-purely-section-basic > *,
-.view-purely-section-collection > *,
-.view-purely-section-contacts > * {
-  font-size: 24px;
+.view-purely-section > * {
+  display: block;
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.view-purely-section > .layer-comp {
+  display: flex;
+  position: relative;
+  padding: 0 8%;
+  font-size: 20px;
   z-index: 2;
 }
 
-.view-purely-section-basic,
-.view-purely-section-collection,
-.view-purely-section-collection > div,
-.view-purely-section-contacts,
-.view-purely-section-contacts > div {
-  display: block;
-  position: relative;
-  width: 100%;
+.view-purely-section > .layer-mask {
   height: 100%;
-  padding: 0;
-  margin: 0;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: 50% 50%;
-  z-index: 0;
-}
-
-.view-purely-section-basic,
-.view-purely-section-basic.layout-left {
-  display: flex;
-  flex-direction: row;
-}
-
-.view-purely-section-basic.layout-right,
-.view-purely-section-basic.layout-right-slide {
-  display: flex;
-  flex-direction: row-reverse;
-}
-
-.view-purely-section-basic > .text-wrap {
-  display: block;
-  position: relative;
-  flex: 1;
-  height: 56%;
-  top: 12%;
-  margin: 6%;
-  overflow: auto;
-}
-
-.text-wrap > h2 {
-  font-size: 40px;
-}
-
-.view-purely-section-basic > .comp-wrap {
-  display: block;
-  position: relative;
-  flex: 1;
-  visibility: none;
-  height: 56%;
-  top: 12%;
-  margin: 6%;
-  overflow: auto;
-}
-
-.view-purely-section-basic > .color-mask {
-  display: block;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  margin: 0;
-  top: 0;
-  left: 0;
-  opacity: 0.75;
   z-index: 1;
 }
 
-.view-purely-section-collection .col-item {
-  display: block;
-  position: absolute;
-  width: 100%;
+.view-purely-section > .layer-bg {
   height: 100%;
-  left: 0;
-  top: 0;
+  background-size: cover;
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  z-index: 0;
 }
 
-/* layout-none-<all type> */
-.view-purely-section-basic.layout-none-slide > .text-wrap,
-.view-purely-section-basic.layout-none-grid > .text-wrap,
-.view-purely-section-basic.layout-none-waterfall > .text-wrap,
-.view-purely-section-basic.layout-none-contacts > .text-wrap {
+.view-purely-section > .layer-comp > .textbox,
+.view-purely-section > .layer-comp > .compbox {
+  flex: 1;
+  position: relative;
+  padding: 100px 16px;
+  font-size: 24px;
+  z-index: 1;
+}
+
+.view-purely-section > .layer-comp > .textbox {
+  z-index: 2;
+}
+
+.textbox > * {
+  position: relative;
+  margin: 0 auto;
+  max-width: 480px;
+}
+
+.textbox > .text-title {
+  font-size: 140%;
+}
+
+/* sec-full */
+.view-purely-section.sec-full {
+  min-height: 100%;
+}
+
+.view-purely-section.sec-full > * {
+  min-height: 100%;
+}
+
+/* sec-dark */
+.sec-dark {
+  color: #fff;
+}
+
+.sec-dark > .layer-mask {
+  background-color: #000;
+  opacity: 0.7;
+}
+
+/* sec-op-0 ~ sec-op-10 */
+.sec-op-0 > .layer-mask {
+  opacity: 0;
+}
+
+.sec-op-1 > .layer-mask {
+  opacity: 0.1;
+}
+
+.sec-op-2 > .layer-mask {
+  opacity: 0.2;
+}
+
+.sec-op-3 > .layer-mask {
+  opacity: 0.3;
+}
+
+.sec-op-4 > .layer-mask {
+  opacity: 0.4;
+}
+
+.sec-op-5 > .layer-mask {
+  opacity: 0.5;
+}
+
+.sec-op-6 > .layer-mask {
+  opacity: 0.6;
+}
+
+.sec-op-7 > .layer-mask {
+  opacity: 0.7;
+}
+
+.sec-op-8 > .layer-mask {
+  opacity: 0.8;
+}
+
+.sec-op-9 > .layer-mask {
+  opacity: 0.9;
+}
+
+.sec-op-10 > .layer-mask {
+  opacity: 1;
+}
+
+/* text-right */
+.text-right > .layer-comp {
+  flex-direction: row-reverse;
+  text-align: left;
+}
+
+/* text-center */
+.text-center > .layer-comp {
+  display: block;
+  position: relative;
+}
+
+.text-center > .layer-comp > * {
+  position: relative;
+  margin: 0 auto;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  text-align: left;
+}
+
+/* text-none */
+.text-none .textbox {
+  visibility: none;
+}
+
+/* text-only */
+.text-only .compbox {
   display: none;
 }
 
-.view-purely-section-basic.layout-none-slide > .comp-wrap,
-.view-purely-section-basic.layout-none-grid > .comp-wrap,
-.view-purely-section-basic.layout-none-waterfall > .comp-wrap,
-.view-purely-section-basic.layout-none-contacts > .comp-wrap {
-  display: block;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  left: 0;
-  top: 0;
-  padding: 0;
-  margin: 0;
-  z-index: 3;
+/* text-bold-title */
+.text-bold-title .textbox-title {
+  font-weight: 900;
+  font-size: 420%;
+  padding-top: 20px;
+  padding-bottom: 20px;
 }
 
-/* layout-<pos>-<collection type> */
-.layout-left-slide > .comp-wrap,
-.layout-right-slide > .comp-wrap {
-  flex: 4;
+.text-bold-title .textbox-content {
+  font-size: 140%;
 }
 
-.layout-right-slide > .comp-wrap,
-.layout-center-slide > .comp-wrap,
-.layout-left-grid > .comp-wrap,
-.layout-right-grid > .comp-wrap,
-.layout-center-grid > .comp-wrap,
-.layout-left-waterfall > .comp-wrap,
-.layout-right-waterfall > .comp-wrap,
-.layout-center-waterfall > .comp-wrap {
+/* comp-full: with js */
+.comp-full .compbox {
+  visibility: none;
 }
 
-/* layout-<pos>-<contacts type> */
-.layout-left-contacts > .comp-wrap {
-  flex: 2;
-  border-left: 6px solid #777; /*#3a82cc;*/
-  padding-left: 24px;
+/* comp-only */
+.comp-only .textbox {
+  display: none;
 }
 
-.layout-left-contacts > .text-wrap h2 {
-  font-size: 30px;
-  margin-top: 0;
-}
-
-.layout-left-contacts .view-purely-section-contacts {
-  display: block;
-  position: relative;
-  padding-top: 50px;
-}
-
-/* comp-<style> */
-.comp-bold-center.view-purely-section-collection .text-wrap {
-  display: block;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 60%;
-  height: 60%;
-  margin: 0;
-  padding: 0;
-  -webkit-transform: translate(50%, 50%);
-  -moz-transform: translate(50%, 50%);
-  transform: translate(50%, 50%);
-}
-
-.comp-simple-list.view-purely-section-contacts > .contacts-item {
-  display: block;
-  position: relative;
-  width: 100%;
-  height: 30px;
-  font-size: 24px;
+/* comp-left */
+.comp-left > .layer-comp {
+  flex-direction: row-reverse;
+  text-align: left;
 }
 
 

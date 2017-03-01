@@ -268,22 +268,23 @@ SectionEditorClass.render(vu => {
   // Tidy up data
   settings.basic = [
     { label: phr('Type'), value: upper(vu.get('type')) },
-    { type: 'text', label: phr('Title'), value: vu.get('title') },
-    { type: 'textarea', label: phr('Content'), value: vu.get('content') },
-    { type: 'media', label: 'Media', value: vu.get('media') }
+    { key: 'title', type: 'text', label: phr('Title'), value: vu.get('title') },
+    { key: 'content', type: 'textarea', label: phr('Content'), value: vu.get('content') },
+    { key: 'media', type: 'media', label: 'Media', value: vu.get('media') }
   ];
   settings.collection = [
     { label: phr('Type'), value: upper(vu.get('type')) },
-    { type: 'text', label: phr('Title'), value: vu.get('title') },
-    { type: 'textarea', label: phr('Content'), value: vu.get('content') },
-    { type: 'select', label: phr('Collection Type'), value: vu.get('colName'), options: [] },
-    { type: 'select', label: phr('Sorted By'), value: vu.get('sort'), options: [] },
-    { type: 'number', label: phr('Max Number'), value: vu.get('limit') }
+    { key: 'title', type: 'text', label: phr('Title'), value: vu.get('title') },
+    { key: 'content', type: 'textarea', label: phr('Content'), value: vu.get('content') },
+    { key: 'colName', type: 'select', label: phr('Collection Type'), value: vu.get('colName'), options: [] },
+    { key: 'sort', type: 'select', label: phr('Sorted By'), value: vu.get('sort'), options: [] },
+    { key: 'limit', type: 'number', label: phr('Max Number'), value: vu.get('limit') }
   ];
   settings.contacts = [
     { label: phr('Type'), value: upper(vu.get('type')) },
-    { type: 'text', label: phr('Title'), value: vu.get('title') },
-    { type: 'textarea', label: phr('Content'), value: vu.get('content') }
+    { key: 'title', type: 'text', label: phr('Title'), value: vu.get('title') },
+    { key: 'content', type: 'textarea', label: phr('Content'), value: vu.get('content') },
+    { key: 'media', type: 'media', label: 'Media', value: vu.get('media') }
   ];
   
   // Render based on data
@@ -301,6 +302,11 @@ SectionEditorClass.render(vu => {
             label: x.label,
             value: x.value,
             editable: (i > 0)
+          }
+        }).res('value', value => {
+          if (x.key) {
+            vu.set(x.key, value);
+            vu.res('data', vu.get());
           }
         });
       });
@@ -760,26 +766,31 @@ PurelyAppView.render(vu => {
   sections = vu.map('sections', sections => sections || [
     {
       type: 'collection',
-      title: 'Featuring',
-      content: 'Annual big issues',
-      colName: 'Blog',
+      title: 'Shape the world',
+      content: 'Together we change the industry landscape',
+      colName: 'blog',
       sort: 'featured',
-      limit: 6
+      limit: 6,
+      style: 'sec-full/sec-dark/sec-op-7/text-bold-title/comp-full/comp-slide',
+      data: [
+        { 'title': 'Simply', 'imgsrc': '/images/sample1.jpg' },
+        { 'title': 'Purely', 'imgsrc': '/images/sample2.jpg' }
+      ]
     },
     { 
       type: 'basic',
       title: 'Title',
       content: sampleText,
       media: {
-        imgsrc: '/images/sample4.jpg'
+        imgsrc: '/images/sample4.jpeg'
       },
-      style: 'mask-dark/mask-7'
+      style: 'sec-dark/sec-op-2/text-right'
     },
     {
       type: 'contacts',
       title: 'Opening',
       content: 'Weekdays | 09:00 - 17:00',
-      style: 'mask-dark/mask-7'
+      style: 'sec-dark/sec-op-7/comp-full'
     }
   ]);
 
@@ -821,6 +832,9 @@ PurelyAppView.render(vu => {
     let sectionEditor = SectionEditorClass.build({
       sel: vu.sel('@sec-settings'),
       data: item.view.val()
+    }).res('data', data => {
+      console.log(data);
+      item.view.val(data); 
     });
       
     // Update section simulator

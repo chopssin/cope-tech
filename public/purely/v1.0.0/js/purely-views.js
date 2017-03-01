@@ -703,8 +703,8 @@ SlideView.render(vu => {
         
       vu.$el('@slideNav').find('li').first().addClass('active');
 
-      let slideWidth = vu.$el(".view-slide").width();
-      let slideHeight = vu.$el(".view-slide").height();
+      let slideWidth = vu.$el().width();
+      let slideHeight = vu.$el().height();
 
       //  setting CSS to adjust slide
       vu.$el('.banner').css({
@@ -949,7 +949,8 @@ ListItemView.dom(vu => [
 ListItemView.render(vu => {
   let type = vu.map('type', x => x || 'text'),
       displayValue = '',
-      $textInput,
+      $textInput, 
+      url,
       editable = vu.get('editable'),
       placeholder = vu.get('placeholder') 
         ? ' placeholder = "' + vu.get('placeholder') + '" '
@@ -997,10 +998,30 @@ ListItemView.render(vu => {
         .replace(/\n/g, '<br>');
       break;
     case 'media':
+      vu.$el('@display').css({
+        'width': '100px',
+        'height': '100px',
+        'margin-top': '8px',
+        'background-color': '#eee',
+        'background-position': '50% 50%',
+        'background-size': 'cover',
+        'background-repeat': 'no-repeat',
+        'cursor': 'pointer'
+      });
+
+      let value = vu.get('value') || {};
+      if (value.vidsrc) {
+        // Video
+      } else if (value.imgsrc) {
+        // Image
+        url = value.imgsrc;
+        vu.$el('@display').css({
+          'background-image': 'url("' + url + '")'
+        });
+      }
       break;
     case 'select':
       // TBD
-      console.log(vu.get());
       break;
     default:
   }
@@ -1016,96 +1037,41 @@ ListItemView.render(vu => {
   vu('@label').html(vu.map('label', x => x || ''));
 
   // Render with value
-  vu('@display').html(displayValue);
+  if (displayValue) {
+    vu('@display').html(displayValue);
+  }
 
   // Edit mode
   if (vu.val('edit')) {
-    vu.$el('@display').addClass('hidden');
-    vu.$el('@editable').removeClass('hidden');
-    if ($textInput) {
+    if ($textInput) { // type == 'text' or 'textarea'
       $textInput.focus();
       $textInput.off('focusout').on('focusout', e => {
         vu.res('done', vu.get('value'));
         vu.val('edit', false);
       });
+      vu.$el('@display').addClass('hidden');
+      vu.$el('@editable').removeClass('hidden');
     }
+    if (vu.get('type') == 'media') { // type == 'media'
+      let modalView = Cope.modal('file', {
+        maxWidth: 400,
+        saveOriginal: true
+      }).res('done', files => {
+        if (files && files[0]) { 
+          // TBD: imgsrc should be the true url
+          vu.set('value', { 
+            imgsrc: files[0].image,
+            url: 'TBD',
+            file: files[0]
+          });
+          vu.res('value', vu.get('value'));
+          vu.val('edit', false);
+        }
+      });
+    } // end of type 'media'
   } else {
     vu.$el('@display').removeClass('hidden');
     vu.$el('@editable').addClass('hidden');
-  }
-
-  return;
-
-  // Use textarea instead
-  if (vu.get('textarea')) {
-    TextareaView.build({
-      sel: vu.sel('@value-wrap'),
-      data: {
-        value: vu.val('value')
-      }
-    });
-    
-    $textInput = vu.$el('textarea');
-
-    // Just for Textarea
-    $textInput.off('keyup').on('keyup', e => {
-      let newVal = vu.$el('textarea').val().trim();
-      if (!newVal) newVal = '';
-      vu.set('value', newVal);
-      vu.res('value', newVal);
-    }).off('focusout').on('focusout', e => {
-      vu.val('edit', false);
-      vu.res('done', vu.get('value'));
-    });
-  }
-
-  vu.use('label').then(v => {
-    vu.$el('@label').text(v.label);
-  });
-
-  vu.use('value').then(v => {
-    vu.$el('@display').html(v.value.replace(/\n/g, '<br>'));
-    $textInput.val(v.value);
-  });
-
-  vu.use('placeholder').then(v => {
-    $textInput.prop('placeholder', v.placeholder);
-  });
-
-  if (vu.val('edit')) {
-    vu.$el('@display').addClass('hidden');
-    vu.$el('@value-wrap').removeClass('hidden');
-    $textInput.focus();
-  } else {
-    vu.$el('@display').removeClass('hidden');
-    vu.$el('@value-wrap').addClass('hidden');
-  }
-
-  // Just for input[type = text]
-  vu.$el('input').off('keyup').on('keyup', e => {
-    let newVal = vu.$el('input').val().trim();
-    if (!newVal) newVal = '';
-    vu.$el('@display').html(newVal);
-    if (e.which == 13) {
-      vu.val('edit', false);
-      vu.res('done', newVal);
-    } else {
-      vu.set('value', newVal);
-      vu.res('value', newVal);
-    }
-
-  }).off('focusout').on('focusout', e => {
-    vu.val('edit', false);
-    vu.res('done', vu.get('value'));
-  });
-
-  if (vu.get('editable')) {
-    ['@display', '@label'].map(comp => {
-      vu.$el(comp).addClass('cope-btn')
-        .off('click').on('click', e => {
-          vu.val('edit', true);
-        });
-    }); // end of map
   }
 }); 
 // End of ListItem
@@ -1486,13 +1452,13 @@ PurelyPageClass.render(vu => {
 // Purely.Section
 PurelySectionClass.dom(vu => [
   { 'div.view-purely-section': [
-    { 'div.layer-text': [
-      { 'div.text-wrap': [
-        { 'h2@title': '' },
-        { 'p@content': '' }] 
-      }] 
+    { 'div.layer-comp': [
+      { 'div.textbox': [
+        { 'h2@title.textbox-title': '' },
+        { 'section@content.textbox-content': '' }] 
+      }, 
+      { 'div@comp.compbox': '' }]
     }, 
-    { 'div@comp.layer-comp': '' }, 
     { 'div@mask.layer-mask': '' }, 
     { 'div@background.layer-bg': '' }] 
   }
@@ -1502,15 +1468,37 @@ PurelySectionClass.render(vu => {
   let type = vu.get('type'),
       style = vu.get('style'),
       title = vu.map('title', x => x || ''),
-      content = vu.map('content', x => x || '');
+      content = vu.map('content', x => x || ''),
+      media = vu.get('media'),
+      data = vu.get('data'),
+      compSel = vu.sel('@comp'),
+      compType;
+
+  if (style) {
+    style.split('/').map(clz => {
+      if (!clz) return;
+      if (clz == 'comp-full') { compSel = vu.sel('@mask'); }
+      if (clz == 'comp-slide') { compType = 'slide'; }
+      vu.$el().addClass(clz);
+    }); 
+  }
 
   if (title) { vu.$el('@title').text(title); }
-  if (content) { vu.$el('@content').text(content); }
+  if (content) { vu.$el('@content').html(content.replace(/\n/g, '<br>')); }
+  if (media) {
+    if (media.imgsrc) {
+      let url = media.imgsrc;
+      vu.$el('@background').css('background-image', 'url(' + url + ')');
+    }
+  }
 
   switch (type) {
     case 'basic':
       break;
     case 'collection':
+      if (compType == 'slide' && Array.isArray(data)) {
+        // TBD
+      }
       break;
     case 'contacts':
       break;

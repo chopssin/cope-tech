@@ -409,27 +409,52 @@ Test.go(log => {
 
   simulator.dom(vu => [
     { 'div@input.input': ''},
-    { 'div@test-view.test-view': [
-      { 'div@sim-view.sim-view': ''},
-      { 'div@textarea.textarea': ''},
-      { 'div@toggle-button.toggle-button': ''}]
+    { 'div@test-view.test-view(style="width:100%; justify-content:space-around;")': [
+      { 'div@sim-view.sim-view.col-xs-8': ''},
+      { '@textarea.textarea.col-xs-8(style="display:none; background:#eee;")': ''},
+      { 'div@toggle-button.toggle-button.col-xs-4.hidden(style="cursor: pointer; color: #111")': 'toggle'}]
     }]
   );
 
+
   simulator.render(vu => {
-    let view;
+    let viewClass;
     let input = purelyViews.class('Form').build({
       sel: vu.sel('@input'),
       data: {
-        inputs: [{type: "text", label: "View", placeholder: "inputYourView", comp: "input-view"}],
+        inputs: [{type: "text", label: "View", placeholder: "Input your view", comp: "input-view"}],
         values: []
       }
     }).res('values', vals => {
-      view = vals[0];
-      console.log(purelyViews.class('Form').build());
-
+      viewClass = vals[0];
+      if(purelyViews.getClass(viewClass) != null) {
+        let view = purelyViews.class(viewClass).build({
+          sel: vu.sel('@sim-view')
+        });// end of view
+        let textarea = purelyViews.class('Textarea').build({
+          sel: vu.sel('@textarea'),
+        }).res('value', data => {
+          let jsonParse;
+          console.log(data);
+          textarea.$el().blur(() => {
+            try {
+              jsonParse = JSON.parse(textarea.val('value'));
+              view.val(jsonParse);
+              console.log(jsonParse);
+            } catch(err) {
+            }
+          });
+        });
+        textarea.$el().css({
+          'background': 'transparent'
+        })
+        vu.$el('@toggle-button').removeClass('hidden');
+      }//end of if
     });
-
+    vu.$el('@toggle-button').off('click').on('click',() => {
+      vu.$el('@sim-view').toggle();
+      vu.$el('@textarea').toggle();
+    });
   });
 
   simulator.build({

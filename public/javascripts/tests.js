@@ -398,6 +398,47 @@ Test.go(log => {
   log.ok();
 });
 
+Test.go(log => {
+  log.title('Auto Tests of Purely Views');
+  let purelyViews = Cope.views('Purely'),
+      myViews = Cope.views(),
+      sel = log.sel(),
+      simulator;
+
+  simulator = myViews.class('Simpulator');
+
+  simulator.dom(vu => [
+    { 'div@input.input': ''},
+    { 'div@test-view.test-view': [
+      { 'div@sim-view.sim-view': ''},
+      { 'div@textarea.textarea': ''},
+      { 'div@toggle-button.toggle-button': ''}]
+    }]
+  );
+
+  simulator.render(vu => {
+    let view;
+    let input = purelyViews.class('Form').build({
+      sel: vu.sel('@input'),
+      data: {
+        inputs: [{type: "text", label: "View", placeholder: "inputYourView", comp: "input-view"}],
+        values: []
+      }
+    }).res('values', vals => {
+      view = vals[0];
+      console.log(purelyViews.class('Form').build());
+
+    });
+
+  });
+
+  simulator.build({
+    sel: sel
+  });
+
+
+});
+
 // Tests with setTimeout
 setTimeout(function() {
   Test.go(log => {

@@ -507,6 +507,7 @@ FormView.render(vu => {
           let value = vu.$el('@' + comp)[0].value;
           vals[index] = value;
           vu.set('values', vals);
+          vu.res('values', vals);
       });// end of keyup
     });// end of forEach
   });// end of vu.use

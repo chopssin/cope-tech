@@ -998,6 +998,7 @@ ListItemView.render(vu => {
       break;
     case 'media':
       // TBD
+      console.log(vu.get());
       break;
     default:
   }

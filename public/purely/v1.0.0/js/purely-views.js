@@ -997,7 +997,10 @@ ListItemView.render(vu => {
         .replace(/\n/g, '<br>');
       break;
     case 'media':
+      break;
+    case 'select':
       // TBD
+      console.log(vu.get());
       break;
     default:
   }

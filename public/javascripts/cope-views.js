@@ -32,13 +32,24 @@ let debug = Cope.Util.setDebug('cope-views', false),
     ViewAddInput = priViews.class('AddInput');
 
 let phr = function(str, lang) {
+
+  lang = 'tw';
+
   let phrases = {};
   phrases.tw = {};
+  phrases.en = {};
+
+  // zh-TW
   phrases.tw['Done'] = '確定';
   phrases.tw['Basic'] = '基本';
-  phrases.tw['Collection'] = '多重彙集';
+  phrases.tw['Collection Type'] = '資料類別';
   phrases.tw['Contacts'] = '聯絡';
   phrases.tw['Section Type'] = '區塊類型';
+  phrases.tw['Title'] = '標題';
+
+  // EN
+  phrases.en['Collection Type'] = 'Collection';
+
   if (!lang || lang == 'en') {
     return str;
   }
@@ -265,7 +276,7 @@ SectionEditorClass.render(vu => {
     { label: phr('Type'), value: upper(vu.get('type')) },
     { type: 'text', label: phr('Title'), value: vu.get('title') },
     { type: 'textarea', label: phr('Content'), value: vu.get('content') },
-    { type: 'select', label: phr('Collection'), value: vu.get('colName'), options: [] },
+    { type: 'select', label: phr('Collection Type'), value: vu.get('colName'), options: [] },
     { type: 'select', label: phr('Sorted By'), value: vu.get('sort'), options: [] },
     { type: 'number', label: phr('Max Number'), value: vu.get('limit') }
   ];

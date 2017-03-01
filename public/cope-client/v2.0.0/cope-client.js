@@ -1392,6 +1392,13 @@
       return classes[viewName];
     }; // end of my.class
     
+    my.getClass = function(className) {
+      if (typeof className != 'string') {
+        return classes
+      }
+      return classes[className] || null;
+    }; // end of my.getClass 
+
     if (typeof _namespace == 'string') {
       viewSets[_namespace] = my;
     }

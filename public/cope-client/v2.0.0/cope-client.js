@@ -1230,7 +1230,7 @@
             resFuncs[_name].call(vu, _arg);
           }
         }
-        return this;
+        return vu; //this;
       }; // end of vu.res
 
       vu.load = function() {
@@ -1992,7 +1992,7 @@
 
     let closeModal = function(vu) {
       myModal.$el('@lightbox').click();
-      if (vu) { vu.res('modal closed'); }
+      myModal.res('modal closed');
     };
 
     // Built-in Views
@@ -2050,7 +2050,7 @@
         .off('click').on('click', e => {
           debug('Cope.modal', vu.get('value'));
           vu.res('value', vu.get('value'));
-          closeModal(vu);
+          closeModal();
         });
     }); // end of "text"
 
@@ -2065,7 +2065,7 @@
     //   file: originalFile,
     //   thumb: compressed file
     // }
-    // "upload" <- array: array of { file, thumb }
+    // "done" <- array: array of { file, thumbFile, image, thumbImage }
     fileInputView.dom(vu => [
       { 'div@dropzone(style="margin-right:-14px;")': '' },
       { 'input(type="file" multiple style="display:none; position:fixed; top:-10000px")': '' }
@@ -2205,10 +2205,10 @@
           vu.$el('input').click();
         }); // end of $left.onclick
 
-      $right.html('Upload')
+      $right.html('Done')
         .off('click').on('click', e => {
-          vu.res('upload', vu.get('files'));
-          closeModal(vu);
+          vu.res('done', vu.get('files'));
+          closeModal();
         });
     }); // end of fileInputView.render
 
@@ -2226,7 +2226,11 @@
           sel: myModal.sel('@main'),
           data: params || {}
         });
+        myModal.res('modal closed', function() { 
+          // Clean up this function
+        });
         openModal();
+        vu.set('modal', myModal);
         return vu;
       }
     };

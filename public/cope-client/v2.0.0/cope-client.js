@@ -1636,7 +1636,7 @@
       if (!x) { return ''; }
       x = x.trim();
       
-      ['block', 'inline-block', 'inline', 'flex'].map(s => {
+      ['block', 'inline-block', 'inline', 'flex', 'none'].map(s => {
         if (x == s) {
           style = 'display:' + x;
         }

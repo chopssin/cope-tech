@@ -435,12 +435,10 @@ Test.go(log => {
           sel: vu.sel('@textarea'),
         }).res('value', data => {
           let jsonParse;
-          console.log(data);
           textarea.$el().blur(() => {
             try {
               jsonParse = JSON.parse(textarea.val('value'));
               view.val(jsonParse);
-              console.log(jsonParse);
             } catch(err) {
             }
           });

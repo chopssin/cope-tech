@@ -374,19 +374,20 @@ TextareaView.dom(vu => [
 
 TextareaView.render(vu => {
   let height, 
+      avoidAuto,
       $this = vu.$el(),
       value = vu.get('value');
 
-  let autosize = function(noRender) {
-    update();
-
+  let resize = function(e) {
     $this.css('height', 'auto');
-    setTimeout(function() {
-      $this.css('height', $this[0].scrollHeight + 'px');
-    });
+    $this.css('height', $this[0].scrollHeight + 'px');
   };
 
-  let update = function() {
+  let delayResize = function() {
+    setTimeout(resize, 0);
+  };
+
+  let update = function(e) {
     // Update the value
     let updatedValue = $this.val().trim();
     vu.set('value', updatedValue);
@@ -396,13 +397,14 @@ TextareaView.render(vu => {
   // Insert the value
   $this.val(value);
   $this.off('keyup keydown focus')
-  .on('focus', autosize)
-  .on('keydown', autosize)
+  .on('change', resize)
+  .on('paste', delayResize)
+  .on('cut', delayResize)
+  .on('drop', delayResize)
+  .on('keydown', delayResize)
   .on('keyup', update);
 
-  setTimeout(function() {
-    autosize();
-  });
+  delayResize();
 });
 
 

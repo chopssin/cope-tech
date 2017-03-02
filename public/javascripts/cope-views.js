@@ -727,7 +727,16 @@ PurelyAppView.dom(vu => [
     },
     { 'div@sim-panel.sim-panel.cope-card.wider.bg-w': [
       { 'div@back.hidden(style="cursor: pointer;")': '<-' }, // Go Back button
+      { 'div@toggle.toggle.hidden(style="display: flex; justify-content: space-around; height: 30px;")': [  //
+        { 'div@data-button.data-button(style="width: 100%; height: 100%; text-align: center; padding: 10px; cursor: pointer;")': [ 
+          { 'p': 'Data'}]
+        },
+        { 'div@style-button.style-button(style="width: 100%; height: 100%; text-align: center; padding: 10px; cursor: pointer;")': [
+          { 'p': 'Style'}]
+        }]
+      },
       { 'div@app-settings': 'app-settings' }, // app-settings
+      { 'div@style-settings.hidden': 'layoutChooser' }, //style-settings
       { 'div@sec-settings.hidden': 'sec-settings' }] // sec-settings
     }, 
     { 'div@sim-page-card.sim-page.cope-card.bg-w': [
@@ -818,6 +827,10 @@ PurelyAppView.render(vu => {
     background: '#aaccaa'
   })
 
+  PS.res('order', newOrder => { // <- eg. [1, 2, 0, 3]
+    SS.val('order', newOrder); 
+  });
+
   PS.res('item clicked', item => {
     // TBD: Interact with SS
   });
@@ -847,8 +860,10 @@ PurelyAppView.render(vu => {
     // editSection.val(item.view.val());
     
     vu.$el('@back').removeClass('hidden');
+    vu.$el('@toggle').removeClass('hidden');
     vu.$el('@app-settings').addClass('hidden');
     vu.$el('@sec-settings').removeClass('hidden');
+    vu.$el('@style-settings').addClass('hidden');
   });
 
   // Build the initial sections
@@ -880,7 +895,19 @@ PurelyAppView.render(vu => {
     vu.$el('@app-settings').removeClass('hidden');
 
     // Hide others 
+    vu.$el('@toggle').addClass('hidden');
     vu.$el('@back').addClass('hidden');
+    vu.$el('@sec-settings').addClass('hidden');
+    vu.$el('@style-settings').addClass('hidden');
+  });
+
+  // Toggle click
+  vu.$el('@data-button').off('click').on('click',() => {  // data-button
+    vu.$el('@sec-settings').removeClass('hidden');
+    vu.$el('@style-settings').addClass('hidden');
+  });
+  vu.$el('@style-button').off('click').on('click',() => { // style-button
+    vu.$el('@style-settings').removeClass('hidden');
     vu.$el('@sec-settings').addClass('hidden');
   });
 
@@ -950,8 +977,10 @@ PurelyAppView.render(vu => {
     });
 
     vu.$el('@back').removeClass('hidden');
+    vu.$el('@toggle').removeClass('hidden');
     vu.$el('@app-settings').addClass('hidden');
     vu.$el('@sec-settings').removeClass('hidden');
+    vu.$el('@style-settings').addClass('hidden');
   }); // Nav click event
 }); //end of PureAppView.render
 

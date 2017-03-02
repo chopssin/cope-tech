@@ -314,13 +314,11 @@ textarea {
   left: 0;
 }
 .view-slide .banner {
-  /*width: 2340px;
-  height: 390px;*/
   position: relative;
+  width: 100%;
+  height: 100%;
 }
 .view-slide .banner .slideItem {
-  /*  width: 780px;
-  height: 390px;*/
   float: left;
   background-repeat: no-repeat;
   background-size: cover;
@@ -403,6 +401,27 @@ textarea {
 }
 .view-slide .slideNav .active .slideNavItem{
   background-color: rgba(128, 128, 128, 0.8);
+}
+
+/* Slide */
+.view-slide ul.slide-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.view-slide ul.slide-items li {
+  display: none;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  margin: 0;
+  padding: 0;
+  background-size: cover;
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
 }
 
 /* Purely.Page */

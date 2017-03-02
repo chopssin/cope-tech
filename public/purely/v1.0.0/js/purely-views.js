@@ -1237,6 +1237,18 @@ SortableListClass.render(vu => {
             renderBlock(items[item_j]);
           }
         }; // end of my.swap
+
+        my.order = function(order) {
+          let tmp = order.concat([]);
+          if (order.length != items.length || !Array.isArray(order)) { return; }
+          if (tmp.sort((a, b) => a-b).filter((idx, i) => idx != i).length != 0) { return; }
+          items.map((item, i)=> {
+            item.idx = order[i]
+          });
+          for(let i = 0; i < order.length - 1; i++) {
+            vu.$el('@' + my.getByIdx(i).comp).after(vu.$el('@' + my.getByIdx(i+1).comp));
+          }
+        }; // end of my.order
         return my;
       };// end of makeList 
 
@@ -1251,11 +1263,11 @@ SortableListClass.render(vu => {
         onclick: function(item, e) {
           vu.res('item clicked', item);
         },
-        ondragstart: function(item, e) {
-          e.preventDefault;
-          draggedRid = item.rid;
-          List.get(item.rid).isDragging = true;
-        },
+        // ondragstart: function(item, e) {
+        //   e.preventDefault;
+        //   draggedRid = item.rid;
+        //   List.get(item.rid).isDragging = true;
+        // },
         onmousedown: function (item, e) {
           draggedRid = item.rid;
           startItem = item; //vu.$el('@' + item.comp); // .col-item wrap of the dragged item
@@ -1361,6 +1373,7 @@ SortableListClass.render(vu => {
               itemHeight = 0;
             }
             startItem = '';
+            vu.res('order', List.get().map(item => item.idx));
           }
         },
         onmouseleave: function(item, e){
@@ -1390,6 +1403,12 @@ SortableListClass.render(vu => {
   vu.map('new', newBlock => {
     if (newBlock) {
       List.insert(newBlock);
+    }
+  });
+
+  vu.map('order', newOrder => {
+    if (newOrder) { // eg. <- [1, 2, 0, 3]
+      List.order(newOrder);  
     }
   });
 }); // end of SortableList

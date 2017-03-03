@@ -1080,6 +1080,7 @@ ListItemView.render(vu => {
 // End of ListItem
 
 // SortableList
+// - List: object, inner sortable list
 // - height: number, each block's height
 // "item clicked" <= obj, the selected item
 SortableListClass.dom(vu => [

@@ -257,7 +257,7 @@ SectionEditorClass.render(vu => {
       types = ['basic', 'collection', 'contacts'];
   
   upper = function(str) {
-    if (str.length < 1) return '';
+    if (!str || str.length < 1) return '';
     return str.slice(0, 1).toUpperCase().concat(str.slice(1));
   };
 
@@ -811,6 +811,10 @@ PurelyAppView.render(vu => {
     sel: vu.sel('@page'),
   });
 
+  let sectionEditor = SectionEditorClass.build({
+    sel: vu.sel('@sec-settings')
+  });
+
   let pagePS = vu.map('sim-page-thumbs', s => vu.$el('@sim-page-card')),
       pageSS = vu.map('sim-page-secs', s => vu.$el('@sim-wrap-card'));
 
@@ -828,23 +832,39 @@ PurelyAppView.render(vu => {
   });
 
   PS.res('item clicked', item => {
-    // TBD: Interact with SS
+    // Interact with SS
+    // let sectionEditor = SectionEditorClass.build({
+    //   sel: vu.sel('@sec-settings'),
+    //   data: item.view.val()
+    // }).res('data', data => {
+    //   item.view.val(data); 
+    // });
+    sectionEditor.res('data', data => {
+      PS.get('List').getByIdx(item.idx).view.val(data);
+      SS.get('List').getByIdx(item.idx).view.val(data);
+    });
+    sectionEditor.val(item.view.val());
   });
 
   SS.res('item clicked', item => {
-    console.log(item.view.val());
     // Interact with PS and EditSection
     // Build the section editor on the right side
     //let editSection = SectionEditView.build({
     //  sel: vu.sel('@sec-settings')
     //})
-    let sectionEditor = SectionEditorClass.build({
-      sel: vu.sel('@sec-settings'),
-      data: item.view.val()
-    }).res('data', data => {
+    // let sectionEditor = SectionEditorClass.build({
+    //   sel: vu.sel('@sec-settings'),
+    //   data: item.view.val()
+    // }).res('data', data => {
+    //   item.view.val(data); 
+    // });
+    sectionEditor.res('data', data => {
+      PS.get('List').getByIdx(item.idx).view.val(data);
+      SS.get('List').getByIdx(item.idx).view.val(data);
       console.log(data);
-      item.view.val(data); 
     });
+
+    sectionEditor.val(item.view.val());
       
     // Update section simulator
     //editSection.res('data', data => {

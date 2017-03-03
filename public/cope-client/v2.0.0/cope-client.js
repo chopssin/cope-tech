@@ -452,6 +452,10 @@
 
     my.set = function() {
       let args = arguments;
+      if (args[0] === null) {
+        data = {};
+        return false;  
+      }
       switch (args.length) {
         case 1:
           switch (typeof args[0]) {

@@ -580,14 +580,13 @@ SimSecClass.dom(vu => [
 
 SimSecClass.render(vu => {
   let view, 
-      vw, // viewport width
-      vh = vu.get('height') || 400,
-      sw,
-      sh = 900, 
+      vw = vu.get('width'), // viewport width
+      vh,
+      sw = 2000,
+      sh,
       sr = 1, // scale rate
       randomIdx, 
       onresize;
-
   // randomIdx for assigning onresize to window
   randomIdx = vu.map('randomIdx', r => {
     if (!r) { 
@@ -600,20 +599,18 @@ SimSecClass.render(vu => {
     sel: vu.sel('@sec'),
     data: vu.get()
   });
-
   onresize = function() {
-    vu.$el().css('height', vh);
-    vw = vu.$el().width(); 
-
-    sw = vw * sh / vh; 
-    sr = vh / sh;
-   
+    sr = vw / sw;
+    sh = vu.$el('@sec').height();
+    vh = sh * sr; 
     vu.$el('@sec').css({
       width: sw + 'px',
-      height: sh + 'px',
+      //height: sh + 'px',
       'transform': `scale(${sr})`
     });
-
+    vu.$el().css({
+      height: vu.$el('@sec').height() + 'px'
+    });
   }; // end of onresize
   
   // Scale the section on resize event
@@ -806,13 +803,11 @@ PurelyAppView.render(vu => {
   // PS: Page Selector
   let PS = PurelyViews.class('SortableList').build({
     sel: vu.sel('@sim-page'),//vu.sel('@sim-page'),
-    data: { height: 100 }
   });
 
   // SS: Section Simulator
   let SS = PurelyViews.class('SortableList').build({
     sel: vu.sel('@page'),
-    data: { height: 400 }
   });
 
   let pagePS = vu.map('sim-page-thumbs', s => vu.$el('@sim-page-card')),
@@ -875,8 +870,11 @@ PurelyAppView.render(vu => {
       psData[k] = params[k];
       ssData[k] = params[k];
     }
-    psData.height = 100;
-    ssData.height = 400;
+    psData.width = vu.$el('@sim-page').width();
+    ssData.width = vu.$el('@page').width();
+    //psData.height = 100;
+    //ssData.height = 400;
+    console.log(psData.width,ssData.width);
     PS.val('new', {
       viewClass: SimSecClass,
       data: psData

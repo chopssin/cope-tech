@@ -1110,7 +1110,7 @@ SortableListClass.render(vu => {
         } else {
           cssObj.position = 'relative';
           cssObj.width = '100%';
-          cssObj.height = itemHeight + 'px';
+          //cssObj['min-height'] = itemHeight + 'px';
         }
         if (!!cssObj) {
           vu.$el('@' + item.comp).css(cssObj);

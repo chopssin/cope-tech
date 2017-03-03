@@ -737,9 +737,10 @@ textarea {
 
 .view-sortable-list .sortable-item {
   display: block;
-  position: absolute;
+  /*position: absolute;*/
   width: 100%;
-  overflow: hidden;
+  min-height: 1px;
+  /*overflow: hidden;*/
   cursor: pointer;
 }
 

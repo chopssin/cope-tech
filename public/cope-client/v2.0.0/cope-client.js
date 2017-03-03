@@ -511,6 +511,9 @@
           my.set(key, value);
         }
         return value;
+      } else if (key === null) { // clear all values
+        data = {};
+        return data;
       }
       return;
     }; // end of my.map

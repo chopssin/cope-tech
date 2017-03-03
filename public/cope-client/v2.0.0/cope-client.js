@@ -511,6 +511,9 @@
           my.set(key, value);
         }
         return value;
+      } else if (key === null) { // clear all values
+        data = {};
+        return data;
       }
       return;
     }; // end of my.map
@@ -1636,7 +1639,7 @@
       if (!x) { return ''; }
       x = x.trim();
       
-      ['block', 'inline-block', 'inline', 'flex'].map(s => {
+      ['block', 'inline-block', 'inline', 'flex', 'none'].map(s => {
         if (x == s) {
           style = 'display:' + x;
         }

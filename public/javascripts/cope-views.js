@@ -778,7 +778,7 @@ PurelyAppView.render(vu => {
       colName: 'blog',
       sort: 'featured',
       limit: 6,
-      style: 'sec-full/sec-dark/sec-op-7/text-bold-title/comp-full/comp-slide',
+      style: 'sec-ful/sec-dark/sec-op-7/text-bold-title/comp-full/comp-slide',
       data: [
         { 'title': 'Simply', 'imgsrc': '/images/sample1.jpg' },
         { 'title': 'Purely', 'imgsrc': '/images/sample2.jpg' }

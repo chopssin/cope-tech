@@ -9,7 +9,7 @@ let NavView = Views.class('Nav'),
   ImageUploaderView = Views.class('ImageUploader'),
   PhotoView = Views.class('Photo'),
   GridView = Views.class('Grid'),
-  SlideView = Views.class('Slide'),
+  SlideClass = Views.class('Slide'),
   SelectView = Views.class('Select'),
   UListView = Views.class('UList'),
   FormView = Views.class('Form'),
@@ -652,28 +652,28 @@ GridView.render(vu => {
 // -changeTime: numnber, set the time for slide auto-changing
 // -showArrow: boolean, set whether showing arrow or not with default value: true
 // -mode: string, set slide mode 'slide' or 'center' with default value: slide
-SlideView.dom(vu => [
+SlideClass.dom(vu => [
   { 'div.view-slide': [
     { 'div.slide': [
       { 'i.slideButton.slideButtonLeft.glyphicon.glyphicon-chevron-left': ''},
       { 'i.slideButton.slideButtonRight.glyphicon.glyphicon-chevron-right': ''},
       { 'div.banner@slideItem': ''},
       { 'div.caption': [
-        { 'ul@slideCaption': ''}
-      ]},
+        { 'ul@slideCaption': ''}]
+      },
       { 'div.slideNav': [
-        { 'ul@slideNav': ''}
-      ]}
-    ]}
-  ]}
+        { 'ul@slideNav': ''}]
+      }]
+    }]
+  }
 ]);
 
-SlideView.render(vu => {
+SlideClass.render(vu => {
 
   // Default CSS Setting
   let containerCSS = {
-    width: '680px',
-    height: '390px'
+    width: '100%',//'680px',
+    height: '100%'// '390px'
   };
 
   vu.use('container').then(v => {
@@ -695,22 +695,33 @@ SlideView.render(vu => {
 
       //  Default DOM setting
       v.data.forEach((item, index) => {
-        let alink = '';
+        let href = '';
         if (item.link) {
-          alink = 'href="' + item.link + '" target="_blank"';
+          href = 'href="' + item.link + '" target="_blank"';
         }
-        vu.$el('@slideItem').append('<a '+ alink +'><div class="slideItem item' + index +'"></div></a>');
-        vu.$el('@slideCaption').append('<li>'+ item.caption +'</li>');
-        vu.$el('@slideNav').append('<li data-navitem="'+index+'"><div class="slideNavItem"></div></li>');
+        //vu.$el('@slideItem').append('<a '+ alink +'><div class="slideItem item' + index +'"></div></a>');
+        //vu.$el('@slideCaption').append('<li>'+ item.caption +'</li>');
+        //vu.$el('@slideNav').append('<li data-navitem="'+index+'"><div class="slideNavItem"></div></li>');
+        vu('@slideItem').append([
+          ['a(' + href + ')', [
+            [ 'div@item-' + index + '.slideItem' ]
+          ]]
+        ]);
+        vu('@slideCaption').append([{ 'li': item.caption || '' }]);
+        vu('@slideNav').append([
+          [ 'li@navitem-' + index, [
+            [ 'div.slideNavItem' ]] 
+          ]
+        ]);
       })
         
       vu.$el('@slideNav').find('li').first().addClass('active');
 
-      let slideWidth = vu.$el().width();
-      let slideHeight = vu.$el().height();
+      let slideWidth = vu.$el('.banner').width();
+      let slideHeight = vu.$el('.banner').height();
 
       //  setting CSS to adjust slide
-      vu.$el('.banner').css({
+      vu.$el('.slide').css({
         'width': slideWidth*(totalSlideNumber+1),
         'height': slideHeight
       });
@@ -723,8 +734,8 @@ SlideView.render(vu => {
       vu.$el('.caption').find('li').css('width', slideWidth);
 
       v.data.forEach((item, index) => {
-        if (item.src) {
-          vu.$el('.item'+ index).css('background-image', 'url('+item.src+')');
+        if (item.imgsrc) {
+          vu.$el('@item-'+ index).css('background-image', 'url('+item.imgsrc+')');
         }
       })
 
@@ -748,7 +759,7 @@ SlideView.render(vu => {
             'left': -slideWidth * currentNumber
         }, 400);
         vu.$el('.slideNav li').removeClass('active');
-        vu.$el('.slideNav li:eq(' + currentNumber + ')').addClass('active');
+        vu.$el('@navitem-' + currentNumber).addClass('active');
       }
 
       //  slideArrowButton
@@ -809,6 +820,55 @@ SlideView.render(vu => {
     vu.$el('.caption').find('li').css(v.captionFontCSS);
   })
 })
+
+// Slide
+SlideClass.dom(vu => [
+  { 'div.view-slide': [
+    { 'ul@items.slide-items': '' }] 
+  }
+]);
+
+SlideClass.render(vu => {
+  let data = vu.map('data', x => Array.isArray(x) ? x : []),
+      count = 0, 
+      length = data.length,
+      effect = vu.get('effect'); // dissolve, slide
+  let slideDom = function(x) {
+    return [
+      { '.slide[w100%;h100%]': [
+        { '.text-wrap': [
+          { 'h1': x.title },
+          { 'p': x.content }] 
+        }] 
+      }
+    ];
+  };
+  let showSlide = function() {
+    vu.$el('li').fadeOut(400);
+    setTimeout(function() {
+      vu.$el('@item-' + count).fadeIn(800);
+    }, 300);
+    count++;
+    if (count === length) { count = 0; }
+  };
+
+  // Make slides
+  data.map((x, i) => {
+    vu('@items').append([['li@item-' + i, slideDom(x)]]);
+    if (x && x.imgsrc) {
+      vu.$el('@item-' + i).css({
+        'background-image': 'url("' + x.imgsrc + '")'
+      });
+    }
+  });
+  
+  // Show slides
+  showSlide();
+  if (length > 1) {
+    setInterval(showSlide, 4200);
+  }
+});
+// End of Slide
 
 // Select
 // @select
@@ -1497,6 +1557,7 @@ PurelySectionClass.render(vu => {
       compSel = vu.sel('@comp'),
       compType;
 
+
   if (style) {
     style.split('/').map(clz => {
       if (!clz) return;
@@ -1520,7 +1581,12 @@ PurelySectionClass.render(vu => {
       break;
     case 'collection':
       if (compType == 'slide' && Array.isArray(data)) {
-        // TBD
+        Views.class('Slide').build({
+          sel: compSel,
+          data: {
+            data: data
+          }
+        });
       }
       break;
     case 'contacts':

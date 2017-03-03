@@ -742,7 +742,8 @@ PurelyAppView.dom(vu => [
       },
       { 'div@app-settings': 'app-settings' }, // app-settings
       { 'div@style-settings.hidden': 'layoutChooser' }, //style-settings
-      { 'div@sec-settings.hidden': 'sec-settings' }] // sec-settings
+      { 'div@sec-settings.hidden': 'sec-settings' }, // sec-settings
+      { 'div@page-settings.hidden': 'page-settings' }] // page-settings
     }, 
     { 'div@sim-page-card.sim-page.cope-card.bg-w': [
       { 'div@sim-page.inner': '' }] 
@@ -862,6 +863,7 @@ PurelyAppView.render(vu => {
     vu.$el('@app-settings').addClass('hidden');
     vu.$el('@sec-settings').removeClass('hidden');
     vu.$el('@style-settings').addClass('hidden');
+    vu.$el('@page-settings').addClass('hidden');
   });
 
   SS.res('item clicked', item => {
@@ -899,6 +901,7 @@ PurelyAppView.render(vu => {
     vu.$el('@app-settings').addClass('hidden');
     vu.$el('@sec-settings').removeClass('hidden');
     vu.$el('@style-settings').addClass('hidden');
+    vu.$el('@page-settings').addClass('hidden');
   });
 
   // Build the initial sections
@@ -1004,7 +1007,7 @@ PurelyAppView.render(vu => {
   vu.$el('@nav').off('click').on('click', () => {
     
     let SL = PurelyViews.class('SortableList').build({
-      sel: vu.sel('@sec-settings'),
+      sel: vu.sel('@page-settings'),
       data: { height: 30 }
     });
 
@@ -1016,9 +1019,10 @@ PurelyAppView.render(vu => {
     });
 
     vu.$el('@back').removeClass('hidden');
-    vu.$el('@toggle').removeClass('hidden');
+    vu.$el('@toggle').addClass('hidden');
+    vu.$el('@page-settings').removeClass('hidden');
     vu.$el('@app-settings').addClass('hidden');
-    vu.$el('@sec-settings').removeClass('hidden');
+    vu.$el('@sec-settings').addClass('hidden');
     vu.$el('@style-settings').addClass('hidden');
   }); // Nav click event
 }); //end of PureAppView.render

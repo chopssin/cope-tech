@@ -586,6 +586,7 @@ SimSecClass.render(vu => {
       sh,
       sr = 1, // scale rate
       randomIdx, 
+      cssObj, // for @sec
       onresize;
   // randomIdx for assigning onresize to window
   randomIdx = vu.map('randomIdx', r => {
@@ -599,24 +600,30 @@ SimSecClass.render(vu => {
     sel: vu.sel('@sec'),
     data: vu.get()
   });
+
   onresize = function() {
     vw = vu.$el().parent().width();
     sr = vw / sw;
     sh = vu.$el('@sec').height();
     vh = sh * sr; 
-    vu.$el('@sec').css({
+    cssObj = {
       width: sw + 'px',
       //height: sh + 'px',
       'transform': `scale(${sr})`
-    });
+    };
+    if (vu.get('vh') && vu.get('style') 
+      && (vu.get('style').indexOf('sec-full') > -1)) {
+      cssObj.height = vu.get('vh') / sr;
+    } 
+    vu.$el('@sec').css(cssObj);
     vu.$el().css({
       height: vu.$el('@sec').height()
     });
   }; // end of onresize
-  
+  setTimeout(onresize, 1);
   // Scale the section on resize event
   $(window).off('resize.simsec-' + randomIdx).on('resize.simsec-' + randomIdx, onresize);
-  onresize();
+  //onresize();
 });
 
 // Purely - Purely.Sec
@@ -778,7 +785,7 @@ PurelyAppView.render(vu => {
       colName: 'blog',
       sort: 'featured',
       limit: 6,
-      style: 'sec-ful/sec-dark/sec-op-7/text-bold-title/comp-full/comp-slide',
+      style: 'sec-full/sec-dark/sec-op-7/text-bold-title/comp-full/comp-slide',
       data: [
         { 'title': 'Simply', 'imgsrc': '/images/sample1.jpg' },
         { 'title': 'Purely', 'imgsrc': '/images/sample2.jpg' }
@@ -818,14 +825,14 @@ PurelyAppView.render(vu => {
   let pagePS = vu.map('sim-page-thumbs', s => vu.$el('@sim-page-card')),
       pageSS = vu.map('sim-page-secs', s => vu.$el('@sim-wrap-card'));
 
-  pagePS.css({
-    background: '#aaccaa'
-  })
+  // pagePS.css({
+  //   background: '#aaccaa'
+  // })
 
-  // TBD: why the height is so confined????
-  pageSS.css({
-    background: '#aaccaa'
-  })
+  // // TBD: why the height is so confined????
+  // pageSS.css({
+  //   background: '#aaccaa'
+  // })
 
   PS.res('order', newOrder => { // <- eg. [1, 2, 0, 3]
     SS.val('order', newOrder); 
@@ -839,11 +846,22 @@ PurelyAppView.render(vu => {
     // }).res('data', data => {
     //   item.view.val(data); 
     // });
+    sectionEditor.set(null);
     sectionEditor.res('data', data => {
       PS.get('List').getByIdx(item.idx).view.val(data);
       SS.get('List').getByIdx(item.idx).view.val(data);
     });
     sectionEditor.val(item.view.val());
+
+
+
+
+    // SectionEditor's toggle
+    vu.$el('@back').removeClass('hidden');
+    vu.$el('@toggle').removeClass('hidden');
+    vu.$el('@app-settings').addClass('hidden');
+    vu.$el('@sec-settings').removeClass('hidden');
+    vu.$el('@style-settings').addClass('hidden');
   });
 
   SS.res('item clicked', item => {
@@ -858,14 +876,14 @@ PurelyAppView.render(vu => {
     // }).res('data', data => {
     //   item.view.val(data); 
     // });
+    sectionEditor.set(null);
     sectionEditor.res('data', data => {
       PS.get('List').getByIdx(item.idx).view.val(data);
       SS.get('List').getByIdx(item.idx).view.val(data);
       console.log(data);
     });
-
     sectionEditor.val(item.view.val());
-      
+    
     // Update section simulator
     //editSection.res('data', data => {
     //  item.view.val(data);
@@ -874,7 +892,8 @@ PurelyAppView.render(vu => {
     // Fill up editSection on the right side
     // with the selected section value
     // editSection.val(item.view.val());
-    
+  
+    // SectionEditor's toggle
     vu.$el('@back').removeClass('hidden');
     vu.$el('@toggle').removeClass('hidden');
     vu.$el('@app-settings').addClass('hidden');
@@ -893,9 +912,10 @@ PurelyAppView.render(vu => {
     }
     psData.width = vu.$el('@sim-page').width();
     ssData.width = vu.$el('@page').width();
+    psData.vh =  100;//vu.$el('.sim-page').height();
+    ssData.vh = 400;//vu.$el('.sim-wrap').height();
     //psData.height = 100;
     //ssData.height = 400;
-    console.log(psData.width,ssData.width);
     PS.val('new', {
       viewClass: SimSecClass,
       data: psData

@@ -580,7 +580,7 @@ SimSecClass.dom(vu => [
 
 SimSecClass.render(vu => {
   let view, 
-      vw = vu.get('width'), // viewport width
+      vw, //vu.get('width'), // viewport width
       vh,
       sw = 2000,
       sh,
@@ -600,6 +600,7 @@ SimSecClass.render(vu => {
     data: vu.get()
   });
   onresize = function() {
+    vw = vu.$el().parent().width();
     sr = vw / sw;
     sh = vu.$el('@sec').height();
     vh = sh * sr; 
@@ -609,7 +610,7 @@ SimSecClass.render(vu => {
       'transform': `scale(${sr})`
     });
     vu.$el().css({
-      height: vu.$el('@sec').height() + 'px'
+      height: vu.$el('@sec').height()
     });
   }; // end of onresize
   

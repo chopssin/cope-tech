@@ -257,7 +257,7 @@ SectionEditorClass.render(vu => {
       types = ['basic', 'collection', 'contacts'];
   
   upper = function(str) {
-    if (str.length < 1) return '';
+    if (!str || str.length < 1) return '';
     return str.slice(0, 1).toUpperCase().concat(str.slice(1));
   };
 
@@ -580,14 +580,14 @@ SimSecClass.dom(vu => [
 
 SimSecClass.render(vu => {
   let view, 
-      vw, // viewport width
-      vh = vu.get('height') || 400,
-      sw,
-      sh = 900, 
+      vw, //vu.get('width'), // viewport width
+      vh,
+      sw = 2000,
+      sh,
       sr = 1, // scale rate
       randomIdx, 
+      cssObj, // for @sec
       onresize;
-
   // randomIdx for assigning onresize to window
   randomIdx = vu.map('randomIdx', r => {
     if (!r) { 
@@ -602,23 +602,28 @@ SimSecClass.render(vu => {
   });
 
   onresize = function() {
-    vu.$el().css('height', vh);
-    vw = vu.$el().width(); 
-
-    sw = vw * sh / vh; 
-    sr = vh / sh;
-   
-    vu.$el('@sec').css({
+    vw = vu.$el().parent().width();
+    sr = vw / sw;
+    sh = vu.$el('@sec').height();
+    vh = sh * sr; 
+    cssObj = {
       width: sw + 'px',
-      height: sh + 'px',
+      //height: sh + 'px',
       'transform': `scale(${sr})`
+    };
+    if (vu.get('vh') && vu.get('style') 
+      && (vu.get('style').indexOf('sec-full') > -1)) {
+      cssObj.height = vu.get('vh') / sr;
+    } 
+    vu.$el('@sec').css(cssObj);
+    vu.$el().css({
+      height: vu.$el('@sec').height()
     });
-
   }; // end of onresize
-  
+  setTimeout(onresize, 1);
   // Scale the section on resize event
   $(window).off('resize.simsec-' + randomIdx).on('resize.simsec-' + randomIdx, onresize);
-  onresize();
+  //onresize();
 });
 
 // Purely - Purely.Sec
@@ -737,7 +742,8 @@ PurelyAppView.dom(vu => [
       },
       { 'div@app-settings': 'app-settings' }, // app-settings
       { 'div@style-settings.hidden': 'layoutChooser' }, //style-settings
-      { 'div@sec-settings.hidden': 'sec-settings' }] // sec-settings
+      { 'div@sec-settings.hidden': 'sec-settings' }, // sec-settings
+      { 'div@page-settings.hidden': 'page-settings' }] // page-settings
     }, 
     { 'div@sim-page-card.sim-page.cope-card.bg-w': [
       { 'div@sim-page.inner': '' }] 
@@ -780,7 +786,7 @@ PurelyAppView.render(vu => {
       colName: 'blog',
       sort: 'featured',
       limit: 6,
-      style: 'sec-ful/sec-dark/sec-op-7/text-bold-title/comp-full/comp-slide',
+      style: 'sec-full/sec-dark/sec-op-7/text-bold-title/comp-full/comp-slide',
       data: [
         { 'title': 'Simply', 'imgsrc': '/images/sample1.jpg' },
         { 'title': 'Purely', 'imgsrc': '/images/sample2.jpg' }
@@ -806,50 +812,80 @@ PurelyAppView.render(vu => {
   // PS: Page Selector
   let PS = PurelyViews.class('SortableList').build({
     sel: vu.sel('@sim-page'),//vu.sel('@sim-page'),
-    data: { height: 100 }
   });
 
   // SS: Section Simulator
   let SS = PurelyViews.class('SortableList').build({
     sel: vu.sel('@page'),
-    data: { height: 400 }
+  });
+
+  let sectionEditor = SectionEditorClass.build({
+    sel: vu.sel('@sec-settings')
   });
 
   let pagePS = vu.map('sim-page-thumbs', s => vu.$el('@sim-page-card')),
       pageSS = vu.map('sim-page-secs', s => vu.$el('@sim-wrap-card'));
 
-  pagePS.css({
-    background: '#aaccaa'
-  })
+  // pagePS.css({
+  //   background: '#aaccaa'
+  // })
 
-  // TBD: why the height is so confined????
-  pageSS.css({
-    background: '#aaccaa'
-  })
+  // // TBD: why the height is so confined????
+  // pageSS.css({
+  //   background: '#aaccaa'
+  // })
 
   PS.res('order', newOrder => { // <- eg. [1, 2, 0, 3]
     SS.val('order', newOrder); 
   });
 
   PS.res('item clicked', item => {
-    // TBD: Interact with SS
+    // Interact with SS
+    // let sectionEditor = SectionEditorClass.build({
+    //   sel: vu.sel('@sec-settings'),
+    //   data: item.view.val()
+    // }).res('data', data => {
+    //   item.view.val(data); 
+    // });
+    sectionEditor.set(null);
+    sectionEditor.res('data', data => {
+      PS.get('List').getByIdx(item.idx).view.val(data);
+      SS.get('List').getByIdx(item.idx).view.val(data);
+    });
+    sectionEditor.val(item.view.val());
+
+
+
+
+    // SectionEditor's toggle
+    vu.$el('@back').removeClass('hidden');
+    vu.$el('@toggle').removeClass('hidden');
+    vu.$el('@app-settings').addClass('hidden');
+    vu.$el('@sec-settings').removeClass('hidden');
+    vu.$el('@style-settings').addClass('hidden');
+    vu.$el('@page-settings').addClass('hidden');
   });
 
   SS.res('item clicked', item => {
-    console.log(item.view.val());
     // Interact with PS and EditSection
     // Build the section editor on the right side
     //let editSection = SectionEditView.build({
     //  sel: vu.sel('@sec-settings')
     //})
-    let sectionEditor = SectionEditorClass.build({
-      sel: vu.sel('@sec-settings'),
-      data: item.view.val()
-    }).res('data', data => {
+    // let sectionEditor = SectionEditorClass.build({
+    //   sel: vu.sel('@sec-settings'),
+    //   data: item.view.val()
+    // }).res('data', data => {
+    //   item.view.val(data); 
+    // });
+    sectionEditor.set(null);
+    sectionEditor.res('data', data => {
+      PS.get('List').getByIdx(item.idx).view.val(data);
+      SS.get('List').getByIdx(item.idx).view.val(data);
       console.log(data);
-      item.view.val(data); 
     });
-      
+    sectionEditor.val(item.view.val());
+    
     // Update section simulator
     //editSection.res('data', data => {
     //  item.view.val(data);
@@ -858,12 +894,14 @@ PurelyAppView.render(vu => {
     // Fill up editSection on the right side
     // with the selected section value
     // editSection.val(item.view.val());
-    
+  
+    // SectionEditor's toggle
     vu.$el('@back').removeClass('hidden');
     vu.$el('@toggle').removeClass('hidden');
     vu.$el('@app-settings').addClass('hidden');
     vu.$el('@sec-settings').removeClass('hidden');
     vu.$el('@style-settings').addClass('hidden');
+    vu.$el('@page-settings').addClass('hidden');
   });
 
   // Build the initial sections
@@ -875,8 +913,12 @@ PurelyAppView.render(vu => {
       psData[k] = params[k];
       ssData[k] = params[k];
     }
-    psData.height = 100;
-    ssData.height = 400;
+    psData.width = vu.$el('@sim-page').width();
+    ssData.width = vu.$el('@page').width();
+    psData.vh =  100;//vu.$el('.sim-page').height();
+    ssData.vh = 400;//vu.$el('.sim-wrap').height();
+    //psData.height = 100;
+    //ssData.height = 400;
     PS.val('new', {
       viewClass: SimSecClass,
       data: psData
@@ -965,7 +1007,7 @@ PurelyAppView.render(vu => {
   vu.$el('@nav').off('click').on('click', () => {
     
     let SL = PurelyViews.class('SortableList').build({
-      sel: vu.sel('@sec-settings'),
+      sel: vu.sel('@page-settings'),
       data: { height: 30 }
     });
 
@@ -977,9 +1019,10 @@ PurelyAppView.render(vu => {
     });
 
     vu.$el('@back').removeClass('hidden');
-    vu.$el('@toggle').removeClass('hidden');
+    vu.$el('@toggle').addClass('hidden');
+    vu.$el('@page-settings').removeClass('hidden');
     vu.$el('@app-settings').addClass('hidden');
-    vu.$el('@sec-settings').removeClass('hidden');
+    vu.$el('@sec-settings').addClass('hidden');
     vu.$el('@style-settings').addClass('hidden');
   }); // Nav click event
 }); //end of PureAppView.render

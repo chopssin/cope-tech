@@ -1140,6 +1140,7 @@ ListItemView.render(vu => {
 // End of ListItem
 
 // SortableList
+// - List: object, inner sortable list
 // - height: number, each block's height
 // "item clicked" <= obj, the selected item
 SortableListClass.dom(vu => [
@@ -1170,7 +1171,7 @@ SortableListClass.render(vu => {
         } else {
           cssObj.position = 'relative';
           cssObj.width = '100%';
-          cssObj.height = itemHeight + 'px';
+          //cssObj['min-height'] = itemHeight + 'px';
         }
         if (!!cssObj) {
           vu.$el('@' + item.comp).css(cssObj);
@@ -1594,6 +1595,11 @@ PurelySectionClass.render(vu => {
   }
 }); 
 // End of Purely.Section
+
+
+
+
+
 
 // Purely.Section.Basic
 // @title

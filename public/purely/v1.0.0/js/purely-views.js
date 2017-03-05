@@ -1557,11 +1557,12 @@ PurelySectionClass.render(vu => {
       compSel = vu.sel('@comp'),
       compType;
 
+  console.log(vu.get());
 
   if (style) {
     style.split('/').map(clz => {
       if (!clz) return;
-      if (clz == 'comp-full') { compSel = vu.sel('@mask'); }
+      if (clz == 'comp-full') { compSel = vu.sel('@background'); }
       if (clz == 'comp-slide') { compType = 'slide'; }
       vu.$el().addClass(clz);
     }); 

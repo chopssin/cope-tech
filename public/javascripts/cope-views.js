@@ -615,6 +615,7 @@ SimSecClass.render(vu => {
       && (vu.get('style').indexOf('sec-full') > -1)) {
       cssObj.height = vu.get('vh') / sr;
     } 
+
     vu.$el('@sec').css(cssObj);
     vu.$el().css({
       height: vu.$el('@sec').height()
@@ -766,6 +767,23 @@ PurelyAppView.render(vu => {
   //  'background-image': 'url("/images/sample4.jpg")'
   //});
 
+  // Data preprocessor
+  let preData = function(data, type) {
+    let _data = Object.assign({}, data);
+    switch (type) {
+      case 'PS': 
+        _data.vh = 100;
+        break; 
+      case 'SS': 
+        _data.vh = 400;
+        break;
+      case 'SE': 
+        break;
+      default:
+    }
+    return _data;
+  };
+
   // pages data
   pages = [{
     title: 'Home'
@@ -849,8 +867,9 @@ PurelyAppView.render(vu => {
     // });
     sectionEditor.set(null);
     sectionEditor.res('data', data => {
-      PS.get('List').getByIdx(item.idx).view.val(data);
-      SS.get('List').getByIdx(item.idx).view.val(data);
+      PS.get('List').getByIdx(item.idx).view.val(preData(data, 'PS'));
+      SS.get('List').getByIdx(item.idx).view.val(preData(data, 'SS'));
+      console.log('data', data);
     });
     sectionEditor.val(item.view.val());
 
@@ -880,8 +899,13 @@ PurelyAppView.render(vu => {
     // });
     sectionEditor.set(null);
     sectionEditor.res('data', data => {
-      PS.get('List').getByIdx(item.idx).view.val(data);
-      SS.get('List').getByIdx(item.idx).view.val(data);
+          
+      // TBD: 
+      // preData(params, 'PS')
+      // preData(params, 'SS')
+      
+      PS.get('List').getByIdx(item.idx).view.val(preData(data, 'PS'));
+      SS.get('List').getByIdx(item.idx).view.val(preData(data, 'SS'));
       console.log(data);
     });
     sectionEditor.val(item.view.val());
@@ -906,6 +930,13 @@ PurelyAppView.render(vu => {
 
   // Build the initial sections
   sections.map(params => {
+
+
+    // TBD: 
+    // preData(params, 'PS')
+    // preData(params, 'SS')
+
+
     let ssData = {},
         psData = {};
     

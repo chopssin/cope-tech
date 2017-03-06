@@ -20,13 +20,14 @@ let debug = Cope.Util.setDebug('cope-views', false),
     PurelySecView = Views.class('Purely.Sec'),
     PurelySettingsView = Views.class('Purely.Settings'),  
     
+    SectionEditorClass = Views.class('SectionEditor'),
+    SectionStylerClass = Views.class('SectionStyler'),
 
     PurelyEditNavView = Views.class('Purely.Edit.Nav.Settiings'),// to be depreacted
     PurelyEditSingleView = Views.class('Purely.Edit.Single'), // to be deprecated
     SectionEditView = Views.class('Purely.Edit.Section.Settings'), // to be deprecated
-    SectionEditorClass = Views.class('SectionEditor'),
-    PageEditView = Views.class('Purely.Edit.Page'),
-    LayoutChooserView = Views.class('Purely.LayoutChooser'),
+    PageEditView = Views.class('Purely.Edit.Page'), // to be deprecated
+    LayoutChooserView = Views.class('Purely.LayoutChooser'), // to be deprecated
     
     priViews = Cope.useViews(), // private views
     ViewAddInput = priViews.class('AddInput');
@@ -328,6 +329,111 @@ SectionEditorClass.render(vu => {
 });
 // End fo SectionEditor
 
+// SectionStyler
+// - theme
+// - text-style
+// - layout
+// "style" <- object, current choice
+SectionStylerClass.dom(vu => [
+  { 'div': [
+    { 'div': [
+      { 'h4': phr('Theme') },
+      { '@theme': '' }, // dark || bright
+      { '@theme-strength': '0 - 10' }, // 0 ~ 10
+      { '@theme-size': 'full || wrap'  }] // full || wrap
+    },
+    { 'div': [
+      { 'h4': phr('Text Style') },
+      { '@text-style': '' }] 
+    },
+    { 'div': [
+      { 'h4': phr('Component Type') },
+      { '@comp-type': '' }] 
+    },
+    { 'div': [
+      { 'h4': phr('Layout') },
+      { '@text-position': '' },
+      { '@comp-position': '' }] 
+    }]
+  }
+]);
+
+SectionStylerClass.render(vu => {
+  
+  let style = vu.get('style'),
+      groupNames = {},
+      group = {};
+
+  group['sec-dark'] = 'theme';
+  group['sec-bright'] = 'theme';
+  group['sec-op-0'] = 'theme-strength';
+  group['sec-op-2'] = 'theme-strength';
+  group['sec-op-4'] = 'theme-strength';
+  group['sec-op-6'] = 'theme-strength';
+  group['sec-op-8'] = 'theme-strength';
+  group['sec-op-10'] = 'theme-strength';
+  group['text-normal'] = 'text-style';
+  group['text-bold-title'] = 'text-style';
+  group['sec-wrap'] = 'theme-size';
+  group['sec-full'] = 'theme-size';
+  group['text-left'] = 'text-position';
+  group['text-right'] = 'text-position';
+  group['text-center'] = 'text-position';
+  group['comp-slide'] = 'comp-type';
+  group['text-none'] = 'comp-position';
+  group['text-only'] = 'comp-position';
+  group['comp-wrapped'] = 'comp-position';
+  group['comp-full'] = 'comp-position';
+
+  Object.keys(group).map(styleName => {
+    groupNames[group[styleName]] = true;
+    vu('@' + group[styleName]).html('');
+  });
+
+  // Read vu.get('style')
+  if (style) {
+    (style + '/').split('/').filter(styleName => !!styleName)
+      .map(styleName => {
+      vu.set(group[styleName], styleName);
+    });
+  }
+
+  Object.keys(group).map(styleName => {
+    let isSelected = (vu.get(group[styleName]) == styleName)
+      ? '.color-orange' : '';
+
+    vu('@' + group[styleName]).append([
+      ['@' + styleName + isSelected, styleName]
+    ]);
+      
+    vu.$el('@' + styleName).off('click').on('click', e => {
+      vu.$el('@' + group[styleName]).children().removeClass('color-orange');
+      vu.$el('@' + styleName).addClass('color-orange');
+
+      vu.set(group[styleName], styleName);
+      vu.map('style', x => {
+        return Object.keys(groupNames)
+          .map(x => vu.get(x) || '').join('/');
+      });
+      vu.res('style', vu.get('style'));
+    });
+  });
+
+  // Theme
+  // sec-dark / sec-bright
+
+  // sec-op-0 ~ sec-op-10
+  
+  // Text Style
+  // text-bold-title
+  
+  // Layout
+  // text-left text-right text-center text-none text-only
+  // comp-full comp-only
+});
+// End of SectionStyler
+
+
 // Purely.Edit.Section.Settings
 // @section-edit
 // - vals: object
@@ -518,7 +624,7 @@ LayoutChooserView.render( vu => {
       textPos = ['left', 'right', 'center', 'none'],
       collectionTypes = ['slide', 'grid', 'waterfull'],
       contactsTypes = ['contacts'];
-  
+
   // Init
   vu.set('type', vu.get('type') || 'basic');
   layouts.basic = textPos
@@ -841,6 +947,10 @@ PurelyAppView.render(vu => {
     sel: vu.sel('@sec-settings')
   });
 
+  let sectionStyler = SectionStylerClass.build({
+    sel: vu.sel('@style-settings')
+  });
+
   let pagePS = vu.map('sim-page-thumbs', s => vu.$el('@sim-page-card')),
       pageSS = vu.map('sim-page-secs', s => vu.$el('@sim-wrap-card'));
 
@@ -866,15 +976,20 @@ PurelyAppView.render(vu => {
     //   item.view.val(data); 
     // });
     sectionEditor.set(null);
+    sectionEditor.val(item.view.val());
     sectionEditor.res('data', data => {
       PS.get('List').getByIdx(item.idx).view.val(preData(data, 'PS'));
       SS.get('List').getByIdx(item.idx).view.val(preData(data, 'SS'));
       console.log('data', data);
     });
-    sectionEditor.val(item.view.val());
-
-
-
+    
+    sectionStyler.set(null);
+    sectionStyler.val('style', item.view.get('style'));
+    sectionStyler.res('style', style => {
+      console.log(style);
+      PS.get('List').getByIdx(item.idx).view.val('style', style);
+      SS.get('List').getByIdx(item.idx).view.val('style', style);
+    });
 
     // SectionEditor's toggle
     vu.$el('@back').removeClass('hidden');
@@ -898,6 +1013,7 @@ PurelyAppView.render(vu => {
     //   item.view.val(data); 
     // });
     sectionEditor.set(null);
+    sectionEditor.val(item.view.val());
     sectionEditor.res('data', data => {
           
       // TBD: 
@@ -908,8 +1024,14 @@ PurelyAppView.render(vu => {
       SS.get('List').getByIdx(item.idx).view.val(preData(data, 'SS'));
       console.log(data);
     });
-    sectionEditor.val(item.view.val());
     
+    sectionStyler.set(null);
+    sectionStyler.val('style', item.view.get('style'));
+    sectionStyler.res('style', style => {
+      console.log(style);
+      PS.get('List').getByIdx(item.idx).view.val('style', style);
+      SS.get('List').getByIdx(item.idx).view.val('style', style);
+    });
     // Update section simulator
     //editSection.res('data', data => {
     //  item.view.val(data);

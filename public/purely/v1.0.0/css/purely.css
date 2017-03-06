@@ -536,6 +536,16 @@ textarea {
   opacity: 0.7;
 }
 
+/* sec-bright */
+.sec-bright {
+  color: #333;
+}
+
+.sec-bright > .layer-mask {
+  background-color: #fff;
+  opacity: 0.7;
+}
+
 /* sec-op-0 ~ sec-op-10 */
 .sec-op-0 > .layer-mask {
   opacity: 0;
@@ -602,13 +612,24 @@ textarea {
 }
 
 /* text-none */
-.text-none .textbox {
-  visibility: none;
+.text-none > .layer-comp > .textbox {
+  visibility: hidden;
+  height: 0;
+  width: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
 }
 
 /* text-only */
-.text-only .compbox {
-  display: none;
+.text-only > .layer-comp > .compbox {
+  /*display: none;*/
+  visibility: hidden;
+  height: 0;
+  width: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
 }
 
 /* text-bold-title */
@@ -623,14 +644,14 @@ textarea {
   font-size: 140%;
 }
 
-/* comp-full: with js */
-.comp-full .compbox {
-  visibility: none;
-}
-
-/* comp-only */
-.comp-only .textbox {
-  display: none;
+/* comp-full: comp rendered at mask */
+.comp-full > .layer-comp > .compbox {
+  visibility: hidden;
+  height: 0;
+  width: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
 }
 
 /* comp-left */

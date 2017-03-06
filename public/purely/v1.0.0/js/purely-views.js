@@ -1557,8 +1557,6 @@ PurelySectionClass.render(vu => {
       compSel = vu.sel('@comp'),
       compType;
 
-  console.log(vu.get());
-
   if (style) {
     style.split('/').map(clz => {
       if (!clz) return;

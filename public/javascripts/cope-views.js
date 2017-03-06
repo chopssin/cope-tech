@@ -380,7 +380,6 @@ SectionStylerClass.render(vu => {
   group['text-right'] = 'text-position';
   group['text-center'] = 'text-position';
   group['comp-slide'] = 'comp-type';
-  group['text-none'] = 'comp-position';
   group['text-only'] = 'comp-position';
   group['comp-wrapped'] = 'comp-position';
   group['comp-full'] = 'comp-position';
@@ -694,6 +693,7 @@ SimSecClass.render(vu => {
       randomIdx, 
       cssObj, // for @sec
       onresize;
+
   // randomIdx for assigning onresize to window
   randomIdx = vu.map('randomIdx', r => {
     if (!r) { 
@@ -834,6 +834,11 @@ PurelyAppView.dom(vu => [
         { 'div.sim-sections': [
           { 'div@page': '' }]
         }]
+      }, 
+      { 'div.edit-bar': [
+        { 'div.cope-card.as-btn.bg-w[m20px 8px 20px 0]': phr('<-') }, 
+        { 'div.cope-card.as-btn.bg-blue.color-w': phr('New Data') }, 
+        { 'div.cope-card.as-btn.bg-orange.color-w.right': phr('Remove Section') }]
       }]
     },
     { 'div@sim-panel.sim-panel.cope-card.wider.bg-w': [
@@ -936,95 +941,39 @@ PurelyAppView.render(vu => {
   let pagePS = vu.map('sim-page-thumbs', s => vu.$el('@sim-page-card')),
       pageSS = vu.map('sim-page-secs', s => vu.$el('@sim-wrap-card'));
 
-  // pagePS.css({
-  //   background: '#aaccaa'
-  // })
+  let itemOnclick = function(item) {
+    sectionEditor.set(null);
+    sectionEditor.val(item.view.val());
+    sectionEditor.res('data', data => {
+      PS.get('List').getByIdx(item.idx).view.val(data);
+      SS.get('List').getByIdx(item.idx).view.val(data);
+    });
+    
+    sectionStyler.set(null);
+    sectionStyler.val('style', item.view.get('style'));
+    sectionStyler.res('style', style => {
+      PS.get('List').getByIdx(item.idx).view.val('style', style);
+      SS.get('List').getByIdx(item.idx).view.val('style', style);
+    });
 
-  // // TBD: why the height is so confined????
-  // pageSS.css({
-  //   background: '#aaccaa'
-  // })
+    // SectionEditor's toggle
+    vu.$el('@back').removeClass('hidden');
+    vu.$el('@toggle').removeClass('hidden');
+    vu.$el('@app-settings').addClass('hidden');
+    vu.$el('@sec-settings').removeClass('hidden');
+    vu.$el('@style-settings').addClass('hidden');
+    vu.$el('@page-settings').addClass('hidden');
+
+    // Darken #page
+    $('#page').addClass('darken');
+  };
 
   PS.res('order', newOrder => { // <- eg. [1, 2, 0, 3]
     SS.val('order', newOrder); 
   });
 
-  PS.res('item clicked', item => {
-    // Interact with SS
-    // let sectionEditor = SectionEditorClass.build({
-    //   sel: vu.sel('@sec-settings'),
-    //   data: item.view.val()
-    // }).res('data', data => {
-    //   item.view.val(data); 
-    // });
-    sectionEditor.set(null);
-    sectionEditor.val(item.view.val());
-    sectionEditor.res('data', data => {
-      PS.get('List').getByIdx(item.idx).view.val(data);
-      SS.get('List').getByIdx(item.idx).view.val(data);
-    });
-    
-    sectionStyler.set(null);
-    sectionStyler.val('style', item.view.get('style'));
-    sectionStyler.res('style', style => {
-      console.log(style);
-      PS.get('List').getByIdx(item.idx).view.val('style', style);
-      SS.get('List').getByIdx(item.idx).view.val('style', style);
-    });
-
-    // SectionEditor's toggle
-    vu.$el('@back').removeClass('hidden');
-    vu.$el('@toggle').removeClass('hidden');
-    vu.$el('@app-settings').addClass('hidden');
-    vu.$el('@sec-settings').removeClass('hidden');
-    vu.$el('@style-settings').addClass('hidden');
-    vu.$el('@page-settings').addClass('hidden');
-  });
-
-  SS.res('item clicked', item => {
-    // Interact with PS and EditSection
-    // Build the section editor on the right side
-    //let editSection = SectionEditView.build({
-    //  sel: vu.sel('@sec-settings')
-    //})
-    // let sectionEditor = SectionEditorClass.build({
-    //   sel: vu.sel('@sec-settings'),
-    //   data: item.view.val()
-    // }).res('data', data => {
-    //   item.view.val(data); 
-    // });
-    sectionEditor.set(null);
-    sectionEditor.val(item.view.val());
-    sectionEditor.res('data', data => {
-      PS.get('List').getByIdx(item.idx).view.val(data);
-      SS.get('List').getByIdx(item.idx).view.val(data);
-      console.log(data);
-    });
-    
-    sectionStyler.set(null);
-    sectionStyler.val('style', item.view.get('style'));
-    sectionStyler.res('style', style => {
-      console.log(style);
-      PS.get('List').getByIdx(item.idx).view.val('style', style);
-      SS.get('List').getByIdx(item.idx).view.val('style', style);
-    });
-    // Update section simulator
-    //editSection.res('data', data => {
-    //  item.view.val(data);
-    //});
-
-    // Fill up editSection on the right side
-    // with the selected section value
-    // editSection.val(item.view.val());
-  
-    // SectionEditor's toggle
-    vu.$el('@back').removeClass('hidden');
-    vu.$el('@toggle').removeClass('hidden');
-    vu.$el('@app-settings').addClass('hidden');
-    vu.$el('@sec-settings').removeClass('hidden');
-    vu.$el('@style-settings').addClass('hidden');
-    vu.$el('@page-settings').addClass('hidden');
-  });
+  PS.res('item clicked', itemOnclick);
+  SS.res('item clicked', itemOnclick);
 
   // Build the initial sections
   sections.map(params => {

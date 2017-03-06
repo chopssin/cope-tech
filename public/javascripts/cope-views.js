@@ -325,15 +325,13 @@ SectionEditorClass.render(vu => {
   }
   vu.$el('@done').off('click').on('click', e => {
     vu.val('type', type);
+    vu.res('data', vu.get());
   });
 });
 // End fo SectionEditor
 
 // SectionStyler
-// - theme
-// - text-style
-// - layout
-// "style" <- object, current choice
+// "style" <- string, current choice
 SectionStylerClass.dom(vu => [
   { 'div': [
     { 'div': [
@@ -380,7 +378,6 @@ SectionStylerClass.render(vu => {
   group['text-right'] = 'text-position';
   group['text-center'] = 'text-position';
   group['comp-slide'] = 'comp-type';
-  group['text-none'] = 'comp-position';
   group['text-only'] = 'comp-position';
   group['comp-wrapped'] = 'comp-position';
   group['comp-full'] = 'comp-position';
@@ -718,7 +715,8 @@ SimSecClass.render(vu => {
       'transform': `scale(${sr})`
     };
     if (vu.get('vh') && vu.get('style') 
-      && (vu.get('style').indexOf('sec-full') > -1)) {
+      && ((vu.get('style').indexOf('sec-full') > -1) 
+        || (vu.get('style').indexOf('sec-wrap') > -1))) {
       cssObj.height = vu.get('vh') / sr;
     } 
 
@@ -853,7 +851,8 @@ PurelyAppView.dom(vu => [
       { 'div@page-settings.hidden': 'page-settings' }] // page-settings
     }, 
     { 'div@sim-page-card.sim-page.cope-card.bg-w': [
-      { 'div@sim-page.inner': '' }] 
+      { 'div@sim-page.inner': '' },
+      { 'div@add-section.cope-card.as-btn.color-w.bg-blue.add-section': 'add section'}] 
     }]
   }
 ]);
@@ -879,9 +878,11 @@ PurelyAppView.render(vu => {
     switch (type) {
       case 'PS': 
         _data.vh = 100;
+        _data.width = vu.$el('@sim-page').width();
         break; 
       case 'SS': 
         _data.vh = 400;
+        _data.width = vu.$el('@page').width();
         break;
       case 'SE': 
         break;
@@ -980,13 +981,12 @@ PurelyAppView.render(vu => {
     sectionEditor.res('data', data => {
       PS.get('List').getByIdx(item.idx).view.val(preData(data, 'PS'));
       SS.get('List').getByIdx(item.idx).view.val(preData(data, 'SS'));
-      console.log('data', data);
     });
     
     sectionStyler.set(null);
     sectionStyler.val('style', item.view.get('style'));
     sectionStyler.res('style', style => {
-      console.log(style);
+      sectionEditor.set('style', style);
       PS.get('List').getByIdx(item.idx).view.val('style', style);
       SS.get('List').getByIdx(item.idx).view.val('style', style);
     });
@@ -1015,20 +1015,14 @@ PurelyAppView.render(vu => {
     sectionEditor.set(null);
     sectionEditor.val(item.view.val());
     sectionEditor.res('data', data => {
-          
-      // TBD: 
-      // preData(params, 'PS')
-      // preData(params, 'SS')
-      
       PS.get('List').getByIdx(item.idx).view.val(preData(data, 'PS'));
       SS.get('List').getByIdx(item.idx).view.val(preData(data, 'SS'));
-      console.log(data);
     });
     
     sectionStyler.set(null);
     sectionStyler.val('style', item.view.get('style'));
     sectionStyler.res('style', style => {
-      console.log(style);
+      sectionEditor.set('style', style);
       PS.get('List').getByIdx(item.idx).view.val('style', style);
       SS.get('List').getByIdx(item.idx).view.val('style', style);
     });
@@ -1052,31 +1046,19 @@ PurelyAppView.render(vu => {
 
   // Build the initial sections
   sections.map(params => {
-
-
     // TBD: 
     // preData(params, 'PS')
     // preData(params, 'SS')
-
-
     let ssData = {},
         psData = {};
-    
     for (let k in params) {
       psData[k] = params[k];
       ssData[k] = params[k];
     }
-    psData.width = vu.$el('@sim-page').width();
-    ssData.width = vu.$el('@page').width();
-    psData.vh =  100;//vu.$el('.sim-page').height();
-    ssData.vh = 400;//vu.$el('.sim-wrap').height();
-    //psData.height = 100;
-    //ssData.height = 400;
     PS.val('new', {
       viewClass: SimSecClass,
       data: psData
     });
-
     SS.val('new', {
       viewClass: SimSecClass,
       data: ssData
@@ -1158,7 +1140,6 @@ PurelyAppView.render(vu => {
   
   // Nav click event
   vu.$el('@nav').off('click').on('click', () => {
-    
     let SL = PurelyViews.class('SortableList').build({
       sel: vu.sel('@page-settings'),
       data: { height: 30 }
@@ -1178,6 +1159,22 @@ PurelyAppView.render(vu => {
     vu.$el('@sec-settings').addClass('hidden');
     vu.$el('@style-settings').addClass('hidden');
   }); // Nav click event
+
+  // add section event
+  vu.$el('@add-section').off('click').on('click', () => {
+    let data = {
+      title: 'Title',
+      content: 'Content'
+    };
+    PS.val('new', {
+      viewClass: SimSecClass,
+      data: preData(data, 'PS')
+    });
+    SS.val('new', {
+      viewClass: SimSecClass,
+      data: preData(data, 'SS')
+    })
+  });// end of add section event
 }); //end of PureAppView.render
 
 

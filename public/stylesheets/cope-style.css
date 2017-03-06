@@ -554,6 +554,10 @@
   .purely-app .sim-page > ._inner {
     position: absolute;
   }
+/*   .purely-app .sim-page .add-section {
+  }
+  .purely-app .sim-page .add-section:hover {
+  } */
 }
 
 /* Large Devices, Wide Screens */

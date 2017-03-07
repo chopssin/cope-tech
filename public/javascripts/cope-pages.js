@@ -119,12 +119,46 @@ Pages.use('/', params => {
               purelyApp.val('sections', page && page.sections);
             });
           })
+
+          let sampleText = `Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.`;
+
+          let sections = [{
+            type: 'collection',
+            title: 'Shape the world',
+            content: 'Together we change the industry landscape',
+            style: 'sec-full/sec-dark/sec-op-6/text-bold-title/comp-full/comp-slide',
+            colName: 'Shirts',
+            tags: ['men', 'kid'],
+            sort: 'featured',
+            max: 6,
+            data: [
+              { 'title': 'Simply', 'imgsrc': '/images/sample1.jpg' },
+              { 'title': 'Purely', 'imgsrc': '/images/sample2.jpg' }
+            ]
+          }, {
+            type: 'basic',
+            title: 'Title',
+            content: sampleText,
+            media: {
+              imgsrc: '/images/sample4.jpeg'
+            },
+            style: 'sec-dark/sec-op-2/text-right'
+          }, {
+            type: 'contacts',
+            title: 'Opening',
+            content: 'Weekdays | 09:00 - 17:00',
+            style: 'sec-dark/sec-op-6/comp-full'
+          }];
           
           appCard.ds().enroll(purelyApp);
 
-          // Fetch app home page settings
-          G.col('pages').node('page_').val().then(page => {
-            purelyApp.val('sections', page && page.sections);
+          // TBD: Fetch app home page settings
+          //G.col('pages').node('page_').val().then(page => {
+          //  purelyApp.val('sections', page && page.sections);
+          //});
+          purelyApp.val({
+            page: '/',
+            sections: sections
           });
 
           return;

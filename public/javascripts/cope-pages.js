@@ -5,11 +5,40 @@ let debug = Cope.Util.setDebug('cope-pages', true);
 let Apps = Cope.Apps;
 
 let Pages = Cope.pages('Cope'),
-    Purely = Cope.views('Purely'),
+    PurelyViews = Cope.views('Purely'),
+    Purely = Cope.views('Purely'), // to be deprecated
     CopeViews = Cope.views('Cope');
 
-// Paeg "/"
 Pages.use('/', params => {
+
+  // Build Cope Navigation
+  let copeNav = CopeViews.class('Cope.Nav').build({
+    sel: '#nav'
+  });
+
+  // Build Cope App
+  let copeApp = CopeViews.class('Cope.App').build({
+    sel: '#page'
+  });
+
+  // Get user interface
+  Cope.user().then(user => {
+    copeApp.val('myEmail', user.email);
+
+    // Get users' apps
+    user.cred('apps').then(appIds => {
+
+      // If no apps
+      if (!appIds) return;
+
+      let apps = Object.keys(appIds).map(id => Cope.app(id));
+      console.log(apps);
+    }); // end of user.cred('apps')
+  }); // end of Cope.user()
+}); // end of page "/"
+
+// Paeg "/"
+Pages.use('_/', params => {
   // views
   let nav,  
       toggle, // toggle views of dashboard and app-page

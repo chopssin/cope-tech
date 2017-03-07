@@ -237,6 +237,16 @@
   background-color: #dc5519;
 }
 
+
+.view-toggle .toggle-app {
+  display: block;
+  position: absolute;
+  width: 100%;
+  background: #aca;
+  top: 0;
+  padding-top: 100px;
+}
+
 .nav-top {
   background: #fff;
   -webkit-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .4);

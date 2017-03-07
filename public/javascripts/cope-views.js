@@ -4,6 +4,7 @@ let debug = Cope.Util.setDebug('cope-views', false),
     PurelyViews = Cope.views('Purely'), // use Purely views
     
     Views = Cope.views('Cope'), // global views
+    CopeAppClass = Views.class('Cope.App'),
     ViewAppCard = Views.class('AppCard'),
     ListItemView = Views.class('ListItem'),
 
@@ -858,7 +859,7 @@ PurelyAppView.dom(vu => [
     }, 
     { 'div@sim-page-card.sim-page.cope-card.bg-w': [
       { 'div@sim-page.inner': '' },
-      { 'div@add-section.cope-card.as-btn.color-w.bg-blue.add-section': 'add section'}] 
+      { 'div@add-section.cope-card.as-btn.color-w.bg-blue.add-section': 'Add Section'}] 
     }]
   }
 ]);
@@ -868,10 +869,9 @@ PurelyAppView.render(vu => {
   // Reset
   vu.$el('@page').html('');
 
-  let sampleText = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nec est sed turpis tincidunt mollis. Duis nec justo tortor. Aliquam dictum dignissim molestie. Fusce maximus sit amet felis auctor pellentesque. \n\nSed dapibus nibh id rutrum elementum. Aliquam semper, ipsum in ultricies finibus, diam libero hendrerit felis, nec pharetra mi tellus at leo. Duis ultricies ultricies risus, sed convallis ex molestie at. Nulla facilisi. Ut sodales venenatis massa, nec venenatis quam semper eget.';
+  let pages = vu.get('pages'),
+      sections = vu.map('sections', x => (x && x.length) ? x : []);
 
-  let pages = vu.get('pages'), 
-      sections;
   // Set the whole page css
   //vu.$el('.sim-sections').css({
   //  'background-color': '#000',
@@ -907,38 +907,6 @@ PurelyAppView.render(vu => {
   }, {
     title: 'Contacts'
   }];
-
-  // sections data
-  sections = vu.map('sections', sections => sections || [
-    {
-      type: 'collection',
-      title: 'Shape the world',
-      content: 'Together we change the industry landscape',
-      colName: 'blog',
-      sort: 'featured',
-      limit: 6,
-      style: 'sec-full/sec-dark/sec-op-7/text-bold-title/comp-full/comp-slide',
-      data: [
-        { 'title': 'Simply', 'imgsrc': '/images/sample1.jpg' },
-        { 'title': 'Purely', 'imgsrc': '/images/sample2.jpg' }
-      ]
-    },
-    { 
-      type: 'basic',
-      title: 'Title',
-      content: sampleText,
-      media: {
-        imgsrc: '/images/sample4.jpeg'
-      },
-      style: 'sec-dark/sec-op-2/text-right'
-    },
-    {
-      type: 'contacts',
-      title: 'Opening',
-      content: 'Weekdays | 09:00 - 17:00',
-      style: 'sec-dark/sec-op-7/comp-full'
-    }
-  ]);
 
   // PS: Page Selector
   let PS = PurelyViews.class('SortableList').build({
@@ -987,7 +955,7 @@ PurelyAppView.render(vu => {
 
     // Darken #page
     $('#page').addClass('darken');
-  };
+  }; // end of itemOnclick
 
   PS.res('order', newOrder => { // <- eg. [1, 2, 0, 3]
     SS.val('order', newOrder); 
@@ -1458,7 +1426,7 @@ ViewAddInput.render(function() {
 // @app-purely: Purely live editor
 // -sec: string, 'home' || 'app'
 ToggleView.dom(vu => `
-  <div ${vu.ID} class="container" style="margin-bottom:100px">
+  <div ${vu.ID} class="container view-toggle" style="margin-bottom:100px">
     <div data-component="sec-dashboard" class="row">
       <div class="col-xs-12 col-md-4 col-md-push-8">
         <h4>Account</h4>
@@ -1477,7 +1445,7 @@ ToggleView.dom(vu => `
       </div>
     </div>` // end of dashborad
     + `<div data-component="sec-app" class="hidden">
-      <div data-component="app" class="col-xs-12"></div>
+      <div data-component="app" class="col-xs-12 toggle-app"></div>
       <div data-component="app-purely" class="col-xs-12"></div>
     </div>
   </div> 
@@ -1497,6 +1465,21 @@ ToggleView.render(vu => {
       vu.$el().addClass('container');
       break;
   } 
+});
+
+// Cope.App
+// - navView: the Nav view
+// - toggle: string, 'main' || 'app'
+CopeAppClass.dom(vu => [
+  { 'div.view-cope-app': [
+    { 'div@nav.nav-top': '' }, // fixed
+    { 'div@sec-main': 'Cope app' }, 
+    { 'div@sec-app.hidden': '' }]
+  }
+]);
+
+CopeAppClass.render(vu => {
+  
 });
 
 })(jQuery, Cope, undefined)

@@ -1173,6 +1173,7 @@
           id,
           resFuncs = {},
           myLoadFunc,
+          tmpData = {},
           vuDataSnap = Cope.dataSnap(); // built-in dataSnap
 
       count = count + 1;

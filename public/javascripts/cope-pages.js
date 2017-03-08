@@ -11,31 +11,75 @@ let Pages = Cope.pages('Cope'),
 
 Pages.use('/', params => {
 
-  // Build Cope Navigation
-  let copeNav = CopeViews.class('Cope.Nav').build({
-    sel: '#nav'
-  });
-
+  let user = {},
+      ds = Cope.dataSnap(),
+      copeApp,
+      copeNav;
+      
   // Build Cope App
-  let copeApp = CopeViews.class('Cope.App').build({
+  copeApp = CopeViews.class('Cope.App').build({
     sel: '#page'
   });
+  
+  // Build Cope Navigation
+  copeNav = PurelyViews.class('Nav').build({
+    sel: '#nav',
+    data: {
+      logo: { text: 'Cope' }
+    }
+  }).res('logo clicked', () => {
+    copeApp.val('toggle', 'overview');
+  });
+
+  // Enroll copeApp, copeNav in ds
+  ds.enroll(copeApp);
+  ds.enroll(copeNav);
 
   // Get user interface
   Cope.user().then(user => {
-    copeApp.val('myEmail', user.email);
 
-    // Get users' apps
+    // Update ds with name and email
+    user.val('name').then(name => {
+      ds.val({
+        'email': user.email,
+        'name': name
+      });
+    });
+
+    // Get users' app interfaces 
     user.cred('apps').then(appIds => {
 
       // If no apps
       if (!appIds) return;
 
-      let apps = Object.keys(appIds).map(id => Cope.app(id));
-      console.log(apps);
+      // Update ds with appIds and initial apps data
+      let apps = Object.keys(appIds).map(id => Cope.app(id)),
+          data = {};
+      data.appIds = Object.keys(appIds);
+      data.apps = {};
+      apps.map(app => {
+        data.apps[app.appId] = {
+          appId: app.appId
+        };
+        // Update more details about those apps
+        app.get('appName').then(appName => {
+          ds.map('apps', apps => {
+            apps[app.appId].appName = appName;
+            return apps;
+          }, true);
+        });
+        return app.appId;
+      });
+      ds.val(data); 
+
     }); // end of user.cred('apps')
   }); // end of Cope.user()
 }); // end of page "/"
+
+
+
+//----------------------------------------------------------
+
 
 // Paeg "/"
 Pages.use('_/', params => {

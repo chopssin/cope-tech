@@ -5,6 +5,8 @@ let debug = Cope.Util.setDebug('cope-views', false),
     
     Views = Cope.views('Cope'), // global views
     CopeAppClass = Views.class('Cope.App'),
+    CopeAppOverviewClass = Views.class('Cope.App.Overview'),
+    CopeAppEditorClass = Views.class('Cope.App.AppEditor'),
     ViewAppCard = Views.class('AppCard'),
     ListItemView = Views.class('ListItem'),
 
@@ -1468,18 +1470,91 @@ ToggleView.render(vu => {
 });
 
 // Cope.App
-// - navView: the Nav view
+// - overview: the Cope.App.Main view
 // - toggle: string, 'main' || 'app'
 CopeAppClass.dom(vu => [
   { 'div.view-cope-app': [
-    { 'div@nav.nav-top': '' }, // fixed
-    { 'div@sec-main': 'Cope app' }, 
-    { 'div@sec-app.hidden': '' }]
+    { 'div@sec-overview': 'Cope app' }, 
+    { 'div@sec-app-editor.hidden': '' }]
   }
 ]);
 
 CopeAppClass.render(vu => {
+  // Build Cope.App.Main only once
+  vu.map('overview', x => {
+    if (x) return x;
+    let overview = Views.class('Cope.App.Overview').build({
+      sel: vu.sel('@sec-overview')
+    });
+
+    // When an app is selected
+    overview.res('app', app => {
+      let appEditor = Views.class('Cope.App.AppEditor').build({
+        sel: vu.sel('@sec-app-editor'),
+        data: app
+      });
+      vu.val('toggle', 'app-editor');
+    });
+    return overview;
+  });
+
+  // Toggle between 'main' and 'app editor'
+  vu.use('toggle').then(v => {
+    vu.$el().children().addClass('hidden');
+    vu.$el('@sec-' + v.toggle).removeClass('hidden');
+  });
+
+  // Update user's email
+  vu.use('email, name').then(v => {
+    vu.get('overview').val({
+      email: v.email,
+      name: v.name
+    });
+  });
+
+  vu.use('apps, appIds').then(v => {
+    vu.get('overview').val({
+      appIds: v.appIds,
+      apps: v.apps
+    });
+  });
+});
+// End of Cope.App
+
+// Cope.App.Overview
+CopeAppOverviewClass.dom(vu => [
+  { 'div.view-cope-overview': [
+    { '@account.account': 'Hello' },
+    { 'div.app-list': [
+      { 'h3@app-list-title': '' },
+      { '@apps': '' }] 
+    }] 
+  }
+]);
+
+CopeAppOverviewClass.render(vu => {
+  vu.use('email, name').then(v => {
+    vu('@account').html('Hello, ' + v.name + ' (' + v.email + ')');
+  });
+
+  vu.use('apps, appIds').then(v => {
+    if (!v.appIds || !v.appIds.length) return;
+    console.log('overview');
+    vu('@apps').html('');
+    v.appIds.map(appId => {
+      Views.class('AppCard').build({
+        sel: vu.sel('@apps'),
+        method: 'append',
+        data: v.apps[appId]
+      });
+    });
+  });
+
   
 });
+// End of Cope.App.Overview
+
+// Cope.App.AppEditor
+// End of Cope.App.AppEditor
 
 })(jQuery, Cope, undefined)

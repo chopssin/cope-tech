@@ -9,6 +9,37 @@ let Pages = Cope.pages('Cope'),
     Purely = Cope.views('Purely'), // to be deprecated
     CopeViews = Cope.views('Cope');
 
+let sampleText = `Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.`;
+
+let sampleSections = [{
+  type: 'collection',
+  title: 'Shape the world',
+  content: 'Together we change the industry landscape',
+  style: 'sec-full/sec-dark/sec-op-6/text-bold-title/comp-full/comp-slide',
+  colName: 'Shirts',
+  tags: ['men', 'kid'],
+  sort: 'featured',
+  max: 6,
+  data: [
+    { 'title': 'Simply', 'imgsrc': '/images/sample1.jpg' },
+    { 'title': 'Purely', 'imgsrc': '/images/sample2.jpg' }
+  ]
+}, {
+  type: 'basic',
+  title: 'Title',
+  content: sampleText,
+  media: {
+    imgsrc: '/images/sample4.jpeg'
+  },
+  style: 'sec-dark/sec-op-2/text-right'
+}, {
+  type: 'contacts',
+  title: 'Opening',
+  content: 'Weekdays | 09:00 - 17:00',
+  style: 'sec-dark/sec-op-6/comp-full'
+}];
+
+
 Pages.use('/', params => {
 
   let user = {},
@@ -57,14 +88,22 @@ Pages.use('/', params => {
           data = {};
       data.appIds = Object.keys(appIds);
       data.apps = {};
+
+      // Set all apps data
       apps.map(app => {
+
+        // Init each app's data
         data.apps[app.appId] = {
-          appId: app.appId
+          appId: app.appId,
+          sectionsOf: {}
         };
+
         // Update more details about those apps
         app.get('appName').then(appName => {
           ds.map('apps', apps => {
             apps[app.appId].appName = appName;
+            apps[app.appId].stat = 'Free Trial';
+            apps[app.appId].sectionsOf['/'] = sampleSections;
             return apps;
           }, true);
         });

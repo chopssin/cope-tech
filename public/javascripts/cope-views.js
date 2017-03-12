@@ -1546,6 +1546,8 @@ CopeAppOverviewClass.render(vu => {
         sel: vu.sel('@apps'),
         method: 'append',
         data: v.apps[appId]
+      }).res('touched', function() {
+        vu.res('app', v.apps[appId]);
       });
     });
   });
@@ -1555,6 +1557,141 @@ CopeAppOverviewClass.render(vu => {
 // End of Cope.App.Overview
 
 // Cope.App.AppEditor
+CopeAppEditorClass.dom(vu => [
+  { 'div.view-app-editor': [
+    { '.full-bg': '' },
+    { '@menu.left': 'Menu' },
+    { '.middle': [
+      { '@sim.sim': 'Simulator' },
+      { '@sim-single.sim.sim-single.hidden': 'Simulator Single' },
+      { '@control.control': 'Control' }] 
+    },
+    { '.right': [
+      { '.upper-toggle': [
+        { '@toggle-editor.color-orange': 'Data' },
+        { '@toggle-styler': 'Style' }] 
+      },
+      { '@editor._form': 'Editor' },
+      { '@styler._form.hidden': 'Styler' }]
+    }]
+  }
+]);
+
+CopeAppEditorClass.render(vu => {
+
+  console.log(vu.get());
+  if (0) {
+    let purelyApp = vu.map('purelyApp', x => {
+      if (x) { return x; }
+      return Views.class('Purely.App').build({
+        sel: vu.sel(),
+      });
+    });
+
+    vu.use('appName, appId').then(v => {
+      purelyApp.val(v);
+    });
+  }
+
+  let currentPage = vu.get('page') || '/',
+      sections = vu.get('sectionsOf')[currentPage] || [],
+      itemOnclick;
+
+  // SS: Section Simulator
+  let SS = PurelyViews.class('SortableList').build({
+    sel: vu.sel('@sim')
+  });
+
+  let sectionEditor = SectionEditorClass.build({
+    sel: vu.sel('@editor')
+  });
+
+  let sectionStyler = SectionStylerClass.build({
+    sel: vu.sel('@styler')
+  });
+
+  //let pagePS = vu.map('sim-page-thumbs', s => vu.$el('@sim-page-card')),
+  //    pageSS = vu.map('sim-page-secs', s => vu.$el('@sim-wrap-card'));
+
+  itemOnclick = function(item) {
+
+    let tmpData = item.view.val();
+    tmpData.vh = 400;
+    //tmpData.width = '';
+
+    // Tmp Single Section in Edit Mode
+    let tmpSection = SimSecClass.build({
+      sel: vu.sel('@sim-single'),
+      data: tmpData
+    });
+
+    sectionEditor.set(null);
+    sectionEditor.val(item.view.val());
+    sectionEditor.res('data', data => {
+      tmpSection.val(data);
+      //SS.get('List').getByIdx(item.idx).view.val(preData(data, 'SS'));
+    });
+    
+    sectionStyler.set(null);
+    sectionStyler.val('style', item.view.get('style'));
+    sectionStyler.res('style', style => {
+      sectionEditor.set('style', style);
+      tmpSection.val('style', style);
+      //SS.get('List').getByIdx(item.idx).view.val('style', style);
+    });
+
+    // Switch to Edit Mode: Darken Purely App Background
+    vu.$el('.full-bg').addClass('darken');
+    vu.$el('@sim-single').removeClass('hidden');
+    vu.$el('@sim').addClass('hidden');
+
+    // Build action buttons for the selected section
+    vu('@control').html([
+      { 'div@control-back.cope-card.as-btn.bg-w': '<-' }, 
+      { 'div@control-add.cope-card.as-btn.bg-blue.color-w': 'New Data' }, 
+      { 'div@control-remove.cope-card.as-btn.bg-orange.color-w.right': 'Remove Section' }
+    ]);
+
+    // Set action buttons
+    vu.$el('@control-back').off('click').on('click', e => {
+      
+      // Update the selected section
+      item.view.val(tmpSection.val());
+
+      vu.$el('.full-bg').removeClass('darken');
+      vu.$el('@sim-single').addClass('hidden');
+      vu.$el('@sim').removeClass('hidden');
+      vu('@control').html('');
+    });
+
+  }; // end of itemOnclick
+  
+  // Set onclick event of Section Simulator
+  SS.res('item clicked', itemOnclick);
+
+  // Render with sections data
+  sections.map(data => {
+    console.log(data);
+    data.vh = 400;
+    SS.val('new', {
+      viewClass: SimSecClass,
+      data: data
+    }) 
+  }); // end of sections.map
+
+  // Set the toggle between editor and styler
+  ['editor', 'styler'].map(x => {
+    let $that = vu.$el('@toggle-' + x);
+    $that.off('click').on('click', e => {
+      vu.$el('.upper-toggle')
+        .children().removeClass('color-orange');
+      $that.addClass('color-orange');
+      vu.$el('._form').addClass('hidden');
+      vu.$el('@' + x).removeClass('hidden');
+    });
+  });
+
+});
 // End of Cope.App.AppEditor
 
 })(jQuery, Cope, undefined)

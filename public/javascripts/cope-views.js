@@ -1645,7 +1645,7 @@ CopeAppEditorClass.dom(vu => [
       { '@sim-single.sim.sim-single.hidden': 'Simulator Single' },
       { '@control.control': 'Control' }] 
     },
-    { '.right': [
+    { '@section-editor.right': [
       { '.upper-toggle': [
         { '@toggle-editor.color-orange': 'Data' },
         { '@toggle-styler': 'Style' }] 
@@ -1659,22 +1659,12 @@ CopeAppEditorClass.dom(vu => [
 CopeAppEditorClass.render(vu => {
 
   console.log(vu.get());
-  if (0) {
-    let purelyApp = vu.map('purelyApp', x => {
-      if (x) { return x; }
-      return Views.class('Purely.App').build({
-        sel: vu.sel(),
-      });
-    });
-
-    vu.use('appName, appId').then(v => {
-      purelyApp.val(v);
-    });
-  }
 
   let currentPage = vu.get('page') || '/',
       sections = vu.get('sectionsOf')[currentPage] || [],
-      itemOnclick;
+      itemOnclick,
+      toggleBack,
+      addNewData;
 
   // SS: Section Simulator
   let SS = PurelyViews.class('SortableList').build({
@@ -1688,9 +1678,6 @@ CopeAppEditorClass.render(vu => {
   let sectionStyler = SectionStylerClass.build({
     sel: vu.sel('@styler')
   });
-
-  //let pagePS = vu.map('sim-page-thumbs', s => vu.$el('@sim-page-card')),
-  //    pageSS = vu.map('sim-page-secs', s => vu.$el('@sim-wrap-card'));
 
   itemOnclick = function(item) {
     let view = item.view;
@@ -1737,14 +1724,21 @@ CopeAppEditorClass.render(vu => {
       
       // Update the selected section
       view.val(tmpSection.val());
-
-      vu.$el('.full-bg').removeClass('darken');
-      vu.$el('@sim-single').addClass('hidden');
-      vu.$el('@sim').removeClass('hidden');
-      vu('@control').html('');
+      toggleBack();
     });
+    
+    // Show the right part
+    vu.$el('@section-editor').show();
 
   }; // end of itemOnclick
+
+  toggleBack = function() {
+    vu('@control').html('');
+    vu.$el('@section-editor').hide();
+    vu.$el('.full-bg').removeClass('darken');
+    vu.$el('@sim-single').addClass('hidden');
+    vu.$el('@sim').removeClass('hidden');
+  }; // end of toggleBack
   
   // Set onclick event of Section Simulator
   SS.res('item clicked', itemOnclick);
@@ -1770,6 +1764,8 @@ CopeAppEditorClass.render(vu => {
     });
   });
 
+  // Start with toggleBack
+  toggleBack();
 });
 // End of Cope.App.AppEditor
 

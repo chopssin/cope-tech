@@ -423,16 +423,6 @@ RichTextareaClass.dom(vu => [
 RichTextareaClass.render(vu => {
   let vus = {};
 
-  let linkOnEdit = function(e) {
-    e.preventDefault();
-    console.log('TBD: Use Paragraph');
-  };
-
-  let paraOnEdit = function(e) {
-    console.log('Selected');
-    //$(this).toggleClass('selected');
-  }
-
   let getData = function() {
     let data = [];
     vu.$el('@content').children().each(function() {
@@ -444,7 +434,6 @@ RichTextareaClass.render(vu => {
          
       // Rewrite dom by its form
       if (p.indexOf('http') === 0) {
-        // TBD: 
         // Build Paragraph at $(this)
         let a = ParagraphClass.build({
           sel: $(this),
@@ -460,32 +449,19 @@ RichTextareaClass.render(vu => {
       // Get type and value 
       $el = $(this).children(0);
       if ($el && $el.data('vuid')) {
-        // TBD: get view by vuid
+        // Get view by vuid
         let vuId = $el.data('vuid');
         let restoreData = vus[vuId].get();
         obj = restoreData;
       }
-      
-      if ($(this).children('a') && $(this).children('a').length === 1) {
-        // let $a = $(this).children('a');
-        // obj.type = 'link';
-        // obj.url = $a.prop('href');
-        // obj.text = $a.html();
-        
-        // // Assign edit mode onclick function
-        // $a.off('click').on('click', linkOnEdit);
-      }
-      
       if (p === '<br>' || !p) {
         // Do nothing...
       } else {
         data = data.concat(obj);
       }
-      
-      $(this).off('click').on('click', paraOnEdit);
-    });
-    // vu.set('data', data)
-    // vu.res('data', data)
+    }); // end of each
+    vu.set('data', data)
+    vu.res('data', data)
     return data;
   }; // end of getData
 
@@ -516,160 +492,6 @@ RichTextareaClass.render(vu => {
 
   getData();
 
-
-
-  return;
-
-
-  getData = function() {
-    vu.$el('@content').children().css('color', '#333');
-    vu.$el('@content').children().off('click keyup.' + vu.id)
-    .on('click keyup.' + vu.id, function(e) {
-      let html = vu.$el('@content').html(),
-      data = [];
-    
-      if (!html.trim()) {
-        html = '<p>Placeholder</p>';
-        vu.$el('@content').html(html);
-      }
-      if (e.which == 13) {
-        // Do more things...
-        getData();
-      }
-      console.log(data);
-
-      vu.$el('@content').children().css('color', '#333');
-      $(this).css('color', 'blue');
-
-      vu.$el('@content').children().removeClass('selected');
-      $(this).addClass('selected');
-
-      console.log('sfs');
-
-
-      // vu.$el('@content').children().each(function(idx) {
-      //   let p = $(this).html();
-      //   data[idx] = p;
-      //   if (p.indexOf('http') === 0) {
-      //     let sel = $(this);
-      //     Views.class('Paragraph').build({
-      //       sel: sel,
-      //       data: { type: 'link', text: p, url: p }
-      //     })
-      //     data[idx] = { type: 'link', text: p, url: p };
-      //   }
-      // })
-    });
-
-    // Diff data and vu.get('data')
-
-    // let matches = html.match(/<p[^<>]*>/g);
-    // if (matches && matches.length) {
-    //   let is = matches.map(str => html.indexOf(str));
-      
-    //   data = matches.map(str => {
-    //     html = html.slice(html.indexOf(str) + str.length); 
-    //     let p = html.slice(0, html.indexOf('</p>'));
-    //     return p;
-    //   });
-    // }
-    //vu.set('data', data);
-    //console.log(data); 
-    // vu.set('data', data)
-    // vu.res('data', data)
-    //return data;
-  }; // end of getData
-
-  getData();
-  // vu.$el('@content').off('keyup').on('keyup', e => {
-
-  // });
-
-  vu.$el('@content').off('blur').on('blur', getData);
-
-  return;
-  
-  let PG = Views.class('SortableList').build({
-    sel: vu.sel('@paragraph'),
-  });
-
-  function getCaret(el) { 
-    if (el.selectionStart) { 
-      return el.selectionStart; 
-    } else if (document.selection) { 
-      el.focus(); 
-      let r = document.selection.createRange(); 
-      if (r == null) { 
-        return 0; 
-      } 
-      let re = el.createTextRange(), 
-          rc = re.duplicate(); 
-      re.moveToBookmark(r.getBookmark()); 
-      rc.setEndPoint('EndToStart', re); 
-      return rc.text.length; 
-    }  
-    return 0; 
-  } // end of getCaret
-
-  function find(idx, direction) { // direction: 'next' || 'prev'
-    let ret = idx;
-    let u = (direction == 'next') ? 1 : -1;
-    for (let i = 1; i < PG.get('List').get().length; i++) {
-      let x = PG.get('List').getByIdx(idx + i * u);
-      if (!x || !x.view) { break; }
-      if (x.view.get('type') === 'text') { ret = idx + i * u; break; }
-    }
-    console.log(ret);
-    return ret;
-
-    // switch (direction) {
-    //   case 'next':
-    //     for (let i = idx + 1; i < PG.get('List').get().length; i++) {
-    //       if( PG.get('List').getByIdx(i).view.get('type') === 'text') {
-    //         return i;
-    //       }
-    //     }
-    //     return idx;
-    //     break;
-    //   case 'prev':
-    //     for (let i = idx - 1; i >= 0; i--) {
-    //       if( PG.get('List').getByIdx(i).view.get('type') === 'text') {
-    //         return i;
-    //       }
-    //     }
-    //     return idx;
-    //     break;
-    //   default:
-    //     break;
-    // }
-  } // end of find
-
-  PG.val('new', {
-    viewClass: ParagraphClass,
-    data: {
-      type: 'text'
-    }
-  })
-  
-  PG.res('enter keyup', item => {
-    PG.val('new', {
-      after: item.idx + 1,
-      viewClass: ParagraphClass,
-      data: {
-        type: 'text'
-      }
-    })
-    PG.get('List').getByIdx(item.idx + 1)
-      .view.$el('textarea').focus();
-  }).res('down keyup', item => {
-    if (PG.get('List').get().length == (item.idx + 1)) return;
-    PG.get('List').getByIdx(find(item.idx, 'next'))
-      .view.$el('textarea').focus();
-  }).res('up keyup', item => {
-    if (item.idx === 0) return;
-    PG.get('List').getByIdx(find(item.idx, 'prev'))
-      .view.$el('textarea').focus();
-  });// end of PG.res
 });
 // End of RichTextarea
 

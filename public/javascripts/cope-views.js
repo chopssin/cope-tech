@@ -23,6 +23,7 @@ let debug = Cope.Util.setDebug('cope-views', false),
     PurelySecView = Views.class('Purely.Sec'),
     PurelySettingsView = Views.class('Purely.Settings'),  
     
+    SectionSimulatorClass = Views.class('SectionSimulator'),
     SectionEditorClass = Views.class('SectionEditor'),
     SectionStylerClass = Views.class('SectionStyler'),
 
@@ -233,6 +234,65 @@ PurelyEditSingleView.render( vu => {
     vu.res('save', obj);
   });
 });
+
+// SectionSimulator
+SectionSimulatorClass.dom(vu => [{ '@viewport.view-sec-sim': '' }]);
+
+SectionSimulatorClass.render(vu => {
+  let view, onresize, sr = 1,
+      vw, vh, sw = 1200, sh,
+      minH = 1, cssObj;
+
+  onresize = function() {
+
+    vu().html([{ '@sec.sim-realsized': '' }]);
+
+    view = PurelyViews.class('Purely.Section').build({
+      sel: vu.sel('@sec'),
+      data: vu.get()
+    }); 
+
+    let minSH = 1;
+    vw = vu.$el().parent().width();
+    sr = vw / sw;
+    sh = view.$el().height(); 
+    vh = sh * sr; 
+
+    if (vu.get('vh') && vu.get('style')) {
+      if (vu.get('style').indexOf('sec-full') > -1) {
+        minH = vu.get('vh');
+        minSH = minH / sr;
+      } else if (vu.get('style').indexOf('sec-wrap') > -1) {
+        //cssObj['min-height'] = 1 + 'px';
+        minH = 1;
+        minSH = 1;
+      }
+    } 
+    
+    // Set style of @sec
+    vu.$el('@sec').css({
+      'height': sh + 'px',
+      'min-height': minSH + 'px',
+      'transform': `scale(${sr})`
+    });
+
+    // Set style of @viewport
+    vu.$el().css({
+      height: vh + 'px',
+      'min-height': minH + 'px'
+    });
+    
+    console.log(vu.get('style'), 'vh = ' + vh, 
+      minH, 'sh = ' + sh, minSH);
+  }
+
+  setTimeout(onresize);
+
+  // Scale the section on resize event
+  $(window).off('resize.simsec-' + vu.id)
+    .on('resize.simsec-' + vu.id, onresize);
+});
+// End of SectionSimulator
 
 // SectionEditor
 SectionEditorClass.dom(vu => [
@@ -676,6 +736,7 @@ LayoutChooserView.render( vu => {
 }); // end of LayoutChooser
 
 // Purely- Purely.SimSec
+// "clicked" <- view
 SimSecClass.dom(vu => [
   { 'div.sim-sec': [
     { 'div.inner-wrap': [
@@ -709,31 +770,49 @@ SimSecClass.render(vu => {
   });
 
   onresize = function() {
+    let minH = 1;
     vw = vu.$el().parent().width();
     sr = vw / sw;
     sh = vu.$el('@sec').height();
     vh = sh * sr; 
     cssObj = {
       width: sw + 'px',
-      //height: sh + 'px',
+      height: 'auto', 
       'transform': `scale(${sr})`
     };
-    if (vu.get('vh') && vu.get('style') 
-      && ((vu.get('style').indexOf('sec-full') > -1) 
-        || (vu.get('style').indexOf('sec-wrap') > -1))) {
-      cssObj.height = vu.get('vh') / sr;
+
+    if (vu.get('vh') && vu.get('style')) {
+      if (vu.get('style').indexOf('sec-full') > -1) {
+        minH = vu.get('vh');
+        cssObj.height = sh + 'px';
+        cssObj['min-height'] = minH / sr + 'px';
+          
+        
+        console.log(minH/sr, sh, sr);
+
+
+
+      } else if (vu.get('style').indexOf('sec-wrap') > -1) {
+        cssObj.height = sh + 'px';
+        cssObj['min-height'] = 1 + 'px';
+      }
     } 
 
     vu.$el('@sec').css(cssObj);
     vu.$el().css({
-      height: vu.$el('@sec').height()
+      height: vu.$el('@sec').height() + 'px',
+      'min-height': minH + 'px'
     });
   }; // end of onresize
   setTimeout(onresize, 1);
   // Scale the section on resize event
   $(window).off('resize.simsec-' + randomIdx).on('resize.simsec-' + randomIdx, onresize);
   //onresize();
+  vu.$el().off('click').on('click', function() {
+    vu.res('clicked', { view: view });
+  })
 });
+// End of Purely.SimSec
 
 // Purely - Purely.Sec
 PurelySecView.dom(vu => [
@@ -1614,26 +1693,26 @@ CopeAppEditorClass.render(vu => {
   //    pageSS = vu.map('sim-page-secs', s => vu.$el('@sim-wrap-card'));
 
   itemOnclick = function(item) {
-
-    let tmpData = item.view.val();
+    let view = item.view;
+    let tmpData = view.val();
     tmpData.vh = 400;
     //tmpData.width = '';
 
     // Tmp Single Section in Edit Mode
-    let tmpSection = SimSecClass.build({
+    let tmpSection = SectionSimulatorClass.build({ //SimSecClass.build({
       sel: vu.sel('@sim-single'),
       data: tmpData
     });
 
     sectionEditor.set(null);
-    sectionEditor.val(item.view.val());
+    sectionEditor.val(view.val());
     sectionEditor.res('data', data => {
       tmpSection.val(data);
       //SS.get('List').getByIdx(item.idx).view.val(preData(data, 'SS'));
     });
     
     sectionStyler.set(null);
-    sectionStyler.val('style', item.view.get('style'));
+    sectionStyler.val('style', view.get('style'));
     sectionStyler.res('style', style => {
       sectionEditor.set('style', style);
       tmpSection.val('style', style);
@@ -1653,10 +1732,11 @@ CopeAppEditorClass.render(vu => {
     ]);
 
     // Set action buttons
+    // "Back"
     vu.$el('@control-back').off('click').on('click', e => {
       
       // Update the selected section
-      item.view.val(tmpSection.val());
+      view.val(tmpSection.val());
 
       vu.$el('.full-bg').removeClass('darken');
       vu.$el('@sim-single').addClass('hidden');
@@ -1671,10 +1751,9 @@ CopeAppEditorClass.render(vu => {
 
   // Render with sections data
   sections.map(data => {
-    console.log(data);
     data.vh = 400;
     SS.val('new', {
-      viewClass: SimSecClass,
+      viewClass: SectionSimulatorClass, //SimSecClass,
       data: data
     }) 
   }); // end of sections.map

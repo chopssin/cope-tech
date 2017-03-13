@@ -90,6 +90,7 @@
 
 .view-app-editor .sim-single {
   height: 100%;
+  max-height: 60vh;
 }
 
 .view-app-editor .control {
@@ -108,4 +109,19 @@
 .view-app-editor .control > div.right {
   float: right;
   margin-right: 0;
+}
+
+/* SectionSimulator */
+.view-sec-sim {
+  display: block;
+  position: relative;
+  width: 100%;
+}
+
+.view-sec-sim .sim-realsized {
+  display: block;
+  width: 1200px;
+  -webkit-transform-origin: 0 0;
+  -moz-transform-origin: 0 0;
+  transform-origin: 0 0;
 }

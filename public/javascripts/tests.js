@@ -399,6 +399,39 @@ Test.go(log => {
 });
 
 Test.go(log => {
+  log.title('Paragraph');
+  let purelyViews = Cope.views('Purely'),
+      sel = log.sel(),
+      paragraph;
+
+  paragraph = purelyViews.class('Paragraph').build({
+    sel: sel,
+    data: {
+      type: 'text',
+      text: 'Hello World',
+      media: ''
+    }
+  }).res('enter', () => {
+    console.log('enter');
+  }).res('down', () => {
+    console.log('down');
+  }).res('up', () => {
+    console.log('up');
+  });
+})
+
+Test.go(log => {
+  log.title('RichTextarea');
+  let purelyViews = Cope.views('Purely'),
+      sel = log.sel(),
+      richTextarea;
+
+  richTextarea = purelyViews.class('RichTextarea').build({
+    sel: sel
+  });
+});
+
+Test.go(log => {
   log.title('Auto Tests of Purely Views');
   let purelyViews = Cope.views('Purely'),
       myViews = Cope.views(),

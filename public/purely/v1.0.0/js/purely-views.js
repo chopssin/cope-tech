@@ -6,6 +6,8 @@ let NavView = Views.class('Nav'),
   BoxView = Views.class('Box'),
   TilesView = Views.class('Tiles'),
   TextareaView = Views.class('Textarea'),
+  RichTextareaClass = Views.class('RichTextarea'),
+  ParagraphClass = Views.class('Paragraph'),
   ImageUploaderView = Views.class('ImageUploader'),
   PhotoView = Views.class('Photo'),
   GridView = Views.class('Grid'),
@@ -407,6 +409,192 @@ TextareaView.render(vu => {
   delayResize();
 });
 
+// RichTextarea
+RichTextareaClass.dom(vu => [
+  { 'div.view-richtextarea': [
+    { 'div@content(contenteditable = true)': [
+      { 'p': 'Title' }] 
+    }, 
+    { 'button@add': 'Add Image' },
+    { 'button@done': 'Done' }]
+  }
+]);
+
+RichTextareaClass.render(vu => {
+  let vus = {};
+
+  let getData = function() {
+    let data = [];
+    vu.$el('@content').children().each(function() {
+      let p = $(this).html(),
+          obj = {},
+          $el;
+      obj.type = 'text';
+      obj.text = p;
+         
+      // Rewrite dom by its form
+      if (p.indexOf('http') === 0) {
+        // Build Paragraph at $(this)
+        let a = ParagraphClass.build({
+          sel: $(this),
+          data: {
+            type: 'link',
+            text: p,
+            link: p
+          }
+        })
+        vus[a.id] = a;
+      }
+      
+      // Get type and value 
+      $el = $(this).children(0);
+      if ($el && $el.data('vuid')) {
+        // Get view by vuid
+        let vuId = $el.data('vuid');
+        let restoreData = vus[vuId].get();
+        obj = restoreData;
+      }
+      if (p === '<br>' || !p) {
+        // Do nothing...
+      } else {
+        data = data.concat(obj);
+      }
+    }); // end of each
+    vu.set('data', data)
+    vu.res('data', data)
+    return data;
+  }; // end of getData
+
+  vu.$el('@content').off('keyup').on('keyup', e => {
+    let html = vu.$el('@content').html();
+
+    if (e.which == 13) {
+      let data = getData();
+      console.log(data, vu.$el('@content').children());
+    }
+  });
+
+  vu.$el('@content').off('keydown').on('keydown', e => {
+    let html = vu.$el('@content').html();
+    if (html === '<p><br></p>' && e.which === 8) {
+      e.preventDefault();
+      return;
+    }
+  });
+
+  vu.$el('@add').off('click').on('click', function(e) {
+    vu.$el('@content').append('<p><img src="http://fakeimg.pl/250x100/"></p>')
+  })
+
+  vu.$el('@done').off('click').on('click', function(e) {
+    console.log(getData());
+  })
+
+  getData();
+
+});
+// End of RichTextarea
+
+// Paragraph
+// - type: string, 'text' || 'link' || 'image' || 'video' || 'audio'
+// - text
+// - url
+// - mode
+ParagraphClass.dom(vu => [
+  { 'div': [
+    { 'div@textarea': '' },
+    { 'div@preview-link.hidden(contenteditable=false)': '' },
+    { 'div@preview-media.hidden': '' },
+    { 'div@edit-link.hidden': '' }]
+  }
+]);
+
+ParagraphClass.render(vu => {
+  let textarea = Views.class('Textarea').build({
+    sel: vu.sel('@textarea')
+  });
+  textarea.$el().off('click').on('click', e => {
+    e.stopPropagation();
+    textarea.$el().focus();
+  });
+  textarea.$el().off('keypress.' + vu.id).on('keypress.' + vu.id, e => {
+    if (e.which == 13) { e.preventDefault(); }
+  });
+
+  let form = Views.class('Form').build({
+    sel: vu.sel('@edit-link'),
+    data: {
+      inputs: [
+        { type: 'text', label: 'Title', value: vu.get('text') },
+        { type: 'text', label: 'Url', value: vu.get('link') }]
+    }
+  });// End of form build
+  form.res('values', vals => {
+    form.val('inputs', [
+      { type: 'text', label: 'Title', value: vals[0] },
+      { type: 'text', label: 'Url', value: vals[1] }
+    ])
+    toggle('preview-link');
+    vu.val({
+      'text': vals[0],
+      'link': vals[1]
+    });
+  });// end of form's res
+
+  form.$el().off('mousedown').on('mousedown', function (e) {
+    e.stopPropagation();
+  })
+
+  function toggle (component) {
+    vu.$el().children().addClass('hidden');
+    vu.$el('@' + component).removeClass('hidden');
+  }// End of rmHidden
+  function checkType (text) {
+    let type;
+    if(text.indexOf('http') === 0){
+      type = 'link'
+      return type;
+    }
+    type = 'text';
+    return type;
+  }
+  vu.$el('@textarea').off('keyup').on('keyup', function (e) {
+    vu.set('text', textarea.val().value);
+    if (e.which === 13) {
+      
+      // Check text type
+      vu.res('enter');
+      vu.val('type', checkType(vu.get('text')));
+    }// End of if (e.which === 13)
+    if (e.which === 40) {
+      vu.res('down');
+    }
+    if (e.which === 38) {
+      vu.res('up');
+    }
+  });// end of @textarea keyup event
+  vu.use('type').then(v => {
+    if (v.type === 'link') {
+      let link = vu.get('link') || vu.get('text');
+      form.val('inputs', [
+        { type: 'text', label: 'Title', value: vu.get('text') },
+        { type: 'text', label: 'Url', value: link }]
+      )
+      toggle('preview-link');
+      vu.set('link', vu.get('link'));
+      vu('@preview-link').html([
+        ['span@btn-edit(style="margin: 10px 10px 10px 0; cursor: pointer;").as-btn.color-w.bg-blue[w40px]', 'Edit'],
+        [`a(href=${vu.get('link') || vu.get('text')})`, vu.get('text')]
+      ]);
+      vu.$el('@btn-edit').off('mousedown').on('mousedown', function (e) {
+        e.stopPropagation();
+      }).off('click').on('click', e => {
+        toggle('edit-link');
+      });
+    }
+  }); // end of use('type')
+});
+// End of Paragrpah
 
 // ImageUploader
 // @preview
@@ -466,16 +654,11 @@ ImageUploaderView.render(vu => {
 
 
 // FormView
-// FormView.dom(vu =>`
-//   <div ${vu.ID}>
-//     <div class="view-form">
-//       <ul data-component="inputs"></ul>
-//     </div>
-//   </div>
-// `);
+// -inpust: array, 
 FormView.dom(vu => [
   { 'div.view-form': [
-    { 'ul@inputs': ''}
+    { 'ul@inputs': ''},
+    { 'span@btn-form.btn.btn-primary': 'submit'}
   ]}
 ]);
 
@@ -509,9 +692,12 @@ FormView.render(vu => {
           let value = vu.$el('@' + comp)[0].value;
           vals[index] = value;
           vu.set('values', vals);
-          vu.res('values', vals);
       });// end of keyup
     });// end of forEach
+    vu.$el('@btn-form').off('click').on('click', function () {
+      vu.set('values', vals);
+      vu.res('values', vals);
+    });
   });// end of vu.use
 });
 
@@ -584,12 +770,6 @@ PhotoView.render(vu => {
 // }
 // -src: array, contain url as value, loading [src] if no [data] import
 // -css: object, decoration for the grid
-// GridView.dom(vu =>
-//   `<div class='view-grid' ${vu.ID}>
-//       <div class='row clear-margin' data-component="grid"></div>
-//     </div>
-//   </div>`
-// );
 GridView.dom(vu => [
   { 'div.view-grid': [
     { 'div.row.clear-margin@grid': ''}
@@ -1209,7 +1389,6 @@ SortableListClass.render(vu => {
         // s: params of the section
         my.insert = function(newBlock, i) {
           i = !isNaN(i) ? i : items.length;
-
           // Set random Id
           let rid = new Date().getTime() + '_' + Math.floor(Math.random()*1000),
               item = {};
@@ -1230,7 +1409,7 @@ SortableListClass.render(vu => {
               } 
             });
           }
-          //let target = my.getByIdx(i);
+          
           //Append new block in dom
           if (!target || !target.view) {
             vu.$el().append(`
@@ -1454,6 +1633,17 @@ SortableListClass.render(vu => {
             }
             startItem = '';
           }
+        },
+        onkeyup: function(item, e){
+          if(e.which === 13) {
+            vu.res('enter keyup', item);
+          }
+          if (e.which === 40) {
+            vu.res('down keyup', item);
+          }
+          if (e.which === 38) {
+            vu.res('up keyup', item);
+          }
         }
       });
     }
@@ -1463,7 +1653,8 @@ SortableListClass.render(vu => {
   // To append new block
   vu.map('new', newBlock => {
     if (newBlock) {
-      List.insert(newBlock);
+      let i = !isNaN(newBlock.after) ? newBlock.after : undefined;
+      List.insert(newBlock, i);
     }
   });
 

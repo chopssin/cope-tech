@@ -521,34 +521,11 @@ ParagraphClass.render(vu => {
     if (e.which == 13) { e.preventDefault(); }
   });
 
-  let form = Views.class('Form').build({
-    sel: vu.sel('@edit-link'),
-    data: {
-      inputs: [
-        { type: 'text', label: 'Title', value: vu.get('text') },
-        { type: 'text', label: 'Url', value: vu.get('link') }]
-    }
-  });// End of form build
-  form.res('values', vals => {
-    form.val('inputs', [
-      { type: 'text', label: 'Title', value: vals[0] },
-      { type: 'text', label: 'Url', value: vals[1] }
-    ])
-    toggle('preview-link');
-    vu.val({
-      'text': vals[0],
-      'link': vals[1]
-    });
-  });// end of form's res
-
-  form.$el().off('mousedown').on('mousedown', function (e) {
-    e.stopPropagation();
-  })
-
   function toggle (component) {
     vu.$el().children().addClass('hidden');
     vu.$el('@' + component).removeClass('hidden');
-  }// End of rmHidden
+  } // end of toggle
+
   function checkType (text) {
     let type;
     if(text.indexOf('http') === 0){
@@ -558,6 +535,7 @@ ParagraphClass.render(vu => {
     type = 'text';
     return type;
   }
+
   vu.$el('@textarea').off('keyup').on('keyup', function (e) {
     vu.set('text', textarea.val().value);
     if (e.which === 13) {
@@ -573,13 +551,14 @@ ParagraphClass.render(vu => {
       vu.res('up');
     }
   });// end of @textarea keyup event
+
   vu.use('type').then(v => {
     if (v.type === 'link') {
       let link = vu.get('link') || vu.get('text');
-      form.val('inputs', [
-        { type: 'text', label: 'Title', value: vu.get('text') },
-        { type: 'text', label: 'Url', value: link }]
-      )
+      //form.val('inputs', [
+      //  { type: 'text', label: 'Title', value: vu.get('text') },
+      //  { type: 'text', label: 'Url', value: link }]
+      //)
       toggle('preview-link');
       vu.set('link', vu.get('link'));
       vu('@preview-link').html([
@@ -589,9 +568,22 @@ ParagraphClass.render(vu => {
       vu.$el('@btn-edit').off('mousedown').on('mousedown', function (e) {
         e.stopPropagation();
       }).off('click').on('click', e => {
-        toggle('edit-link');
-      });
-    }
+        
+        // Use Cope.modal to open the link editor
+        let form = Cope.modal(Views.class('Form'), {
+          inputs: [
+            { type: 'text', label: 'Title', value: vu.get('text') },
+            { type: 'text', label: 'Url', value: vu.get('link') }
+          ]
+        }).res('values', vals => {
+          vu.val({
+            'text': vals[0],
+            'link': vals[1]
+          });
+        }); // end of Cope.modal
+
+      }); //  end of vu.$el('@btn-edit') click event
+    } // end of if
   }); // end of use('type')
 });
 // End of Paragrpah

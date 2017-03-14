@@ -2239,8 +2239,9 @@
         myModal.res('modal closed', function() { 
           // Clean up this function
         });
+        vu.set('closeModal', closeModal);
+        //vu.set('modal', myModal);
         openModal();
-        vu.set('modal', myModal);
         return vu;
       }
     };

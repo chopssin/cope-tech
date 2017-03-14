@@ -1376,10 +1376,14 @@ SortableListClass.render(vu => {
         };
 
         my.getByIdx = function(idx) {
+          let i = idx;
           if (isNaN(idx)) {
             return items;
           }
-          return items.filter(item => (item.idx === idx))[0] || {};
+          if (i < 0) {
+            i = items.length + i;
+          }
+          return items.filter(item => (item.idx === i))[0] || {};
         };
 
         my.getByOrder = function(i) {

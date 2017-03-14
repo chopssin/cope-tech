@@ -605,7 +605,14 @@ DataUpLoaderClass.dom(vu => [
         { 'div@blog': 'Blog' },
         { 'div@item': 'Item' }]
       },
-      { 'div@page-2.hidden': 'page2'},
+      { 'div@page-2.hidden': [
+        { 'div@type': '' },
+        { 'div@button.hidden(style="display: flex; width: 30%; justify-content:space-around;")': [
+          { 'div@add-text': 'Add text'},
+          { 'div@add-image': 'Add image'},
+          { 'div@add-link': 'Add link'}]
+        }]
+      },
       { 'div@page-3.hidden': 'page3'}]
     },
     { 'div(style="display: flex; width: 50%; justify-content:space-around;")': [
@@ -618,6 +625,7 @@ DataUpLoaderClass.dom(vu => [
 DataUpLoaderClass.render(vu => {
   let richTextarea,
       listItem,
+      LT,
       idx = 1;
 
   function toggle(select) {
@@ -639,7 +647,7 @@ DataUpLoaderClass.render(vu => {
       
       let type = vu.map('type',type => x , true);
     })
-  });// end of map
+  }); // end of map
 
   // toggle event
   vu.$el('@back').off('click').on('click', e => {
@@ -649,39 +657,51 @@ DataUpLoaderClass.render(vu => {
     if ( idx === 1) {
       vu.$el('@back').addClass('hidden');
     }
-  });// end of @back click 
+  }); // end of @back click 
 
   vu.$el('@next').off('click').on('click', e => {
     if( idx < 3) {
       toggle('next');
       vu.$el('@back').removeClass('hidden');
     }
-  });// end of @next click
+  }); // end of @next click
 
   // Build RichTextarea
   switch (vu.get('type')) {
     case 'blog':
+      vu.$el('@button').addClass('hidden');
+
       richTextarea = RichTextareaClass.build({
-        sel: vu.sel('@page-2')
+        sel: vu.sel('@type')
       }).res('done', data => {
         console.log('clicked done', data);
       });
       break;
     case 'item':
-      listItem = ListItemView.build({
-        sel: vu.sel('@page-2'),
-        data: {
-          type: 'text',
-          label: '品項',
-          value: 'item',
-          editable: true
-        }
-      });
-      vu.$el('@page-2').append('<button>Add</button>');
+        LT = SortableListClass.build({
+        sel: vu.sel('@type')
+      })
+      vu.$el('@button').removeClass('hidden')
       break;
     default:
       break;
-  }
+  } // end of switch
+
+  // type click event
+  ['text', 'image', 'link'].map(type => {
+    vu.$el('@add-' + type).off('click').on('click', e => {
+      LT.val('new',{
+        viewClass: ListItemView,
+        data: {
+          type: type,
+          label: 'label',
+          editable: true
+        }
+      })
+
+    });
+  }) // end of type click event
+
 });
 // End of DataUpLoader
 

@@ -609,7 +609,7 @@ DataUpLoaderClass.dom(vu => [
         { 'div@type': '' },
         { 'div@button.hidden(style="display: flex; width: 30%; justify-content:space-around;")': [
           { 'div@add-text': 'Add text'},
-          { 'div@add-image': 'Add image'},
+          { 'div@add-media': 'Add media'},
           { 'div@add-link': 'Add link'}]
         }]
       },
@@ -688,20 +688,20 @@ DataUpLoaderClass.render(vu => {
   } // end of switch
 
   // type click event
-  ['text', 'image', 'link'].map(type => {
+  ['text', 'media', 'link'].map(type => {
     vu.$el('@add-' + type).off('click').on('click', e => {
       LT.val('new',{
         viewClass: ListItemView,
         data: {
           type: type,
-          label: 'label',
+          label: type,
+          value: 'Text',
           editable: true
         }
       })
 
     });
   }) // end of type click event
-
 });
 // End of DataUpLoader
 
@@ -1292,10 +1292,10 @@ PurelyLayoutSingleView.render(vu => {
 
 // ListItem
 // @value: text input or textarea
+// - type: 'text' || 'textarea' || 'media' || 'select' || 'link'
 // - label: string
 // - value: string
 // - editable: boolean
-// - textarea: boolean, true to use textarea instead
 // "value" <- string: triggered on every keyup
 // "done": <- string: only triggered on Enter or focusout event
 ListItemView.dom(vu => [
@@ -1382,6 +1382,9 @@ ListItemView.render(vu => {
       break;
     case 'select':
       // TBD
+      break;
+    case 'link':
+
       break;
     default:
   }

@@ -1461,7 +1461,7 @@ SortableListClass.render(vu => {
         let cssObj = {}, 
             itemHeight = item.height || height;
         if (item.idx < 0) {
-          vu.$el().fadeOut(300);
+          vu.$el('@' + item.comp).fadeOut(300);
           cssObj.display = 'none';
           cssObj.position = 'absolute';
           cssObj.top = '-9999px';
@@ -1470,7 +1470,7 @@ SortableListClass.render(vu => {
           cssObj.width = '100%';
           //cssObj['min-height'] = itemHeight + 'px';
         }
-        if (!!cssObj) {
+        if (cssObj) {
           vu.$el('@' + item.comp).css(cssObj);
         }
       }; // end of rb
@@ -1493,10 +1493,14 @@ SortableListClass.render(vu => {
         };
 
         my.getByIdx = function(idx) {
+          let i = idx;
           if (isNaN(idx)) {
             return items;
           }
-          return items.filter(item => (item.idx === idx))[0] || {};
+          if (i < 0) {
+            i = items.length + i;
+          }
+          return items.filter(item => (item.idx === i))[0] || {};
         };
 
         my.getByOrder = function(i) {
@@ -1615,10 +1619,12 @@ SortableListClass.render(vu => {
           startPageX, 
           startPageY, 
           box, 
-          elHeight;
+          elHeight,
+          mouseUp; // to distinguish click and dragstart
       List = makeList({
         height: height,
         onclick: function(item, e) {
+          mouseUp = true;
           vu.res('item clicked', item);
         },
         // ondragstart: function(item, e) {
@@ -1627,25 +1633,31 @@ SortableListClass.render(vu => {
         //   List.get(item.rid).isDragging = true;
         // },
         onmousedown: function (item, e) {
-          draggedRid = item.rid;
-          startItem = item; //vu.$el('@' + item.comp); // .col-item wrap of the dragged item
-          let itemRectAbs = item.view.$el().offset();
-          let itemRect = item.view.$el().parent().position();
-          let itemHeight = vu.$el('@' + startItem.comp).height();//startItem.height();
-          vu.$el('@' + startItem.comp).css({
-            'position': 'absolute',
-            'z-index': '9999' 
-          });
+          mouseUp = false;
+          setTimeout(function() {
+            if (mouseUp) { 
+              vu.res('item clicked', item);
+              return; 
+            }
+            draggedRid = item.rid;
+            startItem = item; //vu.$el('@' + item.comp); // .col-item wrap of the dragged item
+            let itemRectAbs = item.view.$el().offset();
+            let itemRect = item.view.$el().parent().position();
+            let itemHeight = vu.$el('@' + startItem.comp).height();//startItem.height();
+            vu.$el('@' + startItem.comp).css({
+              'position': 'absolute',
+              'z-index': '9999' 
+            });
 
-          startPageX = e.pageX - itemRect.left;
-          startPageY = e.pageY - itemRect.top;
-          mousePosX = startPageX - itemRectAbs.left;
-          mousePosY = startPageY - itemRectAbs.top;
-        
-          // pageTop = e.pageY - itemHeight*item.idx;
-          // pageLeft = e.pageX;
-          vu.$el('@' + item.comp).after(`<div style="height:${itemHeight}px;" class="block"></div>`);
-          vu.res('item clicked', item);
+            startPageX = e.pageX - itemRect.left;
+            startPageY = e.pageY - itemRect.top;
+            mousePosX = startPageX - itemRectAbs.left;
+            mousePosY = startPageY - itemRectAbs.top;
+          
+            // pageTop = e.pageY - itemHeight*item.idx;
+            // pageLeft = e.pageX;
+            vu.$el('@' + item.comp).after(`<div style="height:${itemHeight}px;" class="block"></div>`);
+          }, 500);
         },
         onmousemove: function (item, e) {
           e.stopPropagation();
@@ -1716,6 +1728,7 @@ SortableListClass.render(vu => {
           }
         },
         onmouseup: function (item, e) {
+          mouseUp = true;
           if(startItem){
             vu.$el('@' + startItem.comp).css({
               'position': 'relative',
@@ -1764,9 +1777,20 @@ SortableListClass.render(vu => {
     }
   });
 
+  // To rearrange blocks
   vu.map('order', newOrder => {
     if (newOrder) { // eg. <- [1, 2, 0, 3]
       List.order(newOrder);  
+    }
+  });
+
+  // To remove a block
+  vu.map('remove', blockIndex => {
+    if (isNaN(blockIndex)) { return; }
+    if (blockIndex > -1) {
+      List.remove(blockIndex);
+    } else {
+      List.remove(List.get().length + blockIndex);
     }
   });
 }); // end of SortableList

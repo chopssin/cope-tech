@@ -281,14 +281,11 @@ SectionSimulatorClass.render(vu => {
       height: vh + 'px',
       'min-height': minH + 'px'
     });
-    
-    console.log(vu.get('style'), 'vh = ' + vh, 
-      minH, 'sh = ' + sh, minSH);
-  }
+  } // end of onresize
 
   setTimeout(onresize);
 
-  // Scale the section on resize event
+  // Render again and scale the section on resize event
   $(window).off('resize.simsec-' + vu.id)
     .on('resize.simsec-' + vu.id, onresize);
 });
@@ -1721,10 +1718,19 @@ CopeAppEditorClass.render(vu => {
     // Set action buttons
     // "Back"
     vu.$el('@control-back').off('click').on('click', e => {
-      
       // Update the selected section
       view.val(tmpSection.val());
       toggleBack();
+    });
+
+    // To remove the selected section
+    vu.$el('@control-remove').off('click').on('click', e => {
+      // Update the selected section
+      toggleBack();
+      item.view.$el().fadeOut(800);
+      setTimeout(function() {
+        SS.val('remove', item.idx);
+      }, 1200);
     });
     
     // Show the right part
@@ -1733,11 +1739,35 @@ CopeAppEditorClass.render(vu => {
   }; // end of itemOnclick
 
   toggleBack = function() {
-    vu('@control').html('');
+    vu('@control').html([
+      { 'div@control-add-sec.cope-card.as-btn.bg-w': 'Add Section' }, 
+      { 'div@control-arrange.cope-card.as-btn.bg-blue.color-w': 'Edit' } 
+    ]);
     vu.$el('@section-editor').hide();
     vu.$el('.full-bg').removeClass('darken');
     vu.$el('@sim-single').addClass('hidden');
     vu.$el('@sim').removeClass('hidden');
+
+    // To add a new section
+    vu.$el('@control-add-sec').off('click').on('click', e => {
+      SS.val('new', {
+        viewClass: SectionSimulatorClass,
+        data: {
+          title: 'Title',
+          content: 'Content',
+          style: 'sec-bright/sec-op-8/sec-wrap/text-bold-title'
+        }
+      });
+      vu.$el('@sim').animate({ scrollTop: vu.$el('@sim')[0].scrollHeight }, 400);
+      setTimeout(function() {
+        SS.get('List').getByIdx(-1).view.$el().click();
+      }, 400);
+    });
+
+    // To rearrange sections
+    vu.$el('@control-arrange').off('click').on('click', e => {
+      console.log('TBD'); 
+    });
   }; // end of toggleBack
   
   // Set onclick event of Section Simulator

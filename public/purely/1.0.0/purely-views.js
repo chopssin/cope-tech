@@ -1636,9 +1636,10 @@ SortableListClass.render(vu => {
         // },
         onmousedown: function (item, e) {
           item._mouseUp = false;
-          setTimeout(function() {
+          let exec = setTimeout(function() {
             if (item._mouseUp) { 
               vu.res('item clicked', item);
+              clearTimeout(exec);
               return; 
             }
             draggedRid = item.rid;

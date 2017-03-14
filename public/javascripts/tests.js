@@ -1030,13 +1030,6 @@ Test.go(log => {
   TestView.build({ sel: '#dom-test' });
 });
 
-// Test - Purely iframe 
-Test.go(log => {
-  log.title('Purely iframe');
-  $(log.sel()).append(`<iframe src="/purely" width="80%"></iframe>`);
-  log.ok();
-});
-
 // Test - @assface: Tiles
 Test.go(log => {
   log.title('@assface: Tiles')

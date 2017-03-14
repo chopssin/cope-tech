@@ -1622,12 +1622,11 @@ SortableListClass.render(vu => {
           startPageX, 
           startPageY, 
           box, 
-          elHeight,
-          mouseUp; // to distinguish click and dragstart
+          elHeight;
       List = makeList({
         height: height,
         onclick: function(item, e) {
-          mouseUp = true;
+          item._mouseUp = true;
           vu.res('item clicked', item);
         },
         // ondragstart: function(item, e) {
@@ -1636,9 +1635,9 @@ SortableListClass.render(vu => {
         //   List.get(item.rid).isDragging = true;
         // },
         onmousedown: function (item, e) {
-          mouseUp = false;
+          item._mouseUp = false;
           setTimeout(function() {
-            if (mouseUp) { 
+            if (item._mouseUp) { 
               vu.res('item clicked', item);
               return; 
             }
@@ -1664,6 +1663,7 @@ SortableListClass.render(vu => {
         },
         onmousemove: function (item, e) {
           e.stopPropagation();
+          item._mouseUp = false;
           let targetRect = item.view.$el()[0].getBoundingClientRect();
           if(startItem) {
             vu.$el('@' + startItem.comp).css({
@@ -1731,7 +1731,7 @@ SortableListClass.render(vu => {
           }
         },
         onmouseup: function (item, e) {
-          mouseUp = true;
+          item._mouseUp = true;
           if(startItem){
             vu.$el('@' + startItem.comp).css({
               'position': 'relative',

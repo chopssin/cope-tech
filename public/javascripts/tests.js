@@ -449,7 +449,6 @@ Test.go(log => {
     }]
   );
 
-
   simulator.render(vu => {
     let viewClass;
     let input = purelyViews.class('Form').build({
@@ -491,7 +490,39 @@ Test.go(log => {
   simulator.build({
     sel: sel
   });
+});
 
+Test.go(log => {
+  let purelyViews = Cope.views('Purely');
+  let sl = purelyViews.class('SortableList').build({
+    sel: log.sel()
+  });
+  let BoxClass = purelyViews.class('Box');
+  log.title('Test with SortableList');
+  
+  for (var i = 0; i < 10; i++) {
+    let color = (i === 5) ? '#aca' : '#eee'; 
+    sl.val('new', { 
+      'viewClass': BoxClass, 
+      data: { 'css': { width: '20px', height: '20px', background: color } }  
+    });
+  }
+
+  sl.res('item clicked', item => {
+    console.log(sl.get('List').get().map(x => x.idx).join(', '));
+    let len = sl.get('List').get().length;
+    if (item.idx === 5) {
+      sl.val('remove', 5);
+    }
+
+    if (item.idx === sl.get('List').get().length - 1) {
+      sl.val('remove', -1);
+    }
+      
+    if (sl.get('List').get().length === len - 1) {
+      log.ok();
+    }
+  });
 
 });
 

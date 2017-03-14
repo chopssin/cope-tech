@@ -472,6 +472,15 @@ RichTextareaClass.render(vu => {
     return data;
   }; // end of getData
 
+  vu.$el('@content').off('blur').on('blur', e => {
+    let data = getData();
+    console.log(getData());
+    if( data[data.length - 1].type === 'link'
+      && vu.$el('@content').children().last().html() != '<br>') {
+      vu.$el('@content').append('<p><br></p>');
+    }
+  });
+
   vu.$el('@content').off('keyup').on('keyup', e => {
     let html = vu.$el('@content').html();
 
@@ -608,6 +617,7 @@ DataUpLoaderClass.dom(vu => [
 
 DataUpLoaderClass.render(vu => {
   let richTextarea,
+      listItem,
       idx = 1;
 
   function toggle(select) {
@@ -622,21 +632,14 @@ DataUpLoaderClass.render(vu => {
        vu.$el('@page-1').children()
       .removeClass('selected')
       .css('color', '#000');
-    })
-  });
 
-  vu.$el('@page-1').children().each(function(i) {
-    $(this).off('click').on('click', e => {
-      vu.$el('@page-1').children()
-      .removeClass('selected')
-      .css('color', '#000');
-
-      $(this)
+      vu.$el('@' + x)
       .css('color', 'red')
       .addClass('selected');
-
-    }); // end of @page1 click event
-  }); // end of each
+      
+      let type = vu.map('type',type => x , true);
+    })
+  });// end of map
 
   // toggle event
   vu.$el('@back').off('click').on('click', e => {
@@ -656,11 +659,29 @@ DataUpLoaderClass.render(vu => {
   });// end of @next click
 
   // Build RichTextarea
-  richTextarea = RichTextareaClass.build({
-    sel: vu.sel('@page-2')
-  }).res('done', data => {
-    console.log('clicked done', data);
-  });
+  switch (vu.get('type')) {
+    case 'blog':
+      richTextarea = RichTextareaClass.build({
+        sel: vu.sel('@page-2')
+      }).res('done', data => {
+        console.log('clicked done', data);
+      });
+      break;
+    case 'item':
+      listItem = ListItemView.build({
+        sel: vu.sel('@page-2'),
+        data: {
+          type: 'text',
+          label: '品項',
+          value: 'item',
+          editable: true
+        }
+      });
+      vu.$el('@page-2').append('<button>Add</button>');
+      break;
+    default:
+      break;
+  }
 });
 // End of DataUpLoader
 

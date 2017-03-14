@@ -411,18 +411,24 @@ TextareaView.render(vu => {
 });
 
 // RichTextarea
+// - showDone: boolean
+// "done" <- array: get each of Paragraph's Data
 RichTextareaClass.dom(vu => [
   { 'div.view-richtextarea': [
     { 'div@content(contenteditable = true)': [
       { 'p': 'Title' }] 
     }, 
     { 'button@add': 'Add Image' },
-    { 'button@done': 'Done' }]
+    { 'button@done.hidden': 'Done' }]
   }
 ]);
 
 RichTextareaClass.render(vu => {
   let vus = {};
+
+  if (vu.get('showDone')) {
+    vu.$el('@done').removeClass('hidden');
+  }
 
   let getData = function() {
     let data = [];
@@ -440,8 +446,8 @@ RichTextareaClass.render(vu => {
           sel: $(this),
           data: {
             type: 'link',
-            text: p,
-            link: p
+            text: p
+            //link: p
           }
         })
         vus[a.id] = a;
@@ -471,7 +477,6 @@ RichTextareaClass.render(vu => {
 
     if (e.which == 13) {
       let data = getData();
-      console.log(data, vu.$el('@content').children());
     }
   });
 
@@ -488,11 +493,10 @@ RichTextareaClass.render(vu => {
   })
 
   vu.$el('@done').off('click').on('click', function(e) {
-    console.log(getData());
+    vu.res('done', getData());
   })
 
   getData();
-
 });
 // End of RichTextarea
 
@@ -528,19 +532,16 @@ ParagraphClass.render(vu => {
   } // end of toggle
 
   function checkType (text) {
-    let type;
+    let type = 'text';
     if(text.indexOf('http') === 0){
       type = 'link'
-      return type;
     }
-    type = 'text';
     return type;
   }
 
   vu.$el('@textarea').off('keyup').on('keyup', function (e) {
     vu.set('text', textarea.val().value);
     if (e.which === 13) {
-      
       // Check text type
       vu.res('enter');
       vu.val('type', checkType(vu.get('text')));
@@ -555,13 +556,11 @@ ParagraphClass.render(vu => {
 
   vu.use('type').then(v => {
     if (v.type === 'link') {
-      let link = vu.get('link') || vu.get('text');
-      //form.val('inputs', [
-      //  { type: 'text', label: 'Title', value: vu.get('text') },
-      //  { type: 'text', label: 'Url', value: link }]
-      //)
+      // let link = vu.get('link') || vu.get('text');
+      let link = vu.map('link', link => link || vu.get('text') || '' );
+   
+
       toggle('preview-link');
-      vu.set('link', vu.get('link'));
       vu('@preview-link').html([
         ['span@btn-edit(style="margin: 10px 10px 10px 0; cursor: pointer;").as-btn.color-w.bg-blue[w40px]', 'Edit'],
         [`a(href=${vu.get('link') || vu.get('text')})`, vu.get('text')]
@@ -569,7 +568,6 @@ ParagraphClass.render(vu => {
       vu.$el('@btn-edit').off('mousedown').on('mousedown', function (e) {
         e.stopPropagation();
       }).off('click').on('click', e => {
-        
         // Use Cope.modal to open the link editor
         let form = Cope.modal(Views.class('Form'), {
           inputs: [
@@ -594,12 +592,12 @@ ParagraphClass.render(vu => {
 DataUpLoaderClass.dom(vu => [
   { 'div': [
     { 'div@section': [
-      { 'div@page1(style="display: flex; width: 30%; justify-content:space-around;")': [
+      { 'div@page-1(style="display: flex; width: 30%; justify-content:space-around;")': [
         { 'div@blog': 'Blog' },
-        { 'div@item': 'Item'}]
+        { 'div@item': 'Item' }]
       },
-      { 'div@page2.hidden': 'page2'},
-      { 'div@page3.hidden': 'page3'}]
+      { 'div@page-2.hidden': 'page2'},
+      { 'div@page-3.hidden': 'page3'}]
     },
     { 'div(style="display: flex; width: 50%; justify-content:space-around;")': [
       { 'div@back.hidden': 'Back' },
@@ -609,27 +607,36 @@ DataUpLoaderClass.dom(vu => [
 ]);
 
 DataUpLoaderClass.render(vu => {
-  let idx = 1;
+  let richTextarea,
+      idx = 1;
 
   function toggle(select) {
     let sign = (select === 'next') ? 1 : -1;
-    idx = idx + 1*sign;
+    idx = idx + 1 * sign;
     vu.$el('@section').children().addClass('hidden');
-    vu.$el('@page' + idx).removeClass('hidden');
+    vu.$el('@page-' + idx).removeClass('hidden');
   }
 
-  vu.$el('@page1').children().each(function(i) {
+  ['blog', 'item'].map(x => {
+    vu.$el('@' + x).off('click').on('click', e => {
+       vu.$el('@page-1').children()
+      .removeClass('selected')
+      .css('color', '#000');
+    })
+  });
+
+  vu.$el('@page-1').children().each(function(i) {
     $(this).off('click').on('click', e => {
-      vu.$el('@page1').children()
+      vu.$el('@page-1').children()
       .removeClass('selected')
       .css('color', '#000');
 
       $(this)
       .css('color', 'red')
       .addClass('selected');
+
     }); // end of @page1 click event
   }); // end of each
-
 
   // toggle event
   vu.$el('@back').off('click').on('click', e => {
@@ -647,9 +654,15 @@ DataUpLoaderClass.render(vu => {
       vu.$el('@back').removeClass('hidden');
     }
   });// end of @next click
-  
 
+  // Build RichTextarea
+  richTextarea = RichTextareaClass.build({
+    sel: vu.sel('@page-2')
+  }).res('done', data => {
+    console.log('clicked done', data);
+  });
 });
+// End of DataUpLoader
 
 // ImageUploader
 // @preview

@@ -281,14 +281,11 @@ SectionSimulatorClass.render(vu => {
       height: vh + 'px',
       'min-height': minH + 'px'
     });
-    
-    console.log(vu.get('style'), 'vh = ' + vh, 
-      minH, 'sh = ' + sh, minSH);
-  }
+  } // end of onresize
 
   setTimeout(onresize);
 
-  // Scale the section on resize event
+  // Render again and scale the section on resize event
   $(window).off('resize.simsec-' + vu.id)
     .on('resize.simsec-' + vu.id, onresize);
 });
@@ -1765,6 +1762,11 @@ CopeAppEditorClass.render(vu => {
       setTimeout(function() {
         SS.get('List').getByIdx(-1).view.$el().click();
       }, 400);
+    });
+
+    // To rearrange sections
+    vu.$el('@control-arrange').off('click').on('click', e => {
+      console.log('TBD'); 
     });
   }; // end of toggleBack
   

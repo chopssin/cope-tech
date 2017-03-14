@@ -1502,10 +1502,12 @@ SortableListClass.render(vu => {
           startPageX, 
           startPageY, 
           box, 
-          elHeight;
+          elHeight,
+          mouseUp; // to distinguish click and dragstart
       List = makeList({
         height: height,
         onclick: function(item, e) {
+          mouseUp = true;
           vu.res('item clicked', item);
         },
         // ondragstart: function(item, e) {
@@ -1514,25 +1516,31 @@ SortableListClass.render(vu => {
         //   List.get(item.rid).isDragging = true;
         // },
         onmousedown: function (item, e) {
-          draggedRid = item.rid;
-          startItem = item; //vu.$el('@' + item.comp); // .col-item wrap of the dragged item
-          let itemRectAbs = item.view.$el().offset();
-          let itemRect = item.view.$el().parent().position();
-          let itemHeight = vu.$el('@' + startItem.comp).height();//startItem.height();
-          vu.$el('@' + startItem.comp).css({
-            'position': 'absolute',
-            'z-index': '9999' 
-          });
+          mouseUp = false;
+          setTimeout(function() {
+            if (mouseUp) { 
+              vu.res('item clicked', item);
+              return; 
+            }
+            draggedRid = item.rid;
+            startItem = item; //vu.$el('@' + item.comp); // .col-item wrap of the dragged item
+            let itemRectAbs = item.view.$el().offset();
+            let itemRect = item.view.$el().parent().position();
+            let itemHeight = vu.$el('@' + startItem.comp).height();//startItem.height();
+            vu.$el('@' + startItem.comp).css({
+              'position': 'absolute',
+              'z-index': '9999' 
+            });
 
-          startPageX = e.pageX - itemRect.left;
-          startPageY = e.pageY - itemRect.top;
-          mousePosX = startPageX - itemRectAbs.left;
-          mousePosY = startPageY - itemRectAbs.top;
-        
-          // pageTop = e.pageY - itemHeight*item.idx;
-          // pageLeft = e.pageX;
-          vu.$el('@' + item.comp).after(`<div style="height:${itemHeight}px;" class="block"></div>`);
-          vu.res('item clicked', item);
+            startPageX = e.pageX - itemRect.left;
+            startPageY = e.pageY - itemRect.top;
+            mousePosX = startPageX - itemRectAbs.left;
+            mousePosY = startPageY - itemRectAbs.top;
+          
+            // pageTop = e.pageY - itemHeight*item.idx;
+            // pageLeft = e.pageX;
+            vu.$el('@' + item.comp).after(`<div style="height:${itemHeight}px;" class="block"></div>`);
+          }, 500);
         },
         onmousemove: function (item, e) {
           e.stopPropagation();
@@ -1603,6 +1611,7 @@ SortableListClass.render(vu => {
           }
         },
         onmouseup: function (item, e) {
+          mouseUp = true;
           if(startItem){
             vu.$el('@' + startItem.comp).css({
               'position': 'relative',

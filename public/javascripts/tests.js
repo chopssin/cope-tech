@@ -450,7 +450,7 @@ Test.go(log => {
       sel = log.sel(),
       simulator;
 
-  simulator = myViews.class('Simpulator');
+  simulator = myViews.class('Simulator');
 
   simulator.dom(vu => [
     { 'div@input.input': ''},
@@ -1038,13 +1038,6 @@ Test.go(log => {
     log.ok();
   });
   TestView.build({ sel: '#dom-test' });
-});
-
-// Test - Purely iframe 
-Test.go(log => {
-  log.title('Purely iframe');
-  $(log.sel()).append(`<iframe src="/purely" width="80%"></iframe>`);
-  log.ok();
 });
 
 // Test - @assface: Tiles

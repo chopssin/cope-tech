@@ -1173,6 +1173,7 @@
           id,
           resFuncs = {},
           myLoadFunc,
+          tmpData = {},
           vuDataSnap = Cope.dataSnap(); // built-in dataSnap
 
       count = count + 1;
@@ -2219,11 +2220,16 @@
     // name: string, the desired View name
     // params: object, the params to pass in
     let modal = function(name, params) {
-      if (typeof name != 'string' || (params && typeof params != 'object')) {
+      let Class;
+
+      if (typeof name === 'string' && typeof params === 'object') {
+        Class = modalViews.class(name);
+      } else if (name && name.build && typeof params === 'object') {
+        Class = name;
+      } else {
         return;
       }
 
-      let Class = modalViews.class(name);
       if (Class) {
         myModal.val('useBtn', 'none');
         let vu = Class.build({
@@ -2233,8 +2239,9 @@
         myModal.res('modal closed', function() { 
           // Clean up this function
         });
+        vu.set('closeModal', closeModal);
+        //vu.set('modal', myModal);
         openModal();
-        vu.set('modal', myModal);
         return vu;
       }
     };

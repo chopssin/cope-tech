@@ -522,34 +522,11 @@ ParagraphClass.render(vu => {
     if (e.which == 13) { e.preventDefault(); }
   });
 
-  let form = Views.class('Form').build({
-    sel: vu.sel('@edit-link'),
-    data: {
-      inputs: [
-        { type: 'text', label: 'Title', value: vu.get('text') },
-        { type: 'text', label: 'Url', value: vu.get('link') }]
-    }
-  });// End of form build
-  form.res('values', vals => {
-    form.val('inputs', [
-      { type: 'text', label: 'Title', value: vals[0] },
-      { type: 'text', label: 'Url', value: vals[1] }
-    ])
-    toggle('preview-link');
-    vu.val({
-      'text': vals[0],
-      'link': vals[1]
-    });
-  });// end of form's res
-
-  form.$el().off('mousedown').on('mousedown', function (e) {
-    e.stopPropagation();
-  })
-
   function toggle (component) {
     vu.$el().children().addClass('hidden');
     vu.$el('@' + component).removeClass('hidden');
-  }// End of rmHidden
+  } // end of toggle
+
   function checkType (text) {
     let type;
     if(text.indexOf('http') === 0){
@@ -559,6 +536,7 @@ ParagraphClass.render(vu => {
     type = 'text';
     return type;
   }
+
   vu.$el('@textarea').off('keyup').on('keyup', function (e) {
     vu.set('text', textarea.val().value);
     if (e.which === 13) {
@@ -574,13 +552,14 @@ ParagraphClass.render(vu => {
       vu.res('up');
     }
   });// end of @textarea keyup event
+
   vu.use('type').then(v => {
     if (v.type === 'link') {
       let link = vu.get('link') || vu.get('text');
-      form.val('inputs', [
-        { type: 'text', label: 'Title', value: vu.get('text') },
-        { type: 'text', label: 'Url', value: link }]
-      )
+      //form.val('inputs', [
+      //  { type: 'text', label: 'Title', value: vu.get('text') },
+      //  { type: 'text', label: 'Url', value: link }]
+      //)
       toggle('preview-link');
       vu.set('link', vu.get('link'));
       vu('@preview-link').html([
@@ -590,9 +569,22 @@ ParagraphClass.render(vu => {
       vu.$el('@btn-edit').off('mousedown').on('mousedown', function (e) {
         e.stopPropagation();
       }).off('click').on('click', e => {
-        toggle('edit-link');
-      });
-    }
+        
+        // Use Cope.modal to open the link editor
+        let form = Cope.modal(Views.class('Form'), {
+          inputs: [
+            { type: 'text', label: 'Title', value: vu.get('text') },
+            { type: 'text', label: 'Url', value: vu.get('link') }
+          ]
+        }).res('values', vals => {
+          vu.val({
+            'text': vals[0],
+            'link': vals[1]
+          });
+        }); // end of Cope.modal
+
+      }); //  end of vu.$el('@btn-edit') click event
+    } // end of if
   }); // end of use('type')
 });
 // End of Paragrpah
@@ -717,11 +709,16 @@ ImageUploaderView.render(vu => {
 // End of ImageUploader
 
 // FormView
-// -inpust: array, 
+// FormView.dom(vu =>`
+//   <div ${vu.ID}>
+//     <div class="view-form">
+//       <ul data-component="inputs"></ul>
+//     </div>
+//   </div>
+// `);
 FormView.dom(vu => [
   { 'div.view-form': [
-    { 'ul@inputs': ''},
-    { 'span@btn-form.btn.btn-primary': 'submit'}
+    { 'ul@inputs': ''}
   ]}
 ]);
 
@@ -755,12 +752,9 @@ FormView.render(vu => {
           let value = vu.$el('@' + comp)[0].value;
           vals[index] = value;
           vu.set('values', vals);
+          vu.res('values', vals);
       });// end of keyup
     });// end of forEach
-    vu.$el('@btn-form').off('click').on('click', function () {
-      vu.set('values', vals);
-      vu.res('values', vals);
-    });
   });// end of vu.use
 });
 
@@ -833,6 +827,12 @@ PhotoView.render(vu => {
 // }
 // -src: array, contain url as value, loading [src] if no [data] import
 // -css: object, decoration for the grid
+// GridView.dom(vu =>
+//   `<div class='view-grid' ${vu.ID}>
+//       <div class='row clear-margin' data-component="grid"></div>
+//     </div>
+//   </div>`
+// );
 GridView.dom(vu => [
   { 'div.view-grid': [
     { 'div.row.clear-margin@grid': ''}
@@ -1452,6 +1452,7 @@ SortableListClass.render(vu => {
         // s: params of the section
         my.insert = function(newBlock, i) {
           i = !isNaN(i) ? i : items.length;
+
           // Set random Id
           let rid = new Date().getTime() + '_' + Math.floor(Math.random()*1000),
               item = {};
@@ -1472,7 +1473,7 @@ SortableListClass.render(vu => {
               } 
             });
           }
-          
+          //let target = my.getByIdx(i);
           //Append new block in dom
           if (!target || !target.view) {
             vu.$el().append(`
@@ -1696,17 +1697,6 @@ SortableListClass.render(vu => {
             }
             startItem = '';
           }
-        },
-        onkeyup: function(item, e){
-          if(e.which === 13) {
-            vu.res('enter keyup', item);
-          }
-          if (e.which === 40) {
-            vu.res('down keyup', item);
-          }
-          if (e.which === 38) {
-            vu.res('up keyup', item);
-          }
         }
       });
     }
@@ -1716,8 +1706,7 @@ SortableListClass.render(vu => {
   // To append new block
   vu.map('new', newBlock => {
     if (newBlock) {
-      let i = !isNaN(newBlock.after) ? newBlock.after : undefined;
-      List.insert(newBlock, i);
+      List.insert(newBlock);
     }
   });
 
@@ -1814,7 +1803,7 @@ PurelySectionClass.render(vu => {
   if (style) {
     style.split('/').map(clz => {
       if (!clz) return;
-      if (clz == 'comp-full') { compSel = vu.sel('@background'); }
+      if (clz == 'comp-full') { compSel = vu.sel('@mask'); }
       if (clz == 'comp-slide') { compType = 'slide'; }
       vu.$el().addClass(clz);
     }); 

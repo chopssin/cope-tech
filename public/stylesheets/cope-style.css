@@ -237,6 +237,16 @@
   background-color: #dc5519;
 }
 
+
+.view-toggle .toggle-app {
+  display: block;
+  position: absolute;
+  width: 100%;
+  background: #aca;
+  top: 0;
+  padding-top: 100px;
+}
+
 .nav-top {
   background: #fff;
   -webkit-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .4);
@@ -380,8 +390,6 @@
 .sim-sec .inner-sec {
   display: block;
   position: relative;
-  /*height: 100%;
-  overflow: hidden;*/
   -webkit-transform-origin: 0 0;
   -moz-transform-origin: 0 0;
   transform-origin: 0 0;
@@ -485,6 +493,15 @@
   display: none;
 }
 
+.purely-app .edit-bar > div {
+  float: left;
+  margin: 20px 0;
+}
+
+.purely-app .edit-bar > .right {
+  float: right;
+}
+
 /* Graph */
 .svg-wrap {
   display: block;
@@ -562,4 +579,13 @@
 
 /* Large Devices, Wide Screens */
 @media only screen and (min-width : 1200px) {
+}
+
+/* General */
+.darken {
+  background: #525251;
+  -webkit-transition: all 0.5s ease;
+  -moz-transition: all 0.5s ease;
+  -o-transition: all 0.5s ease;
+  transition: all 0.5s ease;
 }

@@ -1,0 +1,127 @@
+.cope-nav-top {
+  display: block;
+  position: fixed;
+  width: 100%;
+  height: 50px;
+  top: 0;
+  left: 0;
+  font-size: 24px;
+  z-index: 1000;
+}
+
+.cope-page {
+  display: block;
+  position: absolute;
+  width: 100%;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  min-height: 100vh;
+  background: #eeeeee;
+}
+
+/* Views */
+
+/* Cope.App.AppEditor */
+.view-app-editor {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  top: 0;
+  padding-top: 100px;
+}
+
+.view-app-editor > .full-bg {
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.view-app-editor > .full-bg.darken {
+  background: #252523;
+}
+
+.view-app-editor > .left,
+.view-app-editor > .middle,
+.view-app-editor > .right {
+  position: fixed;
+  min-height: 100px;
+  top: 80px;
+  left: 0;
+  margin-bottom: 40px;
+  padding: 0;
+  z-index: 100;
+}
+
+.view-app-editor > .left {
+  width: 15%;
+  left: 1%;
+  max-height: 70vh;
+  background: #fff;
+}
+
+.view-app-editor > .middle {
+  width: 50%;
+  min-height: 1px;
+  max-height: 60vh;
+  left: 17%;
+}
+
+.view-app-editor > .right {
+  width: 31%;
+  max-height: 70vh;
+  left: 68%;
+  padding: 6px;
+  overflow: auto;
+  background: #fff;
+}
+
+.view-app-editor .sim {
+  position: relative;
+  width: 100%;
+  height: 60vh;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+}
+
+.view-app-editor .sim-single {
+  height: 100%;
+  max-height: 60vh;
+}
+
+.view-app-editor .control {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  bottom: 0;
+}
+
+.view-app-editor .control > div {
+  margin: 16px;
+  margin-left: 0;
+  float: left;
+}
+
+.view-app-editor .control > div.right {
+  float: right;
+  margin-right: 0;
+}
+
+/* SectionSimulator */
+.view-sec-sim {
+  display: block;
+  position: relative;
+  width: 100%;
+}
+
+.view-sec-sim .sim-realsized {
+  display: block;
+  width: 1200px;
+  -webkit-transform-origin: 0 0;
+  -moz-transform-origin: 0 0;
+  transform-origin: 0 0;
+}

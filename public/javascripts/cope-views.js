@@ -4,6 +4,9 @@ let debug = Cope.Util.setDebug('cope-views', false),
     PurelyViews = Cope.views('Purely'), // use Purely views
     
     Views = Cope.views('Cope'), // global views
+    CopeAppClass = Views.class('Cope.App'),
+    CopeAppOverviewClass = Views.class('Cope.App.Overview'),
+    CopeAppEditorClass = Views.class('Cope.App.AppEditor'),
     ViewAppCard = Views.class('AppCard'),
     ListItemView = Views.class('ListItem'),
 
@@ -20,6 +23,7 @@ let debug = Cope.Util.setDebug('cope-views', false),
     PurelySecView = Views.class('Purely.Sec'),
     PurelySettingsView = Views.class('Purely.Settings'),  
     
+    SectionSimulatorClass = Views.class('SectionSimulator'),
     SectionEditorClass = Views.class('SectionEditor'),
     SectionStylerClass = Views.class('SectionStyler'),
 
@@ -230,6 +234,65 @@ PurelyEditSingleView.render( vu => {
     vu.res('save', obj);
   });
 });
+
+// SectionSimulator
+SectionSimulatorClass.dom(vu => [{ '@viewport.view-sec-sim': '' }]);
+
+SectionSimulatorClass.render(vu => {
+  let view, onresize, sr = 1,
+      vw, vh, sw = 1200, sh,
+      minH = 1, cssObj;
+
+  onresize = function() {
+
+    vu().html([{ '@sec.sim-realsized': '' }]);
+
+    view = PurelyViews.class('Purely.Section').build({
+      sel: vu.sel('@sec'),
+      data: vu.get()
+    }); 
+
+    let minSH = 1;
+    vw = vu.$el().parent().width();
+    sr = vw / sw;
+    sh = view.$el().height(); 
+    vh = sh * sr; 
+
+    if (vu.get('vh') && vu.get('style')) {
+      if (vu.get('style').indexOf('sec-full') > -1) {
+        minH = vu.get('vh');
+        minSH = minH / sr;
+      } else if (vu.get('style').indexOf('sec-wrap') > -1) {
+        //cssObj['min-height'] = 1 + 'px';
+        minH = 1;
+        minSH = 1;
+      }
+    } 
+    
+    // Set style of @sec
+    vu.$el('@sec').css({
+      'height': sh + 'px',
+      'min-height': minSH + 'px',
+      'transform': `scale(${sr})`
+    });
+
+    // Set style of @viewport
+    vu.$el().css({
+      height: vh + 'px',
+      'min-height': minH + 'px'
+    });
+    
+    console.log(vu.get('style'), 'vh = ' + vh, 
+      minH, 'sh = ' + sh, minSH);
+  }
+
+  setTimeout(onresize);
+
+  // Scale the section on resize event
+  $(window).off('resize.simsec-' + vu.id)
+    .on('resize.simsec-' + vu.id, onresize);
+});
+// End of SectionSimulator
 
 // SectionEditor
 SectionEditorClass.dom(vu => [
@@ -673,6 +736,7 @@ LayoutChooserView.render( vu => {
 }); // end of LayoutChooser
 
 // Purely- Purely.SimSec
+// "clicked" <- view
 SimSecClass.dom(vu => [
   { 'div.sim-sec': [
     { 'div.inner-wrap': [
@@ -691,6 +755,7 @@ SimSecClass.render(vu => {
       randomIdx, 
       cssObj, // for @sec
       onresize;
+
   // randomIdx for assigning onresize to window
   randomIdx = vu.map('randomIdx', r => {
     if (!r) { 
@@ -705,31 +770,49 @@ SimSecClass.render(vu => {
   });
 
   onresize = function() {
+    let minH = 1;
     vw = vu.$el().parent().width();
     sr = vw / sw;
     sh = vu.$el('@sec').height();
     vh = sh * sr; 
     cssObj = {
       width: sw + 'px',
-      //height: sh + 'px',
+      height: 'auto', 
       'transform': `scale(${sr})`
     };
-    if (vu.get('vh') && vu.get('style') 
-      && ((vu.get('style').indexOf('sec-full') > -1) 
-        || (vu.get('style').indexOf('sec-wrap') > -1))) {
-      cssObj.height = vu.get('vh') / sr;
+
+    if (vu.get('vh') && vu.get('style')) {
+      if (vu.get('style').indexOf('sec-full') > -1) {
+        minH = vu.get('vh');
+        cssObj.height = sh + 'px';
+        cssObj['min-height'] = minH / sr + 'px';
+          
+        
+        console.log(minH/sr, sh, sr);
+
+
+
+      } else if (vu.get('style').indexOf('sec-wrap') > -1) {
+        cssObj.height = sh + 'px';
+        cssObj['min-height'] = 1 + 'px';
+      }
     } 
 
     vu.$el('@sec').css(cssObj);
     vu.$el().css({
-      height: vu.$el('@sec').height()
+      height: vu.$el('@sec').height() + 'px',
+      'min-height': minH + 'px'
     });
   }; // end of onresize
   setTimeout(onresize, 1);
   // Scale the section on resize event
   $(window).off('resize.simsec-' + randomIdx).on('resize.simsec-' + randomIdx, onresize);
   //onresize();
+  vu.$el().off('click').on('click', function() {
+    vu.res('clicked', { view: view });
+  })
 });
+// End of Purely.SimSec
 
 // Purely - Purely.Sec
 PurelySecView.dom(vu => [
@@ -833,6 +916,11 @@ PurelyAppView.dom(vu => [
         { 'div.sim-sections': [
           { 'div@page': '' }]
         }]
+      }, 
+      { 'div.edit-bar': [
+        { 'div.cope-card.as-btn.bg-w[m20px 8px 20px 0]': phr('<-') }, 
+        { 'div.cope-card.as-btn.bg-blue.color-w': phr('New Data') }, 
+        { 'div.cope-card.as-btn.bg-orange.color-w.right': phr('Remove Section') }]
       }]
     },
     { 'div@sim-panel.sim-panel.cope-card.wider.bg-w': [
@@ -852,7 +940,7 @@ PurelyAppView.dom(vu => [
     }, 
     { 'div@sim-page-card.sim-page.cope-card.bg-w': [
       { 'div@sim-page.inner': '' },
-      { 'div@add-section.cope-card.as-btn.color-w.bg-blue.add-section': 'add section'}] 
+      { 'div@add-section.cope-card.as-btn.color-w.bg-blue.add-section': 'Add Section'}] 
     }]
   }
 ]);
@@ -862,10 +950,9 @@ PurelyAppView.render(vu => {
   // Reset
   vu.$el('@page').html('');
 
-  let sampleText = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nec est sed turpis tincidunt mollis. Duis nec justo tortor. Aliquam dictum dignissim molestie. Fusce maximus sit amet felis auctor pellentesque. \n\nSed dapibus nibh id rutrum elementum. Aliquam semper, ipsum in ultricies finibus, diam libero hendrerit felis, nec pharetra mi tellus at leo. Duis ultricies ultricies risus, sed convallis ex molestie at. Nulla facilisi. Ut sodales venenatis massa, nec venenatis quam semper eget.';
+  let pages = vu.get('pages'),
+      sections = vu.map('sections', x => (x && x.length) ? x : []);
 
-  let pages = vu.get('pages'), 
-      sections;
   // Set the whole page css
   //vu.$el('.sim-sections').css({
   //  'background-color': '#000',
@@ -902,38 +989,6 @@ PurelyAppView.render(vu => {
     title: 'Contacts'
   }];
 
-  // sections data
-  sections = vu.map('sections', sections => sections || [
-    {
-      type: 'collection',
-      title: 'Shape the world',
-      content: 'Together we change the industry landscape',
-      colName: 'blog',
-      sort: 'featured',
-      limit: 6,
-      style: 'sec-full/sec-dark/sec-op-7/text-bold-title/comp-full/comp-slide',
-      data: [
-        { 'title': 'Simply', 'imgsrc': '/images/sample1.jpg' },
-        { 'title': 'Purely', 'imgsrc': '/images/sample2.jpg' }
-      ]
-    },
-    { 
-      type: 'basic',
-      title: 'Title',
-      content: sampleText,
-      media: {
-        imgsrc: '/images/sample4.jpeg'
-      },
-      style: 'sec-dark/sec-op-2/text-right'
-    },
-    {
-      type: 'contacts',
-      title: 'Opening',
-      content: 'Weekdays | 09:00 - 17:00',
-      style: 'sec-dark/sec-op-7/comp-full'
-    }
-  ]);
-
   // PS: Page Selector
   let PS = PurelyViews.class('SortableList').build({
     sel: vu.sel('@sim-page'),//vu.sel('@sim-page'),
@@ -955,94 +1010,40 @@ PurelyAppView.render(vu => {
   let pagePS = vu.map('sim-page-thumbs', s => vu.$el('@sim-page-card')),
       pageSS = vu.map('sim-page-secs', s => vu.$el('@sim-wrap-card'));
 
-  // pagePS.css({
-  //   background: '#aaccaa'
-  // })
+  let itemOnclick = function(item) {
+    sectionEditor.set(null);
+    sectionEditor.val(item.view.val());
+    sectionEditor.res('data', data => {
+      PS.get('List').getByIdx(item.idx).view.val(preData(data, 'PS'));
+      SS.get('List').getByIdx(item.idx).view.val(preData(data, 'SS'));
+    });
+    
+    sectionStyler.set(null);
+    sectionStyler.val('style', item.view.get('style'));
+    sectionStyler.res('style', style => {
+      sectionEditor.set('style', style);
+      PS.get('List').getByIdx(item.idx).view.val('style', style);
+      SS.get('List').getByIdx(item.idx).view.val('style', style);
+    });
 
-  // // TBD: why the height is so confined????
-  // pageSS.css({
-  //   background: '#aaccaa'
-  // })
+    // SectionEditor's toggle
+    vu.$el('@back').removeClass('hidden');
+    vu.$el('@toggle').removeClass('hidden');
+    vu.$el('@app-settings').addClass('hidden');
+    vu.$el('@sec-settings').removeClass('hidden');
+    vu.$el('@style-settings').addClass('hidden');
+    vu.$el('@page-settings').addClass('hidden');
+
+    // Darken #page
+    $('#page').addClass('darken');
+  }; // end of itemOnclick
 
   PS.res('order', newOrder => { // <- eg. [1, 2, 0, 3]
     SS.val('order', newOrder); 
   });
 
-  PS.res('item clicked', item => {
-    // Interact with SS
-    // let sectionEditor = SectionEditorClass.build({
-    //   sel: vu.sel('@sec-settings'),
-    //   data: item.view.val()
-    // }).res('data', data => {
-    //   item.view.val(data); 
-    // });
-    sectionEditor.set(null);
-    sectionEditor.val(item.view.val());
-    sectionEditor.res('data', data => {
-      PS.get('List').getByIdx(item.idx).view.val(preData(data, 'PS'));
-      SS.get('List').getByIdx(item.idx).view.val(preData(data, 'SS'));
-    });
-    
-    sectionStyler.set(null);
-    sectionStyler.val('style', item.view.get('style'));
-    sectionStyler.res('style', style => {
-      sectionEditor.set('style', style);
-      PS.get('List').getByIdx(item.idx).view.val('style', style);
-      SS.get('List').getByIdx(item.idx).view.val('style', style);
-    });
-
-    // SectionEditor's toggle
-    vu.$el('@back').removeClass('hidden');
-    vu.$el('@toggle').removeClass('hidden');
-    vu.$el('@app-settings').addClass('hidden');
-    vu.$el('@sec-settings').removeClass('hidden');
-    vu.$el('@style-settings').addClass('hidden');
-    vu.$el('@page-settings').addClass('hidden');
-  });
-
-  SS.res('item clicked', item => {
-    // Interact with PS and EditSection
-    // Build the section editor on the right side
-    //let editSection = SectionEditView.build({
-    //  sel: vu.sel('@sec-settings')
-    //})
-    // let sectionEditor = SectionEditorClass.build({
-    //   sel: vu.sel('@sec-settings'),
-    //   data: item.view.val()
-    // }).res('data', data => {
-    //   item.view.val(data); 
-    // });
-    sectionEditor.set(null);
-    sectionEditor.val(item.view.val());
-    sectionEditor.res('data', data => {
-      PS.get('List').getByIdx(item.idx).view.val(preData(data, 'PS'));
-      SS.get('List').getByIdx(item.idx).view.val(preData(data, 'SS'));
-    });
-    
-    sectionStyler.set(null);
-    sectionStyler.val('style', item.view.get('style'));
-    sectionStyler.res('style', style => {
-      sectionEditor.set('style', style);
-      PS.get('List').getByIdx(item.idx).view.val('style', style);
-      SS.get('List').getByIdx(item.idx).view.val('style', style);
-    });
-    // Update section simulator
-    //editSection.res('data', data => {
-    //  item.view.val(data);
-    //});
-
-    // Fill up editSection on the right side
-    // with the selected section value
-    // editSection.val(item.view.val());
-  
-    // SectionEditor's toggle
-    vu.$el('@back').removeClass('hidden');
-    vu.$el('@toggle').removeClass('hidden');
-    vu.$el('@app-settings').addClass('hidden');
-    vu.$el('@sec-settings').removeClass('hidden');
-    vu.$el('@style-settings').addClass('hidden');
-    vu.$el('@page-settings').addClass('hidden');
-  });
+  PS.res('item clicked', itemOnclick);
+  SS.res('item clicked', itemOnclick);
 
   // Build the initial sections
   sections.map(params => {
@@ -1506,7 +1507,7 @@ ViewAddInput.render(function() {
 // @app-purely: Purely live editor
 // -sec: string, 'home' || 'app'
 ToggleView.dom(vu => `
-  <div ${vu.ID} class="container" style="margin-bottom:100px">
+  <div ${vu.ID} class="container view-toggle" style="margin-bottom:100px">
     <div data-component="sec-dashboard" class="row">
       <div class="col-xs-12 col-md-4 col-md-push-8">
         <h4>Account</h4>
@@ -1525,7 +1526,7 @@ ToggleView.dom(vu => `
       </div>
     </div>` // end of dashborad
     + `<div data-component="sec-app" class="hidden">
-      <div data-component="app" class="col-xs-12"></div>
+      <div data-component="app" class="col-xs-12 toggle-app"></div>
       <div data-component="app-purely" class="col-xs-12"></div>
     </div>
   </div> 
@@ -1546,5 +1547,226 @@ ToggleView.render(vu => {
       break;
   } 
 });
+
+// Cope.App
+// - overview: the Cope.App.Main view
+// - toggle: string, 'main' || 'app'
+CopeAppClass.dom(vu => [
+  { 'div.view-cope-app': [
+    { 'div@sec-overview': 'Cope app' }, 
+    { 'div@sec-app-editor.hidden': '' }]
+  }
+]);
+
+CopeAppClass.render(vu => {
+  // Build Cope.App.Main only once
+  vu.map('overview', x => {
+    if (x) return x;
+    let overview = Views.class('Cope.App.Overview').build({
+      sel: vu.sel('@sec-overview')
+    });
+
+    // When an app is selected
+    overview.res('app', app => {
+      let appEditor = Views.class('Cope.App.AppEditor').build({
+        sel: vu.sel('@sec-app-editor'),
+        data: app
+      });
+      vu.val('toggle', 'app-editor');
+    });
+    return overview;
+  });
+
+  // Toggle between 'main' and 'app editor'
+  vu.use('toggle').then(v => {
+    vu.$el().children().addClass('hidden');
+    vu.$el('@sec-' + v.toggle).removeClass('hidden');
+  });
+
+  // Update user's email
+  vu.use('email, name').then(v => {
+    vu.get('overview').val({
+      email: v.email,
+      name: v.name
+    });
+  });
+
+  vu.use('apps, appIds').then(v => {
+    vu.get('overview').val({
+      appIds: v.appIds,
+      apps: v.apps
+    });
+  });
+});
+// End of Cope.App
+
+// Cope.App.Overview
+CopeAppOverviewClass.dom(vu => [
+  { 'div.view-cope-overview': [
+    { '@account.account': 'Hello' },
+    { 'div.app-list': [
+      { 'h3@app-list-title': '' },
+      { '@apps': '' }] 
+    }] 
+  }
+]);
+
+CopeAppOverviewClass.render(vu => {
+  vu.use('email, name').then(v => {
+    vu('@account').html('Hello, ' + v.name + ' (' + v.email + ')');
+  });
+
+  vu.use('apps, appIds').then(v => {
+    if (!v.appIds || !v.appIds.length) return;
+    console.log('overview');
+    vu('@apps').html('');
+    v.appIds.map(appId => {
+      Views.class('AppCard').build({
+        sel: vu.sel('@apps'),
+        method: 'append',
+        data: v.apps[appId]
+      }).res('touched', function() {
+        vu.res('app', v.apps[appId]);
+      });
+    });
+  });
+
+  
+});
+// End of Cope.App.Overview
+
+// Cope.App.AppEditor
+CopeAppEditorClass.dom(vu => [
+  { 'div.view-app-editor': [
+    { '.full-bg': '' },
+    { '@menu.left': 'Menu' },
+    { '.middle': [
+      { '@sim.sim': 'Simulator' },
+      { '@sim-single.sim.sim-single.hidden': 'Simulator Single' },
+      { '@control.control': 'Control' }] 
+    },
+    { '@section-editor.right': [
+      { '.upper-toggle': [
+        { '@toggle-editor.color-orange': 'Data' },
+        { '@toggle-styler': 'Style' }] 
+      },
+      { '@editor._form': 'Editor' },
+      { '@styler._form.hidden': 'Styler' }]
+    }]
+  }
+]);
+
+CopeAppEditorClass.render(vu => {
+
+  console.log(vu.get());
+
+  let currentPage = vu.get('page') || '/',
+      sections = vu.get('sectionsOf')[currentPage] || [],
+      itemOnclick,
+      toggleBack,
+      addNewData;
+
+  // SS: Section Simulator
+  let SS = PurelyViews.class('SortableList').build({
+    sel: vu.sel('@sim')
+  });
+
+  let sectionEditor = SectionEditorClass.build({
+    sel: vu.sel('@editor')
+  });
+
+  let sectionStyler = SectionStylerClass.build({
+    sel: vu.sel('@styler')
+  });
+
+  itemOnclick = function(item) {
+    let view = item.view;
+    let tmpData = view.val();
+    tmpData.vh = 400;
+    //tmpData.width = '';
+
+    // Tmp Single Section in Edit Mode
+    let tmpSection = SectionSimulatorClass.build({ //SimSecClass.build({
+      sel: vu.sel('@sim-single'),
+      data: tmpData
+    });
+
+    sectionEditor.set(null);
+    sectionEditor.val(view.val());
+    sectionEditor.res('data', data => {
+      tmpSection.val(data);
+      //SS.get('List').getByIdx(item.idx).view.val(preData(data, 'SS'));
+    });
+    
+    sectionStyler.set(null);
+    sectionStyler.val('style', view.get('style'));
+    sectionStyler.res('style', style => {
+      sectionEditor.set('style', style);
+      tmpSection.val('style', style);
+      //SS.get('List').getByIdx(item.idx).view.val('style', style);
+    });
+
+    // Switch to Edit Mode: Darken Purely App Background
+    vu.$el('.full-bg').addClass('darken');
+    vu.$el('@sim-single').removeClass('hidden');
+    vu.$el('@sim').addClass('hidden');
+
+    // Build action buttons for the selected section
+    vu('@control').html([
+      { 'div@control-back.cope-card.as-btn.bg-w': '<-' }, 
+      { 'div@control-add.cope-card.as-btn.bg-blue.color-w': 'New Data' }, 
+      { 'div@control-remove.cope-card.as-btn.bg-orange.color-w.right': 'Remove Section' }
+    ]);
+
+    // Set action buttons
+    // "Back"
+    vu.$el('@control-back').off('click').on('click', e => {
+      
+      // Update the selected section
+      view.val(tmpSection.val());
+      toggleBack();
+    });
+    
+    // Show the right part
+    vu.$el('@section-editor').show();
+
+  }; // end of itemOnclick
+
+  toggleBack = function() {
+    vu('@control').html('');
+    vu.$el('@section-editor').hide();
+    vu.$el('.full-bg').removeClass('darken');
+    vu.$el('@sim-single').addClass('hidden');
+    vu.$el('@sim').removeClass('hidden');
+  }; // end of toggleBack
+  
+  // Set onclick event of Section Simulator
+  SS.res('item clicked', itemOnclick);
+
+  // Render with sections data
+  sections.map(data => {
+    data.vh = 400;
+    SS.val('new', {
+      viewClass: SectionSimulatorClass, //SimSecClass,
+      data: data
+    }) 
+  }); // end of sections.map
+
+  // Set the toggle between editor and styler
+  ['editor', 'styler'].map(x => {
+    let $that = vu.$el('@toggle-' + x);
+    $that.off('click').on('click', e => {
+      vu.$el('.upper-toggle')
+        .children().removeClass('color-orange');
+      $that.addClass('color-orange');
+      vu.$el('._form').addClass('hidden');
+      vu.$el('@' + x).removeClass('hidden');
+    });
+  });
+
+  // Start with toggleBack
+  toggleBack();
+});
+// End of Cope.App.AppEditor
 
 })(jQuery, Cope, undefined)

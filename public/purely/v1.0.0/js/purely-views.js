@@ -8,6 +8,7 @@ let NavView = Views.class('Nav'),
   TextareaView = Views.class('Textarea'),
   RichTextareaClass = Views.class('RichTextarea'),
   ParagraphClass = Views.class('Paragraph'),
+  DataUpLoaderClass = Views.class('DataUpLoader'),
   ImageUploaderView = Views.class('ImageUploader'),
   PhotoView = Views.class('Photo'),
   GridView = Views.class('Grid'),
@@ -596,6 +597,68 @@ ParagraphClass.render(vu => {
 });
 // End of Paragrpah
 
+// DataUpLoader
+// - category: array
+DataUpLoaderClass.dom(vu => [
+  { 'div': [
+    { 'div@section': [
+      { 'div@page1(style="display: flex; width: 30%; justify-content:space-around;")': [
+        { 'div@blog': 'Blog' },
+        { 'div@item': 'Item'}]
+      },
+      { 'div@page2.hidden': 'page2'},
+      { 'div@page3.hidden': 'page3'}]
+    },
+    { 'div(style="display: flex; width: 50%; justify-content:space-around;")': [
+      { 'div@back.hidden': 'Back' },
+      { 'div@next': 'Next'}]
+    }]
+  } 
+]);
+
+DataUpLoaderClass.render(vu => {
+  let idx = 1;
+
+  function toggle(select) {
+    let sign = (select === 'next') ? 1 : -1;
+    idx = idx + 1*sign;
+    vu.$el('@section').children().addClass('hidden');
+    vu.$el('@page' + idx).removeClass('hidden');
+  }
+
+  vu.$el('@page1').children().each(function(i) {
+    $(this).off('click').on('click', e => {
+      vu.$el('@page1').children()
+      .removeClass('selected')
+      .css('color', '#000');
+
+      $(this)
+      .css('color', 'red')
+      .addClass('selected');
+    }); // end of @page1 click event
+  }); // end of each
+
+
+  // toggle event
+  vu.$el('@back').off('click').on('click', e => {
+    if( idx > 1) {
+      toggle('back');
+    }
+    if ( idx === 1) {
+      vu.$el('@back').addClass('hidden');
+    }
+  });// end of @back click 
+
+  vu.$el('@next').off('click').on('click', e => {
+    if( idx < 3) {
+      toggle('next');
+      vu.$el('@back').removeClass('hidden');
+    }
+  });// end of @next click
+  
+
+});
+
 // ImageUploader
 // @preview
 // @button 
@@ -651,7 +714,7 @@ ImageUploaderView.render(vu => {
 		} // end of if
 	});// end of change-event
 });
-
+// End of ImageUploader
 
 // FormView
 // -inpust: array, 

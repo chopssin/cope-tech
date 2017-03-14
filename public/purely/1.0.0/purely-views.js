@@ -1344,7 +1344,7 @@ SortableListClass.render(vu => {
         let cssObj = {}, 
             itemHeight = item.height || height;
         if (item.idx < 0) {
-          vu.$el().fadeOut(300);
+          vu.$el('@' + item.comp).fadeOut(300);
           cssObj.display = 'none';
           cssObj.position = 'absolute';
           cssObj.top = '-9999px';
@@ -1353,7 +1353,7 @@ SortableListClass.render(vu => {
           cssObj.width = '100%';
           //cssObj['min-height'] = itemHeight + 'px';
         }
-        if (!!cssObj) {
+        if (cssObj) {
           vu.$el('@' + item.comp).css(cssObj);
         }
       }; // end of rb
@@ -1647,9 +1647,20 @@ SortableListClass.render(vu => {
     }
   });
 
+  // To rearrange blocks
   vu.map('order', newOrder => {
     if (newOrder) { // eg. <- [1, 2, 0, 3]
       List.order(newOrder);  
+    }
+  });
+
+  // To remove a block
+  vu.map('remove', blockIndex => {
+    if (isNaN(blockIndex)) { return; }
+    if (blockIndex > -1) {
+      List.remove(blockIndex);
+    } else {
+      List.remove(List.get().length + blockIndex);
     }
   });
 }); // end of SortableList

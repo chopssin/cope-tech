@@ -438,7 +438,7 @@ Test.go(log => {
       sel = log.sel(),
       simulator;
 
-  simulator = myViews.class('Simpulator');
+  simulator = myViews.class('Simulator');
 
   simulator.dom(vu => [
     { 'div@input.input': ''},

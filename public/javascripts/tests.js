@@ -506,6 +506,7 @@ Test.go(log => {
       'viewClass': BoxClass, 
       data: { 'css': { width: '20px', height: '20px', background: color } }  
     });
+    sl.get('List').getByIdx(i).view.$el().html(i);
   }
 
   sl.res('item clicked', item => {

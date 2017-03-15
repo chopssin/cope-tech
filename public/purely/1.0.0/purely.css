@@ -777,11 +777,14 @@ textarea {
 
 .view-sortable-list .sortable-item {
   display: block;
-  /*position: absolute;*/
   width: 100%;
   min-height: 1px;
-  /*overflow: hidden;*/
   cursor: pointer;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: -moz-none;
+  -ms-user-select: none; /* IE 10+ */
+  user-select: none;
 }
 
 /* Extra Small Devices, Phones */

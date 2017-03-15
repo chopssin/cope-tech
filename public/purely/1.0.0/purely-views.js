@@ -1509,16 +1509,11 @@ SortableListClass.render(vu => {
           item._mouseUp = true;
           vu.res('item clicked', item);
         },
-        // ondragstart: function(item, e) {
-        //   e.preventDefault;
-        //   draggedRid = item.rid;
-        //   List.get(item.rid).isDragging = true;
-        // },
-        onmousedown: function (item, e) {
+        onmousedown: function (item, e) { // mousedown -> ... -> mouseup -> click
           item._mouseUp = false;
           setTimeout(function() {
             if (item._mouseUp) { 
-              vu.res('item clicked', item);
+              //vu.res('item clicked', item);
               return; 
             }
             draggedRid = item.rid;
@@ -1539,7 +1534,7 @@ SortableListClass.render(vu => {
             // pageTop = e.pageY - itemHeight*item.idx;
             // pageLeft = e.pageX;
             vu.$el('@' + item.comp).after(`<div style="height:${itemHeight}px;" class="block"></div>`);
-          }, 500);
+          }, 100);
         },
         onmousemove: function (item, e) {
           e.stopPropagation();
@@ -1606,12 +1601,11 @@ SortableListClass.render(vu => {
                     List.get(sortedRids[i]).idx = idx;
                   });
                 } // end of "move"
-              }
-            });
-          }
-        },
+              } // end of "intersection"
+            }); // end of filter
+          } // end of if (startItem)
+        }, // end of onmousemove
         onmouseup: function (item, e) {
-          item._mouseUp = true;
           if(startItem){
             vu.$el('@' + startItem.comp).css({
               'position': 'relative',

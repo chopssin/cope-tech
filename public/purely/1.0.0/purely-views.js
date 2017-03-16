@@ -694,12 +694,11 @@ DataUpLoaderClass.render(vu => {
         viewClass: ListItemView,
         data: {
           type: type,
-          label: type,
+          label: 'label',
           value: 'Text',
           editable: true
         }
       })
-
     });
   }) // end of type click event
 });
@@ -1296,13 +1295,20 @@ PurelyLayoutSingleView.render(vu => {
 // - label: string
 // - value: string
 // - editable: boolean
+// - labelEditable: boolean
 // "value" <- string: triggered on every keyup
 // "done": <- string: only triggered on Enter or focusout event
 ListItemView.dom(vu => [
   { 'div.view-list-item': [ 
-    { 'div@label.item-label': '' },
-    { 'div@display.item-display': '' },
-    { 'div@editable.hidden.color-orange': '' }]
+    { 'div@label.item-label': [
+      { 'div@label-display': '' },
+      { 'div@label-editable': '' }]
+    },
+    { 'div@form': [
+      { 'div@link': ''},
+      { 'div@display.item-display': '' },
+      { 'div@editable.hidden.color-orange': '' }]
+    }]
   }
 ]);
 
@@ -1311,6 +1317,7 @@ ListItemView.render(vu => {
       displayValue = '',
       $textInput, 
       url,
+      labelEditable,
       editable = vu.get('editable'),
       placeholder = vu.get('placeholder') 
         ? ' placeholder = "' + vu.get('placeholder') + '" '
@@ -1334,6 +1341,7 @@ ListItemView.render(vu => {
         vu.res('value', vu.map('value', x => {
           let newVal = $textInput.val().trim();
           if (!newVal) newVal = '';
+          console.log(displayValue);
           return newVal;
         }));
         if (e.which === 13) {
@@ -1384,21 +1392,39 @@ ListItemView.render(vu => {
       // TBD
       break;
     case 'link':
-
+      let paragraph = ParagraphClass.build({
+        sel: vu.sel('@display'),
+        data: {
+          type: 'link',
+          text: 'link'
+        }
+      });
       break;
     default:
   }
 
   if (editable) {
-    vu.$el().addClass('hover-effect')
-      .off('click').on('click', e => {
+    vu.$el().addClass('hover-effect');
+    vu.$el('@form').off('click').on('click', e => {
         vu.val('edit', true);
-      });
+    });
   }
 
   // Set label
-  vu('@label').html(vu.map('label', x => x || ''));
-
+  vu('@label-display').html(vu.map('label', x => x || ''));
+  vu('@label-editable').html([
+    [ 'input(type="text"' 
+      + 'value = "' + vu.get('label') + '"'
+      + ')' ]
+  ]);
+  vu.$el('@label-editable').find('input').off('keyup').on('keyup', function(e) {
+    vu.map('label', label => $(this).val());
+  });
+  vu.$el('@label-editable').find('input').off('focusout').on('focusout', function(e) {
+    let val = $(this).val().trim();
+    console.log(val);
+    vu.map('label', label => '2', true);
+  });
   // Render with value
   if (displayValue) {
     vu('@display').html(displayValue);

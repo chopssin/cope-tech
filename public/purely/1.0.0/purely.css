@@ -747,7 +747,7 @@ textarea {
   margin: 8px 0;
 }
 .view-list-item > .item-label {
-  height: 18px;
+  /* height: 18px; */
   font-size: 14px;
   font-weight: 500;
   color: #aaa;

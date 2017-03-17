@@ -2981,39 +2981,56 @@
 
         if (confirmation === true) {
         } else { return; } 
+            
+        // Remove node's data
+        node.get().done((nodeData, next) => {
+          let keys = Object.keys(nodeData),
+              count = 0;
+          getRef(ref => {
+            keys.map(key => {
+              ref.child('data').child(key).child(nodeId).set(null)
+                .then(function() {
+                count++;
+                if (count === keys.length) {
+                  next();
+                }
+              });
+            });
+          }); // end of getRef
+        }); // end of node.get().done()
 
         nodeChain.add(function() {
           let c = chain();
           getRef(ref => {
+
+            // Remove data from nodeData
             c.add(function() {
               ref.child('nodeData').child(nodeId).set(null)
                 .then(() => {
                 c.next();
-              })
-            });
+              });
+            }); // end of c.add
 
+            // Remove the id from nodes
             c.add(function() {
               ref.child('nodes').child(nodeId).set(null)
                 .then(() => {
-                c.next();  
-              })
+                c.next();
+              });
             }); // end of c.add
 
+            // TBD: Remove from related tags
+            //c.add(function() {
+            //  c.next();
+            //}); // end of c.add
+
+            // Remove node's id from cols
             c.add(function() {
-              node.get().then(nodeData => {
-                let keys = Object.keys(nodeData),
-                    count = 0;
-                keys.map(key => {
-                  ref.child('data').child(key).child(nodeId).set(null)
-                    .then(function() {
-                    count++;
-                    if (count === keys.length) {
-                      nodeChain.next(); // call next
-                    }
-                  });
-                });
-              }); // end of node.get().then()
-            });
+              ref.child('cols').child(nodeId).set(null)
+                .then(() => {
+                nodeChain.next();
+              });
+            }); // end of c.add
           }); // end of getRef
 
         }); // end of nodeChain.add
@@ -3037,12 +3054,12 @@
       }; // end of node.col
       
       node.tag = function(tagName) {
-        if (typeof colName != 'string') { return node; }
+        if (typeof tagName != 'string') { return node; }
         nodeChain.add(function() {
           getRef(ref => {
             ref.child('tagNames').child(tagName).set(true)
               .then(function() {
-              ref.child('tags').child(tagName).set(nodeId)
+              ref.child('tags').child(tagName).child(nodeId).set(true)
                 .then(function() {
                 nodeChain.next(); // call next
               });

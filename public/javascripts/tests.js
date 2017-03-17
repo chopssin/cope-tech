@@ -602,22 +602,25 @@ Test.go(log => {
   console.log(G);
   console.log(item);
   item
-    .set({ 'price': 1000 })
+    .set('price', 1000)
     .get()
     .then((data, next) => {
       console.log(data);
-      //next();
     })
-    .val({ 'price': 2000 })
+    .val({ 
+      'name': 'Test Item',
+      'price': 2000 
+    })
+    .col('OK')
+    .tag('tag1')
+    .tag('tag2')
     .then(data => {
-      console.log(data);
+      console.log(item.snap());
     })
 
-  //item.del(true);
-
-  setTimeout(function() {
-    console.log('snap', item.snap())
-  }, 2000);
+    item.del(true).then(function() {
+      console.log('DEL DONE');
+    });
 
   return;
   log(`dreamer = G.node('Dreamers', 'Jeff')`);

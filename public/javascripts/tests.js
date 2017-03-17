@@ -606,12 +606,14 @@ Test.go(log => {
     .get()
     .then((data, next) => {
       console.log(data);
-      next();
+      //next();
     })
     .val({ 'price': 2000 })
     .then(data => {
       console.log(data);
     })
+
+  //item.del(true);
 
   setTimeout(function() {
     console.log('snap', item.snap())

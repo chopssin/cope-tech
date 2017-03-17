@@ -2836,13 +2836,21 @@
           },
           next: function() {
             let args = arguments, fn;
+            
             if (asyncs.length === 0) {
               return;
             }
+  
             if (asyncs[0].state > 0) {
               asyncs = asyncs.slice(1);
             }
-            fn = asyncs[0].fn;
+            
+            fn = asyncs && asyncs[0] && asyncs[0].fn;
+  
+            if (!fn) { 
+              return; 
+            }
+
             asyncs[0].state = 1; // processing
 
             fn.apply(node, args);
@@ -2861,14 +2869,25 @@
       }; // end of node.snap
 
       // then: passively receive external arguments
-      node.then = function(cb) { // cb <= function(result, next) { ... }
+      node.then = function(cb) {
+        if (typeof cb == 'function') {
+          nodeChain.add(function(result) {
+            cb(result);
+            nodeChain.next();
+          });
+        }
+        return node;
+      }; // end of then
+
+      // done: passively receive external arguments
+      node.done = function(cb) { // cb <= function(result, next) { ... }
         if (typeof cb == 'function') {
           nodeChain.add(function(result) {
             cb.call(nodeChain, result, nodeChain.next);
           });
         }
         return node;
-      }; // end of then
+      }; // end of done
 
       node.get = function(key) {
         let queryKey = typeof key == 'string'
@@ -2912,7 +2931,7 @@
           return false;
         }
 
-        node.get().then((nodeData, next) => {
+        node.get().done((nodeData, next) => {
           
           // Merge data with updates; update to firebase
           data = Object.assign(data, nodeData, updates);
@@ -2934,7 +2953,7 @@
               }); // end of map
             }); // end of then
           }); // end of getRef
-        }); // end of node.get().then()
+        }); // end of node.get().done()
         return node;
       }; // end of node.set
       
@@ -2959,30 +2978,44 @@
       }; // end of node.val
 
       node.del = function(confirmation) {
+
+        if (confirmation === true) {
+        } else { return; } 
+
         nodeChain.add(function() {
-          if (confirmation === true) {
-            getRef(ref => {
+          let c = chain();
+          getRef(ref => {
+            c.add(function() {
               ref.child('nodeData').child(nodeId).set(null)
-                .then(function() {
-                ref.child('nodes').child(nodeId).set(null)
-                  .then(function() {
-                  node.get().then(nodeData => {
-                    let keys = Object.keys(nodeData),
-                        count = 0;
-                    keys(nodeData).map(key => {
-                      ref.child('data').child(key).child(nodeId).set(null)
-                        .then(function() {
-                        count++;
-                        if (count === keys.length) {
-                          next(); // call next
-                        }
-                      });
-                    });
-                  }); // end of removal from each key-value pairs
-                }); // end of removal from nodes 
-              }); // end of removal from nodeData 
-            }); // end of getRef
-          } // end of confirmation
+                .then(() => {
+                c.next();
+              })
+            });
+
+            c.add(function() {
+              ref.child('nodes').child(nodeId).set(null)
+                .then(() => {
+                c.next();  
+              })
+            }); // end of c.add
+
+            c.add(function() {
+              node.get().then(nodeData => {
+                let keys = Object.keys(nodeData),
+                    count = 0;
+                keys.map(key => {
+                  ref.child('data').child(key).child(nodeId).set(null)
+                    .then(function() {
+                    count++;
+                    if (count === keys.length) {
+                      nodeChain.next(); // call next
+                    }
+                  });
+                });
+              }); // end of node.get().then()
+            });
+          }); // end of getRef
+
         }); // end of nodeChain.add
         return node;
       }; // end of node.del
@@ -3022,8 +3055,14 @@
       return node;
     }; // end of myGraph.node
 
-    myGraph.create = function(node) {
-      
+    myGraph.create = function(callback) {
+      getRef(ref => {
+        ref.child('nodes').push().set(true)
+          .then(function(snap) {
+            console.log(snap.key);
+          callback(myGraph.node(snap.key));
+        });
+      }); 
     }; // end of myGraph.create
 
     return myGraph;

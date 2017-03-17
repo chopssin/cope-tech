@@ -2830,10 +2830,7 @@
               state: 0
             });
             
-            console.log('ADD: ' +  asyncs.map(x => x.state).join(', '));
-            
             if (asyncs.length > 0 && asyncs[0].state === 0) {
-              console.log('AUTO START');
               this.next();
             } 
           },
@@ -2847,7 +2844,6 @@
             }
             fn = asyncs[0].fn;
             asyncs[0].state = 1; // processing
-            console.log('NEXT: ' + asyncs.map(x => x.state).join(', '), args);
 
             fn.apply(node, args);
           } // end of next
@@ -2859,9 +2855,13 @@
 
       node.id = nodeId;
 
+      // To access current data snapshot
+      node.snap = function() {
+        return Object.assign({}, data);
+      }; // end of node.snap
+
       // then: passively receive external arguments
       node.then = function(cb) { // cb <= function(result, next) { ... }
-        console.log('THEN');
         if (typeof cb == 'function') {
           nodeChain.add(function(result) {
             cb.call(nodeChain, result, nodeChain.next);
@@ -2871,7 +2871,6 @@
       }; // end of then
 
       node.get = function(key) {
-        console.log('GET');
         let queryKey = typeof key == 'string'
           ? key
           : null;
@@ -2882,7 +2881,8 @@
                 ref.child('data').child(key).child(nodeId)
                   .once('value')
                   .then(snap => {
-                    nodeChain.next(snap.val() || {}); // call next with the value
+                    data[key] = snap.val() || null;
+                    nodeChain.next(data[key]); // call next with the value
                   })
                   .catch(err => { console.error(err); });
               });
@@ -2892,7 +2892,8 @@
                 .child(nodeId)
                 .once('value')
                 .then(snap => {
-                  nodeChain.next(snap.val() || {}); // call next with values
+                  data = snap.val() || {};
+                  nodeChain.next(data); // call next with values
                 })
                 .catch(err => { console.error(err); });
             });
@@ -2902,7 +2903,6 @@
       }; // end of node.get
       
       node.set = function(a, b) {
-        console.log('SET');
         let updates = {};
         if (arguments.length === 2 && typeof a == 'string') {
           updates[a] = b;
@@ -2916,9 +2916,6 @@
           
           // Merge data with updates; update to firebase
           data = Object.assign(data, nodeData, updates);
-
-          console.log('Data', data);
-
           getRef(ref => {
             ref.child('nodeData').child(nodeId).set(data)
               .then(function() {
@@ -2942,7 +2939,6 @@
       }; // end of node.set
       
       node.val = function(a, b) { 
-        console.log('VAL');
         switch (arguments.length) {
           case 0: 
             node.get(); break;

@@ -609,10 +609,13 @@ Test.go(log => {
       next();
     })
     .val({ 'price': 2000 })
-    //.val()
     .then(data => {
       console.log(data);
     })
+
+  setTimeout(function() {
+    console.log('snap', item.snap())
+  }, 2000);
 
   return;
   log(`dreamer = G.node('Dreamers', 'Jeff')`);

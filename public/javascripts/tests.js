@@ -598,57 +598,28 @@ Test.go(log => {
   log(`G = Cope.appGraph('testApp2')`);
   log('<br>'); 
 
-  let item = G.node('testItem');
-  console.log(G);
-  console.log(item);
-  item
-    .set('price', 1000)
-    .get()
-    .then((data, next) => {
-      console.log(data);
-    })
-    .val({ 
-      'name': 'Test Item',
-      'price': 2000 
-    })
-    .col('OK')
-    .tag('tag1')
-    .tag('tag2')
-    .then(data => {
-      console.log(item.snap());
-    })
-
+  G.create(item => {
+    log('Just created an item with id = ' + item.id);
+    item
+      .set('price', 1000)
+      .then(data => {
+        log('"price" was set 1000');
+      })
+      .val({
+        name: 'Item',
+        price: 2000
+      })
+      .col('shirt')
+      .tag('men')
+      .tag('promo')
+      .then(data => {
+        let s = item.snap();
+        log('Current name = ' + s.name);
+        log('Current price = ' + s.price);
+      })
+    
     item.del(true).then(function() {
-      console.log('DEL DONE');
-    });
-
-  return;
-  log(`dreamer = G.node('Dreamers', 'Jeff')`);
-  
-  let dreamer = G.node('Dreamers', 'Jeff');
-  if (!dreamer || !dreamer.col || !dreamer.key) {
-    debug('dreamer does not have properties "col" or "key"', dreamer);
-  }
-
-  log(`dreamer.val('age', 20)`);
-  log(`dreamer.val({ 'name': 'Jeff' })`);
-
-  dreamer.val('age', 20);
-  dreamer.val({ 'name': 'Jeff' });
-
-  log('Test dreamer.val() <= data');
-  dreamer.val().then(data => {
-    log('<br>');
-    log(`data.name = ${data.name}`, 1);
-    log(`dreamer.snap('age') = ${dreamer.snap('age')}`, 1);
-    log('<br>');
-    log('Deleting dreamer by calling dreamer.del(true)', 1);
-    dreamer.del(true).then(() => {
-      log('<br>');
-      log('dreamer was deleted', 2);
-      log('<br>');
-
-      log.ok();
+      log('Just deleted ' + item.id);
     });
   });
 }); // end of test

@@ -2909,6 +2909,7 @@
             getRef(ref => {
               ref.child('nodeData')
                 .child(nodeId)
+                .child('data')
                 .once('value')
                 .then(snap => {
                   data = snap.val() || {};
@@ -2936,7 +2937,8 @@
           // Merge data with updates; update to firebase
           data = Object.assign(data, nodeData, updates);
           getRef(ref => {
-            ref.child('nodeData').child(nodeId).set(data)
+            ref.child('nodeData').child(nodeId).child('data')
+              .set(data)
               .then(function() {
             
               // Upsert values of updates
@@ -3003,6 +3005,35 @@
           let c = chain();
           getRef(ref => {
 
+            // Get data from nodeData
+            c.add(function() {
+              ref.child('nodeData').child(nodeId).once('value')
+                .then(snap => {
+                let tags = snap && snap.val() 
+                  && snap.val().tags || {};
+                c.next(tags);
+              });
+            }); // end of c.add
+
+            // Remove tags
+            c.add(function(tags) {
+              if (tags) {
+                let count = 0, 
+                    keys = Object.keys(tags);
+                keys.map(tagName => {
+                  ref.child('tags').child(tagName)
+                    .child(nodeId).set(null).then(() => {
+                    count++;  
+                    if (count === keys.length) {
+                      c.next();
+                    }
+                  });
+                });
+              } else {
+                c.next();
+              }
+            });
+
             // Remove data from nodeData
             c.add(function() {
               ref.child('nodeData').child(nodeId).set(null)
@@ -3019,7 +3050,6 @@
               });
             }); // end of c.add
 
-            // TBD: Remove from related tags
             //c.add(function() {
             //  c.next();
             //}); // end of c.add
@@ -3061,7 +3091,14 @@
               .then(function() {
               ref.child('tags').child(tagName).child(nodeId).set(true)
                 .then(function() {
-                nodeChain.next(); // call next
+
+                // nodeData/nodeId/tags/tagName: true
+                ref.child('nodeData').child(nodeId)
+                  .child('tags').child(tagName).set(true)
+                  .then(() => {
+                  nodeChain.next(); // call next
+                });
+
               });
             });
           });
@@ -3074,10 +3111,11 @@
 
     myGraph.create = function(callback) {
       getRef(ref => {
-        ref.child('nodes').push().set(true)
-          .then(function(snap) {
-            console.log(snap.key);
-          callback(myGraph.node(snap.key));
+        let pushed = ref.child('nodes').push();
+        pushed.set(true)
+          .then(function() {
+            console.log(pushed.key);
+          callback(myGraph.node(pushed.key));
         });
       }); 
     }; // end of myGraph.create

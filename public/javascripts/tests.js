@@ -599,11 +599,11 @@ Test.go(log => {
   log('<br>'); 
 
   G.create(item => {
-    log('Just created an item with id = ' + item.id);
+    log('Created ' + item.id);
     item
       .set('price', 1000)
       .then(data => {
-        log('"price" was set 1000');
+        log('price was set 1000');
       })
       .val({
         name: 'Item',
@@ -619,7 +619,8 @@ Test.go(log => {
       })
     
     item.del(true).then(function() {
-      log('Just deleted ' + item.id);
+      log('Deleted ' + item.id);
+      log.ok();
     });
   });
 }); // end of test

@@ -1,6 +1,6 @@
 (function(){
 //const UlistView = Views.class('Ulist'),
-const G = Cope.appGraph('testApp2'),
+const G = Cope.graph('testApp2'),
       Views = Cope.views('Purely'),
       TestBlock = Views.class('TestBlock'),
       TestBar = Views.class('TestBar'),
@@ -596,7 +596,25 @@ Test.go(log => {
   log.title('AppGraph Nodes');
 
   log(`G = Cope.appGraph('testApp2')`);
-  log('<br>');
+  log('<br>'); 
+
+  let item = G.node('testItem');
+  console.log(G);
+  console.log(item);
+  item
+    .set({ 'price': 1000 })
+    .get()
+    .then((data, next) => {
+      console.log(data);
+      next();
+    })
+    .val({ 'price': 2000 })
+    //.val()
+    .then(data => {
+      console.log(data);
+    })
+
+  return;
   log(`dreamer = G.node('Dreamers', 'Jeff')`);
   
   let dreamer = G.node('Dreamers', 'Jeff');
@@ -872,6 +890,7 @@ Test.go(log => {
   //let log = setLog();
 
   log.title('AppGraph Edges: using node.link');
+  return;
   log(`G = Cope.appGraph('testApp2')`);
   log('<br>');
   log(`let dreamer = G.node('Dreamers', 'Chops')<br><br>
@@ -906,6 +925,8 @@ Test.go(log => {
 Test.go(log => {
   log.title('AppGraph edges');
 
+  return;
+
   //let log = setLog();
   let G = Cope.appGraph('testApp2');
   
@@ -933,6 +954,8 @@ Test.go(log => {
 // Test - AppGraph.populate
 Test.go(log => {
   log.title('AppGraph.populate');
+
+  return;
 
   let G = Cope.appGraph('testApp2');
 

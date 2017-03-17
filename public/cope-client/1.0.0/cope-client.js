@@ -2796,11 +2796,247 @@
   //}; // end of Cope.Apps.list
 
   //Cope.Apps.remove = {};
-
+  
   // -----------------------------
   // Cope.graph or Cope.appGraph
   // -----------------------------
   Cope.graph = Cope.appGraph = function(_appId) {
+    let myGraph = {},
+        GRAPH_ROOT = 'cope_user_apps/' + _appId + '/graph',
+        STORE_ROOT = 'user_apps/' + _appId;
+
+    let getRef = function(cb) {
+      try {
+        getFB().then(fb => {
+          let ref = fb.database().ref(GRAPH_ROOT);
+          if (typeof cb == 'function') {
+            cb(ref);
+          }
+        });
+      } catch (err) { console.error(err); }
+    }; // end of myRef
+    
+    myGraph.node = function(nodeId) {
+      let node = {},
+          data = {},
+          chain, nodeChain;
+
+      chain = function(fn) {
+        let asyncs = [];
+        return {
+          add: function(fn) {
+            asyncs = asyncs.concat({
+              fn: fn,
+              state: 0
+            });
+            
+            console.log('ADD: ' +  asyncs.map(x => x.state).join(', '));
+            
+            if (asyncs.length > 0 && asyncs[0].state === 0) {
+              console.log('AUTO START');
+              this.next();
+            } 
+          },
+          next: function() {
+            let args = arguments, fn;
+            if (asyncs.length === 0) {
+              return;
+            }
+            if (asyncs[0].state > 0) {
+              asyncs = asyncs.slice(1);
+            }
+            fn = asyncs[0].fn;
+            asyncs[0].state = 1; // processing
+            console.log('NEXT: ' + asyncs.map(x => x.state).join(', '), args);
+
+            fn.apply(node, args);
+          } // end of next
+        }
+      }; // end of chain
+
+      // Big private chain for this node's asyncs
+      nodeChain = chain();
+
+      node.id = nodeId;
+
+      // then: passively receive external arguments
+      node.then = function(cb) { // cb <= function(result, next) { ... }
+        console.log('THEN');
+        if (typeof cb == 'function') {
+          nodeChain.add(function(result) {
+            cb.call(nodeChain, result, nodeChain.next);
+          });
+        }
+        return node;
+      }; // end of then
+
+      node.get = function(key) {
+        console.log('GET');
+        let queryKey = typeof key == 'string'
+          ? key
+          : null;
+
+        nodeChain.add(function() {
+          if (key) {
+              getRef(ref => {
+                ref.child('data').child(key).child(nodeId)
+                  .once('value')
+                  .then(snap => {
+                    nodeChain.next(snap.val() || {}); // call next with the value
+                  })
+                  .catch(err => { console.error(err); });
+              });
+          } else if (!key) {
+            getRef(ref => {
+              ref.child('nodeData')
+                .child(nodeId)
+                .once('value')
+                .then(snap => {
+                  nodeChain.next(snap.val() || {}); // call next with values
+                })
+                .catch(err => { console.error(err); });
+            });
+          }
+        }); // end of nodeChain.add
+        return node;
+      }; // end of node.get
+      
+      node.set = function(a, b) {
+        console.log('SET');
+        let updates = {};
+        if (arguments.length === 2 && typeof a == 'string') {
+          updates[a] = b;
+        } else if (arguments.length === 1 && typeof a == 'object') {
+          updates = a;
+        } else {
+          return false;
+        }
+
+        node.get().then((nodeData, next) => {
+          
+          // Merge data with updates; update to firebase
+          data = Object.assign(data, nodeData, updates);
+
+          console.log('Data', data);
+
+          getRef(ref => {
+            ref.child('nodeData').child(nodeId).set(data)
+              .then(function() {
+            
+              // Upsert values of updates
+              let keys = Object.keys(updates),
+                  count = 0;
+              keys.map(key => {
+                ref.child('data').child(key).child(nodeId)
+                  .set(updates[key]).then(function() {
+                  count = count + 1;
+                  if (count === keys.length) {
+                    next(data); // call next on success
+                  }
+                }).catch(err => { console.error(err); });
+              }); // end of map
+            }); // end of then
+          }); // end of getRef
+        }); // end of node.get().then()
+        return node;
+      }; // end of node.set
+      
+      node.val = function(a, b) { 
+        console.log('VAL');
+        switch (arguments.length) {
+          case 0: 
+            node.get(); break;
+          case 2: 
+            node.set(a, b); break;
+          case 1: 
+            if (typeof a == 'string') {
+              node.get(a);
+            } else if (typeof a == 'object' 
+                && !Array.isArray(a)
+                && a != null) {
+              node.set(a);
+            } 
+            break;
+          default:
+        }
+        return node;
+      }; // end of node.val
+
+      node.del = function(confirmation) {
+        nodeChain.add(function() {
+          if (confirmation === true) {
+            getRef(ref => {
+              ref.child('nodeData').child(nodeId).set(null)
+                .then(function() {
+                ref.child('nodes').child(nodeId).set(null)
+                  .then(function() {
+                  node.get().then(nodeData => {
+                    let keys = Object.keys(nodeData),
+                        count = 0;
+                    keys(nodeData).map(key => {
+                      ref.child('data').child(key).child(nodeId).set(null)
+                        .then(function() {
+                        count++;
+                        if (count === keys.length) {
+                          next(); // call next
+                        }
+                      });
+                    });
+                  }); // end of removal from each key-value pairs
+                }); // end of removal from nodes 
+              }); // end of removal from nodeData 
+            }); // end of getRef
+          } // end of confirmation
+        }); // end of nodeChain.add
+        return node;
+      }; // end of node.del
+      
+      node.col = function(colName) {
+        if (typeof colName != 'string') { return node; }
+        nodeChain.add(function() {
+          getRef(ref => {
+            ref.child('colNames').child(colName).set(true)
+              .then(function() {
+              ref.child('cols').child(nodeId).set(colName)
+                .then(function() {
+                nodeChain.next(); // call next  
+              });
+            });
+          });
+        });
+        return node;
+      }; // end of node.col
+      
+      node.tag = function(tagName) {
+        if (typeof colName != 'string') { return node; }
+        nodeChain.add(function() {
+          getRef(ref => {
+            ref.child('tagNames').child(tagName).set(true)
+              .then(function() {
+              ref.child('tags').child(tagName).set(nodeId)
+                .then(function() {
+                nodeChain.next(); // call next
+              });
+            });
+          });
+        });
+        return node;
+      }; // end of node.tag
+
+      return node;
+    }; // end of myGraph.node
+
+    myGraph.create = function(node) {
+      
+    }; // end of myGraph.create
+
+    return myGraph;
+  }; // end of Cope.graph
+
+  // -----------------------------
+  // @deprecated: Cope.graph or Cope.appGraph
+  // -----------------------------
+  Cope._graph = Cope._appGraph = function(_appId) {
 
     // To print debug messages
     let debug = Cope.Util.setDebug('appGraph', false);

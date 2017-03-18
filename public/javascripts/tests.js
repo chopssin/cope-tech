@@ -617,6 +617,11 @@ Test.go(log => {
         log('Current name = ' + s.name);
         log('Current price = ' + s.price);
       })
+
+    // TBD
+    //G.find('#men#promo').then(nodes => {
+    //  console.log(nodes);
+    //});
     
     item.del(true).then(function() {
       log('Deleted ' + item.id);

@@ -2804,6 +2804,59 @@
     let myGraph = {},
         GRAPH_ROOT = 'cope_user_apps/' + _appId + '/graph',
         STORE_ROOT = 'user_apps/' + _appId;
+      
+    let chain = function() {
+      let asyncs = [];
+      return {
+        add: function(fn) {
+          asyncs = asyncs.concat({
+            fn: fn,
+            state: 0
+          });
+          
+          if (asyncs.length > 0 && asyncs[0].state === 0) {
+            this.next();
+          } 
+        },
+        next: function() {
+          let args = arguments, fn;
+          if (asyncs.length === 0) {
+            return;
+          }
+
+          if (asyncs[0].state > 0) {
+            asyncs = asyncs.slice(1);
+          }
+          
+          fn = asyncs && asyncs[0] && asyncs[0].fn;
+
+          if (!fn) { 
+            return; 
+          }
+
+          asyncs[0].state = 1; // processing
+
+          fn.apply(null, args);
+        } // end of next
+      };
+    }; // end of chain
+
+    let validKey = vk = function(str) {
+      let ret = null;
+      if (typeof str == 'string') {
+        switch (str.charAt(0)) {
+          case '#':
+          case '$':
+          case '.':
+          case '/':
+          case '_':
+            break;
+          default:
+            ret = str;
+        }
+      }
+      return ret;
+    }; // end of validKey
 
     let getRef = function(cb) {
       try {
@@ -2814,52 +2867,13 @@
           }
         });
       } catch (err) { console.error(err); }
-    }; // end of myRef
+    }; // end of getRef
     
+    // node API
     myGraph.node = function(nodeId) {
       let node = {},
           data = {},
-          chain, nodeChain;
-
-      chain = function(fn) {
-        let asyncs = [];
-        return {
-          add: function(fn) {
-            asyncs = asyncs.concat({
-              fn: fn,
-              state: 0
-            });
-            
-            if (asyncs.length > 0 && asyncs[0].state === 0) {
-              this.next();
-            } 
-          },
-          next: function() {
-            let args = arguments, fn;
-            
-            if (asyncs.length === 0) {
-              return;
-            }
-  
-            if (asyncs[0].state > 0) {
-              asyncs = asyncs.slice(1);
-            }
-            
-            fn = asyncs && asyncs[0] && asyncs[0].fn;
-  
-            if (!fn) { 
-              return; 
-            }
-
-            asyncs[0].state = 1; // processing
-
-            fn.apply(node, args);
-          } // end of next
-        }
-      }; // end of chain
-
-      // Big private chain for this node's asyncs
-      nodeChain = chain();
+          nodeChain = chain();
 
       node.id = nodeId;
 
@@ -2890,22 +2904,19 @@
       }; // end of done
 
       node.get = function(key) {
-        let queryKey = typeof key == 'string'
-          ? key
-          : null;
-
+        key = validKey(key);
         nodeChain.add(function() {
           if (key) {
-              getRef(ref => {
-                ref.child('data').child(key).child(nodeId)
-                  .once('value')
-                  .then(snap => {
-                    data[key] = snap.val() || null;
-                    nodeChain.next(data[key]); // call next with the value
-                  })
-                  .catch(err => { console.error(err); });
-              });
-          } else if (!key) {
+            getRef(ref => {
+              ref.child('data').child(key).child(nodeId)
+                .once('value')
+                .then(snap => {
+                  data[key] = snap.val() || null;
+                  nodeChain.next(data[key]); // call next with the value
+                })
+                .catch(err => { console.error(err); });
+            });
+          } else {
             getRef(ref => {
               ref.child('nodeData')
                 .child(nodeId)
@@ -2924,7 +2935,7 @@
       
       node.set = function(a, b) {
         let updates = {};
-        if (arguments.length === 2 && typeof a == 'string') {
+        if (arguments.length === 2 && validKey(a)) {
           updates[a] = b;
         } else if (arguments.length === 1 && typeof a == 'object') {
           updates = a;
@@ -2933,7 +2944,6 @@
         }
 
         node.get().done((nodeData, next) => {
-          
           // Merge data with updates; update to firebase
           data = Object.assign(data, nodeData, updates);
           getRef(ref => {
@@ -2944,7 +2954,7 @@
               // Upsert values of updates
               let keys = Object.keys(updates),
                   count = 0;
-              keys.map(key => {
+              keys.filter(key => validKey(key)).map(key => {
                 ref.child('data').child(key).child(nodeId)
                   .set(updates[key]).then(function() {
                   count = count + 1;
@@ -2956,6 +2966,7 @@
             }); // end of then
           }); // end of getRef
         }); // end of node.get().done()
+        
         return node;
       }; // end of node.set
       
@@ -2984,39 +2995,45 @@
         if (confirmation === true) {
         } else { return; } 
             
-        // Remove node's data
-        node.get().done((nodeData, next) => {
-          let keys = Object.keys(nodeData),
-              count = 0;
-          getRef(ref => {
-            keys.map(key => {
-              ref.child('data').child(key).child(nodeId).set(null)
-                .then(function() {
-                count++;
-                if (count === keys.length) {
-                  next();
-                }
-              });
-            });
-          }); // end of getRef
-        }); // end of node.get().done()
-
         nodeChain.add(function() {
           let c = chain();
           getRef(ref => {
 
             // Get data from nodeData
             c.add(function() {
-              ref.child('nodeData').child(nodeId).once('value')
+              ref.child('nodeData')
+                .child(nodeId)
+                .once('value')
                 .then(snap => {
-                let tags = snap && snap.val() 
-                  && snap.val().tags || {};
-                c.next(tags);
-              });
+                  val = snap.val() || {};
+                  c.next(val); // call next with values
+                })
+                .catch(err => { console.error(err); });
+            }); // end of c.add
+
+            // Remove values of /data/<key>
+            c.add(function(val) {
+              if (!val) { val = {}; }
+              if (!val.data) { val.data = {}; }
+
+              let keys = Object.keys(val.data),
+                  count = 0;
+              getRef(ref => {
+                keys.map(key => {
+                  ref.child('data').child(key).child(nodeId).set(null)
+                    .then(function() {
+                    count++;
+                    if (count === keys.length) {
+                      c.next(val);
+                    }
+                  });
+                });
+              }); // end of getRef
             }); // end of c.add
 
             // Remove tags
-            c.add(function(tags) {
+            c.add(function(val) {
+              let tags = val && val.tags || {};
               if (tags) {
                 let count = 0, 
                     keys = Object.keys(tags);
@@ -3050,10 +3067,6 @@
               });
             }); // end of c.add
 
-            //c.add(function() {
-            //  c.next();
-            //}); // end of c.add
-
             // Remove node's id from cols
             c.add(function() {
               ref.child('cols').child(nodeId).set(null)
@@ -3068,7 +3081,7 @@
       }; // end of node.del
       
       node.col = function(colName) {
-        if (typeof colName != 'string') { return node; }
+        if (!validKey(colName)) { return node; }
         nodeChain.add(function() {
           getRef(ref => {
             ref.child('colNames').child(colName).set(true)
@@ -3084,7 +3097,7 @@
       }; // end of node.col
       
       node.tag = function(tagName) {
-        if (typeof tagName != 'string') { return node; }
+        if (!validKey(tagName)) { return node; }
         nodeChain.add(function() {
           getRef(ref => {
             ref.child('tagNames').child(tagName).set(true)
@@ -3109,16 +3122,23 @@
       return node;
     }; // end of myGraph.node
 
+    // To create a new node
+    // callback: function(node)
     myGraph.create = function(callback) {
       getRef(ref => {
         let pushed = ref.child('nodes').push();
         pushed.set(true)
           .then(function() {
-            console.log(pushed.key);
           callback(myGraph.node(pushed.key));
         });
       }); 
     }; // end of myGraph.create
+
+    // TBD: To find nodes
+    // query: string, '[#tag]' || 'recent' || 'featured'
+    myGraph.find = function(query) {
+     
+    };
 
     return myGraph;
   }; // end of Cope.graph

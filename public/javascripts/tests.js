@@ -619,10 +619,9 @@ Test.go(log => {
         G.find({ 
           tags: ['dope', 'women']
         }).then(nodes => {
-          console.log('Find ' + nodes.length + ' node(s) with tags = "dope" && "women"');
+          log('Find ' + nodes.length + ' node(s) with tags = "dope" && "women"');
           nodes.map(node => {
             node.get()
-              .then(data => { console.log(data); })
               .del(true).then(function() {
                 log('Deleted ' + node.id);
                 log.ok();

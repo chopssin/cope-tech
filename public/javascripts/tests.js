@@ -596,45 +596,42 @@ Test.go(log => {
   log.title('AppGraph Nodes');
 
   log(`G = Cope.appGraph('testApp2')`);
-  log('<br>'); 
 
   G.create(item => {
     log('Created ' + item.id);
-    /*item
+    item
       .set('price', 1000)
       .then(data => {
         log('price was set 1000');
       })
       .val({
-        name: 'FF 12',
+        name: ('F - ' + Math.random() * 100).slice(0, 6),
         price: 1200
       })
-      .col('shirt')
+      .col('dress')
       .tag('women')
-      .tag('promo')
+      .tag('dope')
       .then(data => {
         let s = item.snap();
         log('Current name = ' + s.name);
         log('Current price = ' + s.price);
-      })
-      */
-    
-    //item.del(true).then(function() {
-    //  log('Deleted ' + item.id);
-    //  log.ok();
-    //});
-  });
+          
+        G.find({ 
+          tags: ['dope', 'women']
+        }).then(nodes => {
+          console.log('Find ' + nodes.length + ' node(s) with tags = "dope" && "women"');
+          nodes.map(node => {
+            node.get()
+              .then(data => { console.log(data); })
+              .del(true).then(function() {
+                log('Deleted ' + node.id);
+                log.ok();
+              });
+          });
+        });
 
-  // TBD
-  console.log('Find');
-  G.find({ 
-    tags: ['dope', 'women']
-  }).then(nodes => {
-    console.log(nodes);
-    nodes.map(node => {
-      node.get().then(data => { console.log(data); });
-    });
-  });
+      });
+  }); // end of G.create
 }); // end of test
 
 // Test - Purely

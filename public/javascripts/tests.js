@@ -600,32 +600,39 @@ Test.go(log => {
 
   G.create(item => {
     log('Created ' + item.id);
-    item
+    /*item
       .set('price', 1000)
       .then(data => {
         log('price was set 1000');
       })
       .val({
-        name: 'Item',
-        price: 2000
+        name: 'FF 12',
+        price: 1200
       })
       .col('shirt')
-      .tag('men')
+      .tag('women')
       .tag('promo')
       .then(data => {
         let s = item.snap();
         log('Current name = ' + s.name);
         log('Current price = ' + s.price);
       })
-
-    // TBD
-    //G.find('#men#promo').then(nodes => {
-    //  console.log(nodes);
-    //});
+      */
     
-    item.del(true).then(function() {
-      log('Deleted ' + item.id);
-      log.ok();
+    //item.del(true).then(function() {
+    //  log('Deleted ' + item.id);
+    //  log.ok();
+    //});
+  });
+
+  // TBD
+  console.log('Find');
+  G.find({ 
+    tags: ['dope', 'women']
+  }).then(nodes => {
+    console.log(nodes);
+    nodes.map(node => {
+      node.get().then(data => { console.log(data); });
     });
   });
 }); // end of test

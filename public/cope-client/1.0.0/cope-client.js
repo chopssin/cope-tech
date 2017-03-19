@@ -2991,7 +2991,6 @@
       }; // end of node.val
 
       node.del = function(confirmation) {
-
         if (confirmation === true) {
         } else { return; } 
             
@@ -3075,7 +3074,6 @@
               });
             }); // end of c.add
           }); // end of getRef
-
         }); // end of nodeChain.add
         return node;
       }; // end of node.del
@@ -3112,10 +3110,10 @@
                   nodeChain.next(); // call next
                 });
 
-              });
-            });
-          });
-        });
+              }); // end of ref ... tags ... set(true)
+            }); // end of ref... tagNames ... set(true)
+          }); // end of getRef
+        }); // end of nodeChain.add
         return node;
       }; // end of node.tag
 
@@ -3135,10 +3133,92 @@
     }; // end of myGraph.create
 
     // TBD: To find nodes
-    // query: string, '[#tag]' || 'recent' || 'featured'
+    // query: object, { col, tags, sort, limit }
     myGraph.find = function(query) {
-     
-    };
+      let q, col, tags, sort, limit, intersect;
+      q = typeof query == 'object' ? query : {};
+      col = typeof q.col == 'string' ? q.col : null;
+      tags = Array.isArray(q.tags) ? q.tags : [];
+      sort = typeof q.sort == 'string' ? q.sort : 'recent';
+      limit = !isNaN(q.limit) ? q.limit : 1;
+      intersect = function(a, b) {
+        let o = {};
+        a = Object.keys(a);
+        b = Object.keys(b);
+        if (a.length > b.length) {
+          let tmp = a; 
+          a = b;
+          b = tmp;
+        }
+        a.filter(key => b.indexOf(key) > -1).map(key => {
+          o[key] = true;
+        });
+        return o;
+      }; // end of intersect
+      
+      return new Promise((res, rej) => {
+        getRef(ref => {
+          let c = chain(),
+              idsCol = {},
+              idsTags = {};
+
+          // Find with "col"
+          if (col) {
+            c.add(ids => {
+              ids = ids || {};
+              ref.child('cols').orderByValue()
+                .equalTo(col)
+                .once('value', snap => {
+                  idsCol = snap.val();
+                  c.next();
+                });
+            }); // end of c.add
+          } 
+
+          // Find with "tags"
+          if (tags && tags.length) {
+            tags.map((tag, i) => {
+              c.add(ids => {
+                if (ids || i === 0) {
+                  ref.child('tags').child(tag).once('value')
+                    .then(snap => {
+                      let _ids = snap.val();
+                      if (_ids) {
+                        if (i > 0) {
+                          ids = intersect(ids, _ids);
+                        } else {
+                          ids = _ids;
+                        }
+                      }
+                      idsTags = ids;
+                      c.next(ids);
+                    });
+                } else { c.next({}); }
+              });
+            });
+          } // end of finding tags
+
+          // TBD: Merge, sort and limit
+          c.add(ids => {
+            let nodes = [];
+            if (col && tags && tags.length) {
+              ids = intersect(idsCol, idsTags);
+            } else if (col) {
+              ids = idsCol;
+            } else if (tags && tags.length) {
+              ids = idsTags;
+            }
+
+            if (ids) {
+              nodes = Object.keys(ids)
+                .map(id => myGraph.node(id));
+            }
+            res(nodes); // resolve
+          });
+
+        }); // end of getRef  
+      }); // end of new Promise
+    }; // end of myGraph.find
 
     return myGraph;
   }; // end of Cope.graph

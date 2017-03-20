@@ -8,6 +8,7 @@ let NavView = Views.class('Nav'),
   TextareaView = Views.class('Textarea'),
   RichTextareaClass = Views.class('RichTextarea'),
   ParagraphClass = Views.class('Paragraph'),
+  DataUpLoaderClass = Views.class('DataUpLoader'),
   ImageUploaderView = Views.class('ImageUploader'),
   PhotoView = Views.class('Photo'),
   GridView = Views.class('Grid'),
@@ -410,18 +411,24 @@ TextareaView.render(vu => {
 });
 
 // RichTextarea
+// - showDone: boolean
+// "done" <- array: get each of Paragraph's Data
 RichTextareaClass.dom(vu => [
   { 'div.view-richtextarea': [
     { 'div@content(contenteditable = true)': [
       { 'p': 'Title' }] 
     }, 
     { 'button@add': 'Add Image' },
-    { 'button@done': 'Done' }]
+    { 'button@done.hidden': 'Done' }]
   }
 ]);
 
 RichTextareaClass.render(vu => {
   let vus = {};
+
+  if (vu.get('showDone')) {
+    vu.$el('@done').removeClass('hidden');
+  }
 
   let getData = function() {
     let data = [];
@@ -439,8 +446,8 @@ RichTextareaClass.render(vu => {
           sel: $(this),
           data: {
             type: 'link',
-            text: p,
-            link: p
+            text: p
+            //link: p
           }
         })
         vus[a.id] = a;
@@ -465,12 +472,20 @@ RichTextareaClass.render(vu => {
     return data;
   }; // end of getData
 
+  vu.$el('@content').off('blur').on('blur', e => {
+    let data = getData();
+    console.log(getData());
+    if( data[data.length - 1].type === 'link'
+      && vu.$el('@content').children().last().html() != '<br>') {
+      vu.$el('@content').append('<p><br></p>');
+    }
+  });
+
   vu.$el('@content').off('keyup').on('keyup', e => {
     let html = vu.$el('@content').html();
 
     if (e.which == 13) {
       let data = getData();
-      console.log(data, vu.$el('@content').children());
     }
   });
 
@@ -487,11 +502,10 @@ RichTextareaClass.render(vu => {
   })
 
   vu.$el('@done').off('click').on('click', function(e) {
-    console.log(getData());
+    vu.res('done', getData());
   })
 
   getData();
-
 });
 // End of RichTextarea
 
@@ -527,19 +541,16 @@ ParagraphClass.render(vu => {
   } // end of toggle
 
   function checkType (text) {
-    let type;
+    let type = 'text';
     if(text.indexOf('http') === 0){
       type = 'link'
-      return type;
     }
-    type = 'text';
     return type;
   }
 
   vu.$el('@textarea').off('keyup').on('keyup', function (e) {
     vu.set('text', textarea.val().value);
     if (e.which === 13) {
-      
       // Check text type
       vu.res('enter');
       vu.val('type', checkType(vu.get('text')));
@@ -554,13 +565,11 @@ ParagraphClass.render(vu => {
 
   vu.use('type').then(v => {
     if (v.type === 'link') {
-      let link = vu.get('link') || vu.get('text');
-      //form.val('inputs', [
-      //  { type: 'text', label: 'Title', value: vu.get('text') },
-      //  { type: 'text', label: 'Url', value: link }]
-      //)
+      // let link = vu.get('link') || vu.get('text');
+      let link = vu.map('link', link => link || vu.get('text') || '' );
+   
+
       toggle('preview-link');
-      vu.set('link', vu.get('link'));
       vu('@preview-link').html([
         ['span@btn-edit(style="margin: 10px 10px 10px 0; cursor: pointer;").as-btn.color-w.bg-blue[w40px]', 'Edit'],
         [`a(href=${vu.get('link') || vu.get('text')})`, vu.get('text')]
@@ -568,7 +577,6 @@ ParagraphClass.render(vu => {
       vu.$el('@btn-edit').off('mousedown').on('mousedown', function (e) {
         e.stopPropagation();
       }).off('click').on('click', e => {
-        
         // Use Cope.modal to open the link editor
         let form = Cope.modal(Views.class('Form'), {
           inputs: [
@@ -587,6 +595,184 @@ ParagraphClass.render(vu => {
   }); // end of use('type')
 });
 // End of Paragrpah
+
+// DataUpLoader
+// - category: array
+DataUpLoaderClass.dom(vu => [
+  { 'div.view-datauploader': [
+    { 'div.panel-display@panel-display': [
+      { 'div.page-1@page-1': [
+        { 'div@blog(style="color: red;")': 'Blog' },
+        { 'div@item': 'Item' }]
+      },
+      { 'div.page-2@page-2.hidden': [
+        { 'div.panel-page@panel-page': '' },
+        { 'div.panel-control@button.hidden(style="display: flex; justify-content:space-around;")': [
+          { 'div@add-text.btn-red': '+ Text'},
+          { 'div@add-media.btn-red': '+ Media'},
+          { 'div@add-link.btn-red': '+ Link'}]
+        }]
+      },
+      { 'div@page-3.hidden': 'page3'}]
+    },
+    { 'div.control-bar': [
+      { 'div@back.btn-red.hidden': 'Back' },
+      { 'div@next.btn-red': 'Next'}]
+    }]
+  } 
+]);
+
+DataUpLoaderClass.render(vu => {
+  let richTextarea,
+      listItem,
+      LT,
+      viewData = {},
+      cat, tags, 
+      type = vu.get('type') || 'blog',
+      idx = 1;
+  function toggle(select) {
+    let sign = (select === 'next') ? 1 : -1;
+    idx = idx + 1 * sign;
+    vu.$el('@panel-display').children().addClass('hidden');
+    vu.$el('@page-' + idx).removeClass('hidden');
+  }
+
+  ['blog', 'item'].map(x => {
+    vu.$el('@' + x).off('click').on('click', e => {
+       vu.$el('@page-1').children()
+      .removeClass('selected')
+      .css('color', '#000');
+
+      vu.$el('@' + x)
+      .css('color', 'red')
+      .addClass('selected');
+      
+      type = vu.map('type',type => x , true);
+    })
+  }); // end of map
+
+  // toggle event
+  vu.$el('@back').off('click').on('click', e => {
+    if (idx > 1) {
+      toggle('back');
+    }
+    if (idx === 1) {
+      vu.$el('@back').addClass('hidden');
+    }
+  }); // end of @back click 
+
+  vu.$el('@next').off('click').on('click', e => {
+    if (idx <= 3) {
+      toggle('next');
+      vu.$el('@back').removeClass('hidden');
+    }
+    if (idx === 4) {
+      viewData.data = [];
+      viewData.colType = type;
+      if(type === 'item' && LT.get('List').get().length > 0) {
+        LT.get('List').get().map(x => {
+          viewData.data = viewData.data.concat(x.view.get());
+        });
+      } else if (type === 'blog') {
+          viewData.data = viewData.data.concat(richTextarea.get().data);
+      }
+      console.log(viewData);
+      vu.res('viewData', viewData);
+    }
+  }); // end of @next click
+
+  // Build RichTextarea
+  switch (type) {
+    case 'blog':
+      vu.$el('@button').addClass('hidden');
+
+      richTextarea = RichTextareaClass.build({
+        sel: vu.sel('@panel-page')
+      }).res('done', data => {
+        console.log('clicked done', data);
+      });
+      break;
+    case 'item':
+      LT = SortableListClass.build({
+        sel: vu.sel('@panel-page')
+      })
+      vu.$el('@button').removeClass('hidden');
+      LT.val('new', {
+        viewClass: ListItemView,
+        data: {
+          type: 'text',
+          label: 'Name',
+          value: 'Name',
+          labelEditable: true,
+          editable: true
+        }
+      });
+      LT.val('new', {
+        viewClass: ListItemView,
+        data: {
+          type: 'text',
+          label: 'Price',
+          value: '$1000',
+          labelEditable: true,
+          editable: true
+        }
+      });
+      break;
+    default:
+      break;
+  } // end of switch
+
+  // Build ListItemView for category on page 3
+  cat = ListItemView.build({
+    sel: vu.sel('@page-3'),
+    data: {
+      type: 'text-select',
+      label: 'Category',
+      items: [{ value: 'shirt' }, { value: 'pants' }]
+    }
+  });
+
+  tags = ListItemView.build({
+    sel: vu.sel('@page-3'),
+    method: 'append',
+    data: {
+      type: 'text-select',
+      label: 'Tags',
+      items: [{ value: 'tag1' }, { value: 'troll' }]
+    }
+  }); 
+
+  vu('@page-3').append([{ 'div': 'TBD: Tags' }]);
+
+  cat.res('keyWord', keyWord => {
+    viewData.categort = keyWord;
+  })
+  tags.res('keyWord', keyWord => {
+    viewData.tags = keyWord;
+  });
+
+
+  // Type click event
+  ['text', 'media', 'link'].map(type => {
+    vu.$el('@add-' + type).off('click').on('click', e => {
+      vu.$el('@panel-page').animate({
+        scrollTop: vu.$el('@panel-page')[0].scrollHeight
+      }, 600);
+
+      LT.val('new',{
+        viewClass: ListItemView,
+        data: {
+          type: type,
+          label: 'Label',
+          value: 'Text',
+          labelEditable: true,
+          editable: true
+        }
+      })
+    });
+  }) // end of type click event
+});
+// End of DataUpLoader
 
 // ImageUploader
 // @preview
@@ -643,7 +829,7 @@ ImageUploaderView.render(vu => {
 		} // end of if
 	});// end of change-event
 });
-
+// End of ImageUploader
 
 // FormView
 // FormView.dom(vu =>`
@@ -1175,17 +1361,24 @@ PurelyLayoutSingleView.render(vu => {
 
 // ListItem
 // @value: text input or textarea
+// - type: 'text' || 'textarea' || 'media' || 'select' || 'link'
 // - label: string
 // - value: string
+// - items: array
 // - editable: boolean
-// - textarea: boolean, true to use textarea instead
+// - labelEditable: boolean
 // "value" <- string: triggered on every keyup
 // "done": <- string: only triggered on Enter or focusout event
 ListItemView.dom(vu => [
   { 'div.view-list-item': [ 
-    { 'div@label.item-label': '' },
-    { 'div@display.item-display': '' },
-    { 'div@editable.hidden.color-orange': '' }]
+    { 'div@label.item-label': [
+      { 'div@label-display': '' },
+      { 'div@label-editable.hidden': '' }]
+    },
+    { 'div@form': [
+      { 'div@display.item-display': '' },
+      { 'div@editable.hidden.color-orange': '' }]
+    }]
   }
 ]);
 
@@ -1194,6 +1387,7 @@ ListItemView.render(vu => {
       displayValue = '',
       $textInput, 
       url,
+      labelEditable = vu.get('labelEditable'),
       editable = vu.get('editable'),
       placeholder = vu.get('placeholder') 
         ? ' placeholder = "' + vu.get('placeholder') + '" '
@@ -1217,6 +1411,7 @@ ListItemView.render(vu => {
         vu.res('value', vu.map('value', x => {
           let newVal = $textInput.val().trim();
           if (!newVal) newVal = '';
+          console.log(displayValue);
           return newVal;
         }));
         if (e.which === 13) {
@@ -1266,19 +1461,61 @@ ListItemView.render(vu => {
     case 'select':
       // TBD
       break;
+    case 'text-select':
+      vu('@editable').html([
+        [ 'input@input(type="text"' 
+          + placeholder
+          + 'value = "' + vu.get('value') + '"'
+          + ')' ],
+        { '@select-list.text-select': '' }
+      ]);
+      break;
+    case 'link':
+      let paragraph = ParagraphClass.build({
+        sel: vu.sel('@display'),
+        data: {
+          type: 'link',
+          text: 'link'
+        }
+      });
+      break;
     default:
-  }
+  } // end of switch
 
   if (editable) {
-    vu.$el().addClass('hover-effect')
-      .off('click').on('click', e => {
+    vu.$el().addClass('hover-effect');
+    vu.$el('@form').off('click').on('click', e => {
         vu.val('edit', true);
-      });
+    });
   }
 
-  // Set label
-  vu('@label').html(vu.map('label', x => x || ''));
+  // Set label 
+  vu('@label-display').html(vu.map('label', x => x || ''));
+  vu('@label-editable').html([
+    [ 'input(type="text"' 
+      + 'value = "' + vu.get('label') + '"'
+      + ')' ]
+  ]);
+  if (labelEditable) {
+    vu.$el('@label-display').off('click').on('click', e => {
+      vu.$el('@label-display').addClass('hidden');
+      vu.$el('@label-editable').removeClass('hidden');
+    });
+    vu.$el('@label-editable').find('input').off('keyup').on('keyup', function(e) {
+      let label = $(this).val().trim();
+      vu.set('label', label);
+      vu('@label-display').html(label);
 
+      if (e.which === 13) {
+        vu.$el('@label-editable').addClass('hidden');
+        vu.$el('@label-display').removeClass('hidden');
+      }
+    });
+    vu.$el('@label-editable').find('input').off('focusout').on('focusout', e => {
+      vu.$el('@label-editable').addClass('hidden');
+      vu.$el('@label-display').removeClass('hidden');
+    });
+  } // end of if (labelEditable)
   // Render with value
   if (displayValue) {
     vu('@display').html(displayValue);
@@ -1315,6 +1552,33 @@ ListItemView.render(vu => {
   } else {
     vu.$el('@display').removeClass('hidden');
     vu.$el('@editable').addClass('hidden');
+  }
+
+  // text-select's logic
+  if (type === 'text-select' && vu.get('items')) {
+    vu.$el('@editable').removeClass('hidden');
+    vu.$el('@select-list').addClass('hidden');
+    vu.get('items').map(item => {
+      vu.$el('@select-list').append(`<p>${item.value}</p>`);
+    }); // end of map
+    vu.$el('@input').off('keyup').on('keyup', function(e) {
+      let val = $(this).val();
+      let keyWord = vu.get('items').filter(item => item.value.indexOf(val)  === 0 );
+      vu.$el('@select-list').html('');
+      keyWord.map(item => {
+        vu.$el('@select-list').append(`<p>${item.value}</p>`);
+      });
+      if (e.which === 13) {
+        vu.$el('input').focusout();
+      }
+      vu.res('keyWord', val);
+    }); // end of keyup
+    vu.$el('@input').off('focus').on('focus', e => {
+      vu.$el('@select-list').removeClass('hidden');
+    }); // end of click
+    vu.$el('@input').off('focusout').on('focusout', e => {
+      vu.$el('@select-list').addClass('hidden');
+    });
   }
 }); 
 // End of ListItem

@@ -399,6 +399,16 @@ Test.go(log => {
 });
 
 Test.go(log => {
+  log.title('DataUpLoader');
+  let purelyViews = Cope.views('Purely'),
+      sel = log.sel(),
+      DataUpLoader;
+  DataUpLoader = purelyViews.class('DataUpLoader').build({
+    sel: sel
+  })
+})
+
+Test.go(log => {
   log.title('Paragraph');
   let purelyViews = Cope.views('Purely'),
       sel = log.sel(),
@@ -418,6 +428,7 @@ Test.go(log => {
   }).res('up', () => {
     console.log('up');
   });
+  log.ok();
 })
 
 Test.go(log => {
@@ -429,6 +440,7 @@ Test.go(log => {
   richTextarea = purelyViews.class('RichTextarea').build({
     sel: sel
   });
+  log.ok();
 });
 
 Test.go(log => {
@@ -524,7 +536,6 @@ Test.go(log => {
       log.ok();
     }
   });
-
 });
 
 // Tests with setTimeout

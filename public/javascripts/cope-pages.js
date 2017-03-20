@@ -92,10 +92,10 @@ Pages.use('/', params => {
             
             // Init sections of page "/" with sampleSections
             homePage.val('sections', sampleSections)
-              .then(sections => {
+              .then(data => {
               
               // Pass on sections of page "/"
-              c.next(sections);
+              c.next(sampleSections);
             });
           } else {
 

@@ -43,7 +43,7 @@ let sampleSections = [{
 Pages.use('/', params => {
 
   let user = {},
-      ds = Cope.dataSnap(),
+      ds = Cope.dataSnap(), // core dataSnap
       copeApp,
       copeNav;
       
@@ -58,13 +58,84 @@ Pages.use('/', params => {
     data: {
       logo: { text: 'Cope' }
     }
-  }).res('logo clicked', () => {
-    copeApp.val('toggle', 'overview');
   });
 
   // Enroll copeApp, copeNav in ds
   ds.enroll(copeApp);
   ds.enroll(copeNav);
+  
+  // Set res of copeApp
+  copeApp.res('app selected', appId => {
+    let G = Cope.graph(appId),
+        c = Cope.chain(),
+        currPage = 'page-', // "/"
+        appsData = copeApp.get('apps'),
+        appData;
+
+    // Get the app data
+    appData = appsData && appsData[appId];
+    if (!appData) {
+      console.error('Failed to find appData')
+      //c.add(); 
+    }
+
+    console.log(appData);
+
+    // Try to access page "/" of the app
+    if (!appData.sectionsOf || !appData.sectionsOf[currPage]) {
+
+      // Get sections of page "/"
+      c.add(() => {
+        let homePage = G.node(currPage);
+        homePage.val('sections').then(sections => {
+          if (!sections) {
+            
+            // Init sections of page "/" with sampleSections
+            homePage.val('sections', sampleSections)
+              .then(sections => {
+              
+              // Pass on sections of page "/"
+              c.next(sections);
+            });
+          } else {
+
+            // Pass on sections of page "/"
+            c.next(sections);
+          }
+        });
+      })
+
+      // Update the core dataSnap
+      c.add(sections => {
+        ds.map('apps', x => {
+          x[appId].sectionsOf[currPage] = sections;
+          return x;
+        });
+        c.next(); // keep going
+      });
+    } // end of if
+
+    // Toggle to app editor
+    c.add(() => {
+      copeApp.val('toggle', 'app-editor');
+    });
+  }) // end of "app selected" of copeApp
+  .res('save page', obj => {
+    let currAppId = obj.currAppId,
+        currPage = obj.currPage, // page-<path>
+        appData = obj.appData;
+
+    console.log('save page', obj);
+
+    // Find the node by currAppId and update app data
+    let G = Cope.graph(currAppId);
+    G.node(currPage).val('sections', appData.sectionsOf[currPage]);
+  }); // end of "save" of copeApp
+
+  // Set res of copeNav
+  copeNav.res('logo clicked', () => {
+    copeApp.val('toggle', 'overview');
+  });
 
   // Get user interface
   Cope.user().then(user => {
@@ -100,13 +171,14 @@ Pages.use('/', params => {
 
         // Update more details about those apps
         app.get('appName').then(appName => {
-          ds.map('apps', apps => {
+          ds.map('apps', apps => { 
+            // Note that the following apps is actually data.apps
             apps[app.appId].appName = appName;
             apps[app.appId].stat = 'Free Trial';
-            apps[app.appId].sectionsOf['/'] = sampleSections;
             return apps;
           }, true);
         });
+
         return app.appId;
       });
       ds.val(data); 

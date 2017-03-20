@@ -1547,7 +1547,9 @@ ToggleView.render(vu => {
 
 // Cope.App
 // - overview: the Cope.App.Main view
-// - toggle: string, 'main' || 'app'
+// - toggle: string, 'overview' || 'app-editor'
+// - currAppId: string, the selected appId
+// "app selected" <- object, the selected appId and related data
 CopeAppClass.dom(vu => [
   { 'div.view-cope-app': [
     { 'div@sec-overview': 'Cope app' }, 
@@ -1564,20 +1566,36 @@ CopeAppClass.render(vu => {
     });
 
     // When an app is selected
-    overview.res('app', app => {
-      let appEditor = Views.class('Cope.App.AppEditor').build({
-        sel: vu.sel('@sec-app-editor'),
-        data: app
-      });
-      vu.val('toggle', 'app-editor');
+    overview.res('app selected', appId => {
+      vu.set('currAppId', appId);
+
+      // Fetch data from outside
+      vu.res('app selected', appId);
     });
     return overview;
   });
 
-  // Toggle between 'main' and 'app editor'
+  // Toggle between 'main' and 'app-editor'
   vu.use('toggle').then(v => {
     vu.$el().children().addClass('hidden');
     vu.$el('@sec-' + v.toggle).removeClass('hidden');
+
+    let currAppId = vu.get('currAppId');
+    if (currAppId && v.toggle === 'app-editor') {
+
+      // Build App Editor and updates data from this view
+      let appEditor = Views.class('Cope.App.AppEditor').build({
+        sel: vu.sel('@sec-app-editor'),
+        data: vu.get().apps[currAppId]
+      }).res('save page', () => {
+        // Pass data to outside
+        vu.res('save page', {
+          currAppId: currAppId,
+          currPage: appEditor.val('currPage'),
+          appData: appEditor.val()
+        }); 
+      })
+    }
   });
 
   // Update user's email
@@ -1614,25 +1632,28 @@ CopeAppOverviewClass.render(vu => {
   });
 
   vu.use('apps, appIds').then(v => {
-    if (!v.appIds || !v.appIds.length) return;
-    console.log('overview');
+    if (!v.appIds || !v.appIds.length) { return; }
+
     vu('@apps').html('');
     v.appIds.map(appId => {
+
       Views.class('AppCard').build({
         sel: vu.sel('@apps'),
         method: 'append',
         data: v.apps[appId]
       }).res('touched', function() {
-        vu.res('app', v.apps[appId]);
+        
+        // Ask for data from outside
+        vu.res('app selected', appId);
       });
     });
   });
-
-  
 });
 // End of Cope.App.Overview
 
 // Cope.App.AppEditor
+// - currPage: string
+// - sectionsOf: sections fo currPage
 CopeAppEditorClass.dom(vu => [
   { 'div.view-app-editor': [
     { '.full-bg': '' },
@@ -1655,11 +1676,10 @@ CopeAppEditorClass.dom(vu => [
 
 CopeAppEditorClass.render(vu => {
 
-  console.log(vu.get());
-
-  let currentPage = vu.get('page') || '/',
-      sections = vu.get('sectionsOf')[currentPage] || [],
+  let currPage = vu.map('currPage', x => x || 'page-'),
+      sections = vu.get('sectionsOf')[currPage] || [],
       itemOnclick,
+      savePage,
       toggleBack,
       addNewData;
 
@@ -1720,6 +1740,7 @@ CopeAppEditorClass.render(vu => {
     vu.$el('@control-back').off('click').on('click', e => {
       // Update the selected section
       view.val(tmpSection.val());
+      savePage();
       toggleBack();
     });
 
@@ -1730,6 +1751,7 @@ CopeAppEditorClass.render(vu => {
       item.view.$el().fadeOut(800);
       setTimeout(function() {
         SS.val('remove', item.idx);
+        savePage();
       }, 1200);
     });
     
@@ -1737,6 +1759,19 @@ CopeAppEditorClass.render(vu => {
     vu.$el('@section-editor').show();
 
   }; // end of itemOnclick
+
+  savePage = function() {
+    vu.map('sectionsOf', x => {
+      let sections = [];
+      SS.get('List').get().map(item => {
+        sections[item.idx] = item.view.get();
+      });
+      x[currPage] = sections;
+      return x;
+    });
+
+    vu.res('save page');
+  };
 
   toggleBack = function() {
     vu('@control').html([
@@ -1761,6 +1796,9 @@ CopeAppEditorClass.render(vu => {
       vu.$el('@sim').animate({ scrollTop: vu.$el('@sim')[0].scrollHeight }, 400);
       setTimeout(function() {
         SS.get('List').getByIdx(-1).view.$el().click();
+
+        // Update page data
+        savePage();
       }, 400);
     });
 

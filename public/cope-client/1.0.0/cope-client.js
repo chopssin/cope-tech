@@ -391,6 +391,48 @@
   }; //dataURItoBlob
 
   // -----------------------------
+  // Cope.chain
+  // -----------------------------
+  let chain = Cope.chain = function() {
+    let asyncs = [],
+        my = {};
+
+    my.add = function(fn) {
+      asyncs = asyncs.concat({
+        fn: fn,
+        state: 0
+      });
+      
+      if (asyncs.length > 0 && asyncs[0].state === 0) {
+        my.next();
+      } 
+    }; // end of my.add
+
+    my.next = function() {
+      let args = arguments, fn;
+      if (asyncs.length === 0) {
+        return;
+      }
+
+      if (asyncs[0].state > 0) {
+        asyncs = asyncs.slice(1);
+      }
+      
+      fn = asyncs && asyncs[0] && asyncs[0].fn;
+
+      if (!fn) { 
+        return; 
+      }
+
+      asyncs[0].state = 1; // processing
+
+      fn.apply(null, args);
+    } // end of my.next
+
+    return my;
+  }; // end of Cope.chain
+
+  // -----------------------------
   // Cope.dataSnap
   // -----------------------------
   Cope.dataSnap = function(_name) {
@@ -2805,6 +2847,7 @@
         GRAPH_ROOT = 'cope_user_apps/' + _appId + '/graph',
         STORE_ROOT = 'user_apps/' + _appId;
       
+    /*
     let chain = function() {
       let asyncs = [];
       return {
@@ -2840,6 +2883,7 @@
         } // end of next
       };
     }; // end of chain
+    */
 
     let validKey = vk = function(str) {
       let ret = null;

@@ -1610,12 +1610,23 @@ Test.go(log => {
         .res('value', value => {
           log(value);
         })
-        .res('upload', files => {
+        .res('done', files => {
           console.log(files);
+
+          let ts = new Date().getTime();
           files.map(x => {
             if (x.file.type.slice(0, 5) === 'image') {
               $(log.sel()).append('<img src=' + x.thumbImage + '>');
             }
+
+            //Cope.graph('testApp').upload(x.file, { timestamp: ts }).then(obj => {
+            //  console.log(x.file.name, obj.url);
+            //});
+
+            //Cope.graph('testApp').upload(x.thumbFile, { timestamp: ts }).then(obj => {
+            //  console.log('thumb', obj.url)
+            //  console.log(obj.node.snap());
+            //})
           });
         })
     });
@@ -1642,7 +1653,7 @@ Test.go(log => {
     data: { 
       btnText: 'Uploader',
       viewName: 'file',
-      maxWidth: 40
+      maxWidth: 100
     } 
   });
   log.ok(); 

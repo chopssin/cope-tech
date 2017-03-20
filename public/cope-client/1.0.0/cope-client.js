@@ -2107,7 +2107,6 @@
     // @btn-upload: div, upload button
     // - type: string, 'image' || 'video' || 'audio'
     // - maxWidth: number, for image compression
-    // - saveOriginal: boolean, decide whether to save the original
     // - files: array of object, { 
     //   file: originalFile,
     //   thumb: compressed file
@@ -2166,6 +2165,7 @@
             thumb.onload = function() {
               let thumbDataURL = thumb.canvas.toDataURL(file.type);
               let thumbFile = dataURItoBlob(thumbDataURL);
+              if (!thumbFile.name) { thumbFile.name = '_thumb_' + file.name; }
             
               // Preview image wrap
               grid.$el().css('background-image', 'url(' + thumbDataURL + ')');
@@ -2845,7 +2845,7 @@
   Cope.graph = Cope.appGraph = function(_appId) {
     let myGraph = {},
         GRAPH_ROOT = 'cope_user_apps/' + _appId + '/graph',
-        STORE_ROOT = 'user_apps/' + _appId;
+        STORE_ROOT = 'cope_user_apps/' + _appId;
       
     /*
     let chain = function() {
@@ -2912,6 +2912,19 @@
         });
       } catch (err) { console.error(err); }
     }; // end of getRef
+
+    let getStoreRef = function(cb) {
+      try {
+        getFB().then(fb => {
+          let storeRef = fb.storage().ref(STORE_ROOT);
+          if (typeof cb == 'function') {
+            cb(storeRef);
+          }
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }; // end of getStoreRef
     
     // node API
     myGraph.node = function(nodeId) {
@@ -3263,6 +3276,80 @@
         }); // end of getRef  
       }); // end of new Promise
     }; // end of myGraph.find
+
+    // Thenable callback: function(url, node)
+    // params: { 
+    //   timestamp, 
+    //   filename
+    // }
+    myGraph.upload = function(file, params) {
+      let folder = 'files',
+          type,
+          timestamp = params && params.timestamp 
+            || new Date().getTime(), 
+          filename = params && params.filename 
+            || file && file.name
+            || 'untitled';
+      if (file && file.type) {
+        switch (file.type.slice(0, 5)) {
+          case 'image':
+          case 'video':
+          case 'audio':
+            type = file.type.slice(0, 5);
+            folder = type + 's';
+            break;
+          default:
+        }
+      }
+
+      return new Promise((res, rej) => {
+        getStoreRef(storeRef => {
+          let task = storeRef.child(folder)
+            .child(timestamp + '')
+            .child(filename)
+            .put(file);
+          
+          let onprogress = function(snap) { 
+            // TBD: snap.state
+          }; // end of onprogress
+
+          let onerror = function(err) {
+            // TBD: err.code
+            rej(err);
+          }; // end of onerror
+
+          let onsuccess = function() {
+            let url = task.snapshot.downloadURL;
+            myGraph.create(node => {
+              if (type) {
+                node.tag(type)
+              }
+              node.col('file')
+                .val({
+                  type: type || 'file',
+                  path: folder + '/' + timestamp + '/' + filename,
+                  timestamp: timestamp,
+                  filename: filename,
+                  url: url
+                })
+                .then(data => {
+
+                  // Resolve with url and node
+                  res({
+                    url: url,
+                    node: node
+                  });
+                });
+            });
+          };
+
+          task.on(firebase.storage.TaskEvent.STATE_CHANGED, 
+            onprogress, 
+            onerror,
+            onsuccess);
+        });
+      });
+    }; // end of myGraph.upload
 
     return myGraph;
   }; // end of Cope.graph

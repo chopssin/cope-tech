@@ -794,9 +794,9 @@ DataUploaderClass.render(vu => {
       viewData.colType = type;
       viewData.category = catView.$el('@input').val();
       viewData.tags = Object.keys(vu.get('tags'));
-      if(type === 'item' && LT.get('List').get().length > 0) {
-        LT.get('List').get().map(x => {
-          viewData.data = viewData.data.concat(x.view.get());
+      if(type === 'item' && itemList.get('List').get().length > 0) {
+        itemList.get('List').get().map(x => {
+          viewData.data[x.idx] = x.view.get();
         });
       } else if (type === 'blog') {
           viewData.data = viewData.data.concat(richTextarea.get().data);
@@ -1697,6 +1697,7 @@ ListItemView.render(vu => {
       vu.$el('@editable').removeClass('hidden');
     }
     if (vu.get('type') == 'media') { // type == 'media'
+      console.log('open modal');
       let modalView = Cope.modal('file', {
         maxWidth: 400,
         saveOriginal: true

@@ -413,6 +413,46 @@ Test.go(log => {
 })
 
 Test.go(log => {
+  log.title('Cope.graph("testApp3")');
+  let G = Cope.graph('testApp3'),
+      V = Cope.views();
+
+  let TodoClass = V.class('Todo');
+  TodoClass.dom(vu => [
+    { 'div': 'Todo' }
+  ]);
+  TodoClass.render(vu => {
+    let items = vu.get('items') || [];
+    items.map(item => {
+      vu().append(item);
+    });
+  });
+
+  let todo = TodoClass.build({
+    sel: log.sel()
+  });
+
+  let todoNode = G.node('todo');
+  todoNode.val({
+    'items': ['Todo 1', 'Todo 2'],
+    'another key': 'test value'
+  })
+  .val({
+    'array': ['Item 1', 'Item 2']
+  })
+  .then(data => {
+    console.log(data);
+    todo.val('items', data.items || []);
+
+    let a = data['another key'] + ' yeah';
+    todoNode.val('another key', a)
+      .then(data => {
+        console.log(data);
+      })
+  })
+});
+
+Test.go(log => {
   log.title('Paragraph');
   let purelyViews = Cope.views('Purely'),
       sel = log.sel(),

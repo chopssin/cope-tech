@@ -8,7 +8,7 @@ let NavView = Views.class('Nav'),
   TextareaView = Views.class('Textarea'),
   RichTextareaClass = Views.class('RichTextarea'),
   ParagraphClass = Views.class('Paragraph'),
-  DataUpLoaderClass = Views.class('DataUpLoader'),
+  DataUploaderClass = Views.class('DataUploader'),
   ImageUploaderView = Views.class('ImageUploader'),
   PhotoView = Views.class('Photo'),
   GridView = Views.class('Grid'),
@@ -568,7 +568,6 @@ ParagraphClass.render(vu => {
       // let link = vu.get('link') || vu.get('text');
       let link = vu.map('link', link => link || vu.get('text') || '' );
    
-
       toggle('preview-link');
       vu('@preview-link').html([
         ['span@btn-edit(style="margin: 10px 10px 10px 0; cursor: pointer;").as-btn.color-w.bg-blue[w40px]', 'Edit'],
@@ -597,8 +596,11 @@ ParagraphClass.render(vu => {
 // End of Paragrpah
 
 // DataUpLoader
-// - category: array
-DataUpLoaderClass.dom(vu => [
+// - catItems: object
+// - category: string, the chosen category
+// - tagItems: object
+// - tags: object, the chosen tags
+DataUploaderClass.dom(vu => [
   { 'div.view-datauploader': [
     { 'div.panel-display@panel-display': [
       { 'div.page-1@page-1': [
@@ -613,7 +615,10 @@ DataUpLoaderClass.dom(vu => [
           { 'div@add-link.btn-red': '+ Link'}]
         }]
       },
-      { 'div@page-3.hidden': 'page3'}]
+      { 'div@page-3.hidden': [
+        { '@cat-n-tags': '' },
+        { 'ul@tags(style="padding: 0")': '' }]
+      }]
     },
     { 'div.control-bar': [
       { 'div@back.btn-red.hidden': 'Back' },
@@ -622,20 +627,138 @@ DataUpLoaderClass.dom(vu => [
   } 
 ]);
 
-DataUpLoaderClass.render(vu => {
+DataUploaderClass.render(vu => {
   let richTextarea,
-      listItem,
-      LT,
+      itemList, // on page 2 for type "item"
+      tagItems = [],
       viewData = {},
-      cat, tags, 
+      catView, tagsView, 
       type = vu.get('type') || 'blog',
-      idx = 1;
+      idx = 1,
+      oc, ot; 
+
+  // Init
+  vu.map('catItems', x => x || {});
+  vu.map('tagItems', x => x || {});
+  vu.map('tags', x => x || {});
+
+  let readItems = function(items) {
+    let choices = [], options = [], all = [];
+    Object.keys(items).map(key => {
+      if (items[key]) {
+        choices = choices.concat({ value: key });
+      } else {
+        options = options.concat({ value: key });
+      }
+    });
+    return {
+      choices: choices,
+      options: options,
+      all: all.concat(choices).concat(options)
+    }
+  }; // end of readItems
+
+  let renderCats = function(value) {
+    if (!value) { return; }
+
+    vu.map('catItems', x => {
+      Object.keys(x).map(cat => {
+        x[cat] = false;
+      });
+      x[value] = true;
+      return x;
+    })
+
+    let obj = readItems(vu.get('catItems'));
+
+    // Render again
+    catView.val({
+      items: obj.all
+    });
+    catView.$el('@input').val(value);
+
+    // Update category
+    vu.set('category', value);
+  };
+
+  let renderTags = function(value) {
+    if (value) { 
+      vu.map('tagItems', x => {
+        x[value] = true;
+        return x;
+      });
+    }
+    // Render again
+    let obj = readItems(vu.get('tagItems'));
+    tagsView.val({
+      items: obj.options
+    })
+    // Update tags
+    let tmp = {};
+    obj.choices.map(x => {
+      tmp[x.value] = true;
+    });
+    vu.set('tags', tmp);
+    let tagEl = {};
+    tags = vu.get('tags');
+
+
+    vu('@tags').html('');
+    Object.keys(tags).filter(tagname => tags[tagname]).map((tagname, idx) => {
+
+      tagEl['li.tagEl(style="list-style-type: none;")'] = [
+      [ 'span@tag-'+ idx + '(style="margin: 3px; cursor: pointer;")', 'X' ],
+      { 'a(style="text-decoration: none")': '#' + tagname }];
+
+      vu('@tags').append([tagEl]);
+      vu.$el('@tag-' + idx).off('click').on('click', function(e) {
+        vu.map('tagItems', x => {
+          x[tagname] = false;
+          return x;
+        });
+
+        renderTags();
+        setTimeout(function() {
+          tagsView.$el('@input').val('');
+        });
+      })
+    });
+  }; // end of renderTags
+  
   function toggle(select) {
     let sign = (select === 'next') ? 1 : -1;
     idx = idx + 1 * sign;
     vu.$el('@panel-display').children().addClass('hidden');
     vu.$el('@page-' + idx).removeClass('hidden');
   }
+
+  //function renderTags() {
+    
+    // let tagEl = {};
+    // tags = vu.get('tags');
+
+    // vu('@tags').html('');
+    // Object.keys(tags).filter(tagname => tags[tagname]).map((tagname, idx) => {
+
+    //   tagEl['li.tagEl(style="list-style-type: none;")'] = [
+    //   [ 'span@tag-'+ idx + '(style="margin: 3px; cursor: pointer;")', 'X' ],
+    //   { 'a(style="text-decoration: none")': '#' + tagname }];
+
+    //   vu('@tags').append([tagEl]);
+    //   vu.$el('@tag-' + idx).off('click').on('click', function(e) {
+    //     //$(this).parent('li').remove();
+    //     vu.map('tags', x => {
+    //       x[tagname] = false;
+    //       return x;
+    //     }, true);
+
+    //     vu.map('tagItems', x => {
+    //       x[tagname] = false;
+    //       return x;
+    //     })
+    //   })
+    // });
+  //};
 
   ['blog', 'item'].map(x => {
     vu.$el('@' + x).off('click').on('click', e => {
@@ -669,6 +792,8 @@ DataUpLoaderClass.render(vu => {
     if (idx === 4) {
       viewData.data = [];
       viewData.colType = type;
+      viewData.category = catView.$el('@input').val();
+      viewData.tags = Object.keys(vu.get('tags'));
       if(type === 'item' && LT.get('List').get().length > 0) {
         LT.get('List').get().map(x => {
           viewData.data = viewData.data.concat(x.view.get());
@@ -693,11 +818,11 @@ DataUpLoaderClass.render(vu => {
       });
       break;
     case 'item':
-      LT = SortableListClass.build({
+      itemList = SortableListClass.build({
         sel: vu.sel('@panel-page')
       })
       vu.$el('@button').removeClass('hidden');
-      LT.val('new', {
+      itemList.val('new', {
         viewClass: ListItemView,
         data: {
           type: 'text',
@@ -707,7 +832,7 @@ DataUpLoaderClass.render(vu => {
           editable: true
         }
       });
-      LT.val('new', {
+      itemList.val('new', {
         viewClass: ListItemView,
         data: {
           type: 'text',
@@ -722,55 +847,94 @@ DataUpLoaderClass.render(vu => {
       break;
   } // end of switch
 
-  // Build ListItemView for category on page 3
-  cat = ListItemView.build({
-    sel: vu.sel('@page-3'),
+  // Build ListItem for category on page 3
+  catView = ListItemView.build({
+    sel: vu.sel('@cat-n-tags'),
     data: {
       type: 'text-select',
       label: 'Category',
-      items: [{ value: 'shirt' }, { value: 'pants' }]
+      items: readItems(vu.get('catItems')).options
+      //items: [{ value: 'shirt' }, { value: 'pants' }]
     }
   });
 
-  tags = ListItemView.build({
-    sel: vu.sel('@page-3'),
+  // Build ListItem for tags on page 3
+  tagsView = ListItemView.build({
+    sel: vu.sel('@cat-n-tags'),
     method: 'append',
     data: {
       type: 'text-select',
       label: 'Tags',
-      items: [{ value: 'tag1' }, { value: 'troll' }]
+      items: readItems(vu.get('tagItems')).options
+      //items: [{ value: 'tag1' }, { value: 'troll' }]
     }
   }); 
 
-  vu('@page-3').append([{ 'div': 'TBD: Tags' }]);
-
-  cat.res('keyWord', keyWord => {
-    viewData.categort = keyWord;
+  // On user input
+  catView.res('value', value => {
+    renderCats(value);
+    console.log(readItems(vu.get('catItems')).options);
   })
-  tags.res('keyWord', keyWord => {
-    viewData.tags = keyWord;
-  });
 
-
-  // Type click event
-  ['text', 'media', 'link'].map(type => {
-    vu.$el('@add-' + type).off('click').on('click', e => {
-      vu.$el('@panel-page').animate({
-        scrollTop: vu.$el('@panel-page')[0].scrollHeight
-      }, 600);
-
-      LT.val('new',{
-        viewClass: ListItemView,
-        data: {
-          type: type,
-          label: 'Label',
-          value: 'Text',
-          labelEditable: true,
-          editable: true
-        }
-      })
+  tagsView.res('value', value => {
+    renderTags(value);
+    setTimeout(function() {
+      tagsView.$el('@input').val('');
     });
-  }) // end of type click event
+  })
+
+  // catView.res('value', value => {
+  //   let tmp = Object.assign({}, oc);
+  //   tmp[value] = true;
+  //   catView.set('items', Object.keys(tmp).map(x => { return { value: x }; }));
+  //   catView.val('category', value);
+  //   setTimeout(function() {
+  //     catView.$el('@input').val(value);
+  //   }, 200);
+  // });
+
+  // tagsView.res('value', value => {
+  //   let tag = value,
+  //       repeat;
+
+  //   // Update options
+  //   vu.map('tags', x => {
+  //     if (value.charAt(0) === '#') {
+  //       value = value.slice(1);
+  //     }
+  //     x[value] = true;
+  //     return x;
+  //   });
+    
+  //   // Render tags based on inputTags and originalTags
+  //   renderTags();
+
+  //   setTimeout(function() {
+  //     tagsView.$el('@input').val('')
+  //   },100);
+  // }); // end of tags's res
+
+  // Type click events on page 2
+  if (vu.get('type') === 'item') { 
+    ['text', 'media', 'link'].map(type => {
+      vu.$el('@add-' + type).off('click').on('click', e => {
+        vu.$el('@panel-page').animate({
+          scrollTop: vu.$el('@panel-page')[0].scrollHeight
+        }, 600);
+
+        itemList.val('new',{
+          viewClass: ListItemView,
+          data: {
+            type: type,
+            label: 'Label',
+            value: 'Text',
+            labelEditable: true,
+            editable: true
+          }
+        })
+      });
+    }) // end of type click event
+  } // end of if
 });
 // End of DataUpLoader
 
@@ -1555,30 +1719,44 @@ ListItemView.render(vu => {
   }
 
   // text-select's logic
-  if (type === 'text-select' && vu.get('items')) {
+  if (type === 'text-select') {
     vu.$el('@editable').removeClass('hidden');
     vu.$el('@select-list').addClass('hidden');
-    vu.get('items').map(item => {
-      vu.$el('@select-list').append(`<p>${item.value}</p>`);
-    }); // end of map
-    vu.$el('@input').off('keyup').on('keyup', function(e) {
-      let val = $(this).val();
-      let keyWord = vu.get('items').filter(item => item.value.indexOf(val)  === 0 );
+    let getItems = vu.get('items') || [];
+
+    let appendItems = function() {
+      let input = vu.$el('@input').val().trim() || '';
+      let val = (input.indexOf('#') === 0) ? input.slice(1) : input;
+      let keywords = getItems.filter(item => item.value.indexOf(val)  === 0 );
       vu.$el('@select-list').html('');
-      keyWord.map(item => {
-        vu.$el('@select-list').append(`<p>${item.value}</p>`);
+      keywords.map(item => {
+        vu.$el('@select-list').append(`<p class="selected">${item.value}</p>`)
+      })
+      vu.$el('@select-list').children('.selected').off('mousedown').on('mousedown', function(e) {
+        vu.set('value', $(this).text().trim());
+        vu.res('value', vu.get('value'));
       });
+      return keywords;
+    }; // end of appendItems
+    vu.$el('@input').off('keyup').on('keyup', function(e) {
+      let input = vu.$el('@input').val().trim() || '';
+      let value = (input.indexOf('#') === 0) ? input.slice(1) : input;
+      appendItems();
+
       if (e.which === 13) {
-        vu.$el('input').focusout();
+        vu.set('value', value);
+        vu.res('value', value);
+        vu.$el('@input').focusout();
       }
-      vu.res('keyWord', val);
     }); // end of keyup
     vu.$el('@input').off('focus').on('focus', e => {
+      appendItems();
       vu.$el('@select-list').removeClass('hidden');
     }); // end of click
     vu.$el('@input').off('focusout').on('focusout', e => {
       vu.$el('@select-list').addClass('hidden');
     });
+    appendItems();
   }
 }); 
 // End of ListItem

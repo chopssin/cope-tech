@@ -399,12 +399,16 @@ Test.go(log => {
 });
 
 Test.go(log => {
-  log.title('DataUpLoader');
+  log.title('DataUploader');
   let purelyViews = Cope.views('Purely'),
       sel = log.sel(),
-      DataUpLoader;
-  DataUpLoader = purelyViews.class('DataUpLoader').build({
-    sel: sel
+      DataUploader;
+  DataUploader = purelyViews.class('DataUploader').build({
+    sel: sel,
+    data: {
+      catItems: { hi: false, there: false },
+      tagItems: { hello: false, world: false }
+    }
   })
 })
 

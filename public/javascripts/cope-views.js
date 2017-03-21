@@ -365,7 +365,25 @@ SectionEditorClass.render(vu => {
             editable: (i > 0)
           }
         }).res('value', value => {
-          if (x.key) {
+
+          let appId = vu.get('appId');
+          console.log(appId, x.key, value);
+          if (appId && x.key == 'media' && value.file) {
+            let media = {},
+                file = value.file && value.file.file;
+            Cope.graph(appId).upload(file).then(obj => {
+              media.url = obj.url;
+              switch (obj.node.snap().type) {
+                case 'image': media.imgsrc = obj.url; break;
+                case 'video': media.vidsrc = obj.url; break;
+                case 'audio': media.audsrc = obj.url; break;
+                default:
+              }
+              console.log(media);
+              vu.set(x.key, media);
+              vu.res('data', vu.get());
+            });
+          } else if (x.key) {
             vu.set(x.key, value);
             vu.res('data', vu.get());
           }
@@ -1681,7 +1699,8 @@ CopeAppEditorClass.render(vu => {
       itemOnclick,
       savePage,
       toggleBack,
-      addNewData;
+      addNewData,
+      appId = vu.get('appId');
 
   // SS: Section Simulator
   let SS = PurelyViews.class('SortableList').build({
@@ -1709,6 +1728,7 @@ CopeAppEditorClass.render(vu => {
     });
 
     sectionEditor.set(null);
+    sectionEditor.set('appId', appId);
     sectionEditor.val(view.val());
     sectionEditor.res('data', data => {
       tmpSection.val(data);

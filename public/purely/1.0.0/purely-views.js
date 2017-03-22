@@ -728,6 +728,7 @@ DataUploaderClass.render(vu => {
   function toggle(select) {
     let sign = (select === 'next') ? 1 : -1;
     idx = idx + 1 * sign;
+    if (idx > 3) { return; }
     vu.$el('@panel-display').children().addClass('hidden');
     vu.$el('@page-' + idx).removeClass('hidden');
   }
@@ -804,6 +805,7 @@ DataUploaderClass.render(vu => {
       console.log(viewData);
       vu.res('viewData', viewData);
     }
+    idx - 1;
   }); // end of @next click
 
   // Build RichTextarea

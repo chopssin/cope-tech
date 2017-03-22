@@ -728,6 +728,7 @@ DataUploaderClass.render(vu => {
   function toggle(select) {
     let sign = (select === 'next') ? 1 : -1;
     idx = idx + 1 * sign;
+    if (idx > 3) { return; }
     vu.$el('@panel-display').children().addClass('hidden');
     vu.$el('@page-' + idx).removeClass('hidden');
   }
@@ -801,6 +802,7 @@ DataUploaderClass.render(vu => {
       } else if (type === 'blog') {
           viewData.data = viewData.data.concat(richTextarea.get().data);
       }
+      idx = idx - 1;
       console.log(viewData);
       vu.res('viewData', viewData);
     }

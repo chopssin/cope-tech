@@ -802,10 +802,10 @@ DataUploaderClass.render(vu => {
       } else if (type === 'blog') {
           viewData.data = viewData.data.concat(richTextarea.get().data);
       }
+      idx = idx - 1;
       console.log(viewData);
       vu.res('viewData', viewData);
     }
-    idx - 1;
   }); // end of @next click
 
   // Build RichTextarea

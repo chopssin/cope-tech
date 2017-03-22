@@ -1764,7 +1764,12 @@ CopeAppEditorClass.render(vu => {
       toggleBack();
     });
 
-    // To remove the selected section
+    // "New Data"
+    vu.$el('@control-add').off('click').on('click', e => {
+      Cope.modal(PurelyViews.class('DataUploader'));
+    });
+
+    // "Remove Section": To remove the selected section
     vu.$el('@control-remove').off('click').on('click', e => {
       // Update the selected section
       toggleBack();

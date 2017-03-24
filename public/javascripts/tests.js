@@ -582,24 +582,71 @@ Test.go(log => {
   });
 });
 
-// Tests with setTimeout
-setTimeout(function() {
-  Test.go(log => {
-    log.title('Run test#1 after 1s');
-    setTimeout(function() {
-      log('OK after 4s');
-      log.ok();
+Test.go(log => {
+  log.title('Inputs');
 
-      Test.go(log => {
-        log.title('Run test#2 after test#1 completed');
-        setTimeout(function() {
-          log('Completed');
-          log.ok();
-        }, 2000);
-      });
-    }, 4000);
+  // Text
+  Views.class('Input').build({
+    sel: log.sel(),
+    data: {
+      editable: true,
+      value: 'Text',
+      placeholder: 'Text'
+    }
   });
-}, 1000);
+
+  // Textarea
+  Views.class('Input').build({
+    sel: log.sel(),
+    method: 'append',
+    data: {
+      editable: true,
+      value: 'Textarea',
+      placeholder: 'Textarea',
+      type: 'textarea'
+    }
+  });
+
+  // Media
+  Views.class('Input').build({
+    sel: log.sel(),
+    method: 'append',
+    data: {
+      editable: true,
+      value: 'Media',
+      placeholder: 'My Logo',
+      type: 'media'
+    }
+  });
+
+  // Link
+  Views.class('Input').build({
+    sel: log.sel(),
+    method: 'append',
+    data: {
+      editable: true,
+      type: 'link',
+      placeholder: 'Untitled Link',
+      value: 'Link'
+    }
+  }).res('value', value => {
+    console.log(value);
+  })
+
+  // Text-select
+  Views.class('Input').build({
+    sel: log.sel(),
+    method: 'append',
+    data: {
+      editable: true,
+      type: 'text-select',
+      placeholder: 'Type something',
+      items: ['AAB', 'AB', 'BC']
+    }
+  }).res('value', value => {
+    console.log(value);
+  })
+});
 
 // Test - vu#val(key, x => f(x))
 Test.go(log => {

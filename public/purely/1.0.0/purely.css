@@ -21,6 +21,10 @@ textarea {
   color: #236eb6;
 }
 
+.color-orange {
+  color: #dc5519;
+}
+
 .bg-w {
   background-color: #fff;
 }
@@ -31,6 +35,10 @@ textarea {
 
 .bg-blue {
   background-color: #236eb6;
+}
+
+.bg-orange {
+  background-color: #dc5519;
 }
 
 /* Purely - General */
@@ -777,6 +785,54 @@ textarea {
   background: orange;
 }
 
+/* Input */
+.view-input {
+  display: block;
+  min-height: 30px;
+  min-width: 100px;
+}
+
+.view-input.link .btn-edit {
+  padding: 0 4px;
+  margin-right: 8px;
+  cursor: pointer;
+  color: #fff;
+  background-color: #236eb6;
+}
+
+.view-input.link .btn-done {
+  /*color: #909eb6;*/
+  width: intrinsic;
+  padding: 4px 8px;
+  color: #fff;
+  background-color: #236eb6;
+  cursor: pointer;
+}
+
+.view-input.link .btn-edit:hover {
+  background-color: #12375c;
+}
+
+.view-input.link .btn-done:hover {
+  background-color: #12375c;
+}
+
+.view-input.text-select {
+  padding-left: 4px;
+  border: 1px solid #ccc;
+}
+
+.view-input.text-select input {
+  border: 0;
+}
+
+.view-input.text-select .select-list {
+  padding: 0 8px 4px 8px;
+}
+
+.view-input.text-select .select-list > *:hover {
+  color: #dc5519;
+}
 
 /* SortableList */
 .view-sortable-list {
@@ -815,7 +871,7 @@ textarea {
   overflow: auto;
 }
 .view-datauploader .control-bar {
-  display: flex; 
+  display: flex;
   /* justify-content:space-around; */
 }
 .view-datauploader .control-bar > div {

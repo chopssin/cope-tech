@@ -1766,7 +1766,10 @@ CopeAppEditorClass.render(vu => {
 
     // "New Data"
     vu.$el('@control-add').off('click').on('click', e => {
-      Cope.modal(PurelyViews.class('DataUploader'));
+      Cope.modal(PurelyViews.class('DataUploader'))
+        .res('data', data => {
+          console.log(data);
+        });
     });
 
     // "Remove Section": To remove the selected section

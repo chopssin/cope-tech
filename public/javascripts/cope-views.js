@@ -328,13 +328,11 @@ SectionEditorClass.render(vu => {
 
   // Tidy up data
   settings.basic = [
-    { label: phr('Type'), value: upper(vu.get('type')) },
     { key: 'title', type: 'text', label: phr('Title'), value: vu.get('title') },
     { key: 'content', type: 'textarea', label: phr('Content'), value: vu.get('content') },
     { key: 'media', type: 'media', label: 'Media', value: vu.get('media') }
   ];
   settings.collection = [
-    { label: phr('Type'), value: upper(vu.get('type')) },
     { key: 'title', type: 'text', label: phr('Title'), value: vu.get('title') },
     { key: 'content', type: 'textarea', label: phr('Content'), value: vu.get('content') },
     { key: 'colName', type: 'select', label: phr('Collection Type'), value: vu.get('colName'), options: [] },
@@ -342,27 +340,28 @@ SectionEditorClass.render(vu => {
     { key: 'limit', type: 'number', label: phr('Max Number'), value: vu.get('limit') }
   ];
   settings.contacts = [
-    { label: phr('Type'), value: upper(vu.get('type')) },
     { key: 'title', type: 'text', label: phr('Title'), value: vu.get('title') },
     { key: 'content', type: 'textarea', label: phr('Content'), value: vu.get('content') },
     { key: 'media', type: 'media', label: 'Media', value: vu.get('media') }
   ];
   
   // Render based on data
-  vu.$el('@settings').html('');
+  vu('@settings').html('');
   switch (vu.get('type')) {
     case 'basic':
     case 'collection':
     case 'contacts':
       settings[vu.get('type')].map((x, i) => {
-        PurelyViews.class('ListItem').build({
-          sel: vu.sel('@settings'), 
-          method: 'append',
+        vu('@settings').append([
+          { 'h5[c:#bbb; mb:0; fz:14px;]': x.label },
+          [ '@s-' + i + '[fz:20px;]', '' ]
+        ]);
+        PurelyViews.class('Input').build({
+          sel: vu.sel('@s-' + i), 
           data: {
             type: x.type,
-            label: x.label,
             value: x.value,
-            editable: (i > 0)
+            editable: true
           }
         }).res('value', value => {
 
@@ -401,6 +400,13 @@ SectionEditorClass.render(vu => {
       vu.$el('@type-chooser').removeClass('hidden');
       vu.$el('@settings').addClass('hidden');
   }
+
+  if (vu.get('type') === 'collection') {
+    vu('@settings').append([{ '@add-data.cope-card.as-btn.bg-blue.color-w': phr('New Data') }]);
+    vu.$el('@add-data').off('click').on('click', e => {
+      console.log('adada');
+    });
+  }
   vu.$el('@done').off('click').on('click', e => {
     vu.val('type', type);
     vu.res('data', vu.get());
@@ -411,23 +417,23 @@ SectionEditorClass.render(vu => {
 // SectionStyler
 // "style" <- string, current choice
 SectionStylerClass.dom(vu => [
-  { 'div': [
+  { 'div[fz:20px]': [
     { 'div': [
-      { 'h4': phr('Theme') },
+      { 'h5[c:#bbb; mb:0; fz:14px]': phr('Theme') },
       { '@theme': '' }, // dark || bright
       { '@theme-strength': '0 - 10' }, // 0 ~ 10
       { '@theme-size': 'full || wrap'  }] // full || wrap
     },
     { 'div': [
-      { 'h4': phr('Text Style') },
+      { 'h5[c:#bbb; mb:0; fz:14px]': phr('Text Style') },
       { '@text-style': '' }] 
     },
     { 'div': [
-      { 'h4': phr('Component Type') },
+      { 'h5[c:#bbb; mb:0; fz:14px]': phr('Component Type') },
       { '@comp-type': '' }] 
     },
     { 'div': [
-      { 'h4': phr('Layout') },
+      { 'h5[c:#bbb; mb:0; fz:14px]': phr('Layout') },
       { '@text-position': '' },
       { '@comp-position': '' }] 
     }]
@@ -1682,12 +1688,12 @@ CopeAppEditorClass.dom(vu => [
       { '@control.control': 'Control' }] 
     },
     { '@section-editor.right': [
-      { '.upper-toggle': [
-        { '@toggle-editor.color-orange': 'Data' },
+      { '.upper-toggle[flex; fz:16px;]': [
+        { '@toggle-editor.bg-blue.color-w': 'Data' },
         { '@toggle-styler': 'Style' }] 
       },
-      { '@editor._form': 'Editor' },
-      { '@styler._form.hidden': 'Styler' }]
+      { '@editor.editor-form': 'Editor' },
+      { '@styler.editor-form.hidden': 'Styler' }]
     }]
   }
 ]);
@@ -1853,9 +1859,13 @@ CopeAppEditorClass.render(vu => {
     let $that = vu.$el('@toggle-' + x);
     $that.off('click').on('click', e => {
       vu.$el('.upper-toggle')
-        .children().removeClass('color-orange');
-      $that.addClass('color-orange');
-      vu.$el('._form').addClass('hidden');
+        .children()
+        .removeClass('bg-blue')
+        .removeClass('color-w');
+      $that
+        .addClass('bg-blue')
+        .addClass('color-w');
+      vu.$el('.editor-form').addClass('hidden');
       vu.$el('@' + x).removeClass('hidden');
     });
   });

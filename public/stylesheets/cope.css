@@ -111,6 +111,23 @@
   margin-right: 0;
 }
 
+.view-app-editor .upper-toggle {
+  background-color: #eee;
+}
+
+.view-app-editor .upper-toggle > * {
+  flex: 1;
+  text-align: center;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.view-app-editor .editor-form {
+  padding-top: 20px;
+  max-height: 60vh;
+  overflow: auto;
+}
+
 /* SectionSimulator */
 .view-sec-sim {
   display: block;

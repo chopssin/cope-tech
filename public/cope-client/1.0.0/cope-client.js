@@ -1452,108 +1452,12 @@
     return my;
   }; // end of Cope.views or Cope.useViews
 
-  function _readTag(tag, value) {
-    var parse = /^([^@#<>\.\*\(\)]+)([@#<>\.\*][^@#<>\.\*]+|\(.+\))*$/g;
-    var result = parse.exec(tag);
-    if (result) {
-      var tagname = result[1].trim();
-      var id = '';
-      var vuId = '';
-      var classes = [];
-      var props = [];
-      var path = '';
-      var comp = '';
-      var html = '';
-
-      parse = /[@|#|\.|\*][^@#<>\.\*\(\)]+|[<>][^@#<>\.\*\(\)]+([\*][^@#<>\.\*\(\)]+)?|\(.+\)/g;
-      result = tag.match(parse);
-      if (result && result.length) {
-        result = result.map(function(x) {
-          switch (x.charAt(0)) {
-            case '@':
-              comp = x;
-              return { comp: x }; break;
-
-            case '#': 
-              id = x;
-              return { id: x }; break;
-            
-            case '.': 
-              classes.push(x);
-              return { 'class': x }; break;
-            
-            case '(': 
-              var len = x.length - 1;
-              props = x.slice(1, len);
-              return { props: x }; break;
-
-            case '*':
-              vuId = x.slice(1);
-              return { vuId: x }; break;
-    
-            default:
-          }
-        });
-      } // End if
-
-      // Get html and path
-      html = '<' + tagname;
-      path = tagname;
-      if (vuId) {
-        html += ` data-vuid = "${vuId}"`;
-      }
-      if (id) {
-        html += ' id = "' + id.replace('#', '') + '"';
-        path += id;
-      }
-      if (comp) {
-        html += ` data-component = "${ comp.slice(1) }"`;
-        path += comp;
-      }
-      if (classes.length > 0) {
-        html += ' class = "' + classes.reduce(function(x, y) {
-          return x + y.replace('.', ' ');
-        },'').trim() + '"';
-        path += classes.reduce(function(x, y) {
-          // Only accept "._actionName_randStr"
-          if (/\._\w+_\w+/.test(y)) {
-            return x + y;
-          }
-          return x;
-        }, '').trim();
-      }
-      if (props.length) {
-        html += ' ' + props;
-      }
-      html += '>'; 
-      if (tagname != 'input' 
-          && tagname != 'area'
-          && tagname != 'base'
-          && tagname != 'br'
-          && tagname != 'col'
-          && tagname != 'command'
-          && tagname != 'embed'
-          && tagname != 'hr'
-          && tagname != 'keygen'
-          && tagname != 'link'
-          && tagname != 'meta'
-          && tagname != 'param'
-          && tagname != 'source'
-          && tagname != 'img') html += (value || '') + '</' + tagname + '>';
-
-      let ret = {
-        tagname: tagname,
-        id: id || '',
-        vuId: vuId || '',
-        comp: comp.slice(1) || '',
-        classes: classes,
-        props: props,
-        html: html,
-        path: path
-      };
-      return ret;
-    }
-  }; // end of readTag
+  // -----------------------------
+  // Cope.class || Cope.viewClass
+  // -----------------------------
+  Cope.class = Cope.viewClass = function(className) {
+    return Cope.views().class(className || 'tmpClass');
+  }; // end of Cope.viewClass
 
   function readTag(tag, val, vuId) {
     let ret = {},
@@ -1631,39 +1535,6 @@
     
     // Handle props
     ret.props = ret.props.trim(); 
-    //tmp = {};
-    //tmp2 = ret.props.match(/([\w\-]*\s*=(\"[^\"]+\"|\'[^\']+\'))/g);
-
-    //console.log(tmp2);
-    //if (tmp2 && tmp2.length) {
-    //  tmp2.map(x => {
-    //    i = x.indexOf('=');
-    //    tmp[x.slice(0, i)] = x.slice(i + 1);
-    //    ret.props = ret.props.replace(x, '');
-    //  });
-    //}
-    //ret.props.trim()
-    //  .replace(/\s+/g, ' ')
-    //  .split(' ')
-    //  .map(x => {
-    //    if (!x) { return; }
-    //    tmp['__' + x] = true;
-    //});
-
-    //ret.props.trim()
-    //  .replace(/(\s)+/g, ' ') // __ -> _
-    //  .replace(/\s+=/g, '=') // _= -> =
-    //  .replace(/=\s/g, '=') // =_ -> =
-    //  .split(' ').map(x => {
-    //  if (!x) { return; }
-    //  i = x.indexOf('=');
-    //  if (i < 0) {
-    //    tmp['__' + x] = true;
-    //  } else {
-    //    tmp[x.slice(0, i)] = x.slice(i + 1);
-    //  }
-    //});
-    //ret.props;
     
     // Set the style
     ret.psuedoStyle = ret.psuedoStyle + ';';
@@ -1675,10 +1546,27 @@
         w: 'width',
         h: 'height',
         m: 'margin',
+        mt: 'margin-top',
+        ml: 'margin-left',
+        mr: 'margin-right',
+        mb: 'margin-bottom',
         p: 'padding',
+        pt: 'padding-top',
+        pl: 'padding-left',
+        pr: 'padding-right',
+        pb: 'padding-bottom',
+        b: 'border',
+        bt: 'border-top',
+        bl: 'border-left',
+        br: 'border-right',
+        bb: 'border-bottom',
+        bg: 'background',
+        bgColor: 'background-color',
+        bgSize: 'background-size',
         c: 'color',
         z: 'z-index',
-        fz: 'font-size'
+        fz: 'font-size',
+        fw: 'font-weight'
       };
       if (!x) { return ''; }
       x = x.trim();
@@ -1694,10 +1582,14 @@
           style = 'position:' + x;
         }
       })
+
+      if (x == 'pointer') {
+        style = 'cursor: pointer';
+      }
       
       Object.keys(shortcuts).map(s => {
-        if (x.indexOf(s) == 0) {
-          style = shortcuts[s] + ':' + x.slice(s.length); 
+        if (x.indexOf(s + ':') == 0) {
+          style = shortcuts[s] + ':' + x.slice(s.length + 1); 
         }
       });
       

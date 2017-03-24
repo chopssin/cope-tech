@@ -1146,12 +1146,12 @@ Test.go(log => {
       [ 'p@text', '' ]] 
     },
     { 'ul': [
-      { 'li': 'First li' },
-      { 'li[c#aca;p0 40px;font-size:1.5em;]@text': '' },
+      { 'li[bg:#efa]': 'First li' },
+      { 'li[c:#aca; p:0 40px; fz:1.5em]@text': '' },
       { 'li@blue': '' },
       { 'li': 'Last li' }] 
     },
-    { 'div[fz 12px; p 20px;]': [
+    { 'div[fz: 12px; p: 20px;]': [
       { 'h4': 'The following shows the dom' },
       { 'pre': [
         { 'code@dom': '' }]

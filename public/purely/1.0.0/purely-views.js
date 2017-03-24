@@ -571,7 +571,7 @@ ParagraphClass.render(vu => {
    
       toggle('preview-link');
       vu('@preview-link').html([
-        ['span@btn-edit(style="margin: 10px 10px 10px 0; cursor: pointer;").as-btn.color-w.bg-blue[w40px]', 'Edit'],
+        ['span@btn-edit.as-btn.color-w.bg-blue[w:40px; m:10px; ml:0; pointer;]', 'Edit'],
         [`a(href=${vu.get('link') || vu.get('text')})`, vu.get('text')]
       ]);
       vu.$el('@btn-edit').off('mousedown').on('mousedown', function (e) {
@@ -1338,7 +1338,7 @@ SlideClass.render(vu => {
       effect = vu.get('effect'); // dissolve, slide
   let slideDom = function(x) {
     return [
-      { '.slide[w100%;h100%]': [
+      { '.slide[w:100%;h:100%]': [
         { '.text-wrap': [
           { 'h1': x.title },
           { 'p': x.content }] 

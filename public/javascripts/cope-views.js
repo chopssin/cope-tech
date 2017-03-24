@@ -1681,7 +1681,33 @@ CopeAppOverviewClass.render(vu => {
 CopeAppEditorClass.dom(vu => [
   { 'div.view-app-editor': [
     { '.full-bg': '' },
-    { '@menu.left': 'Menu' },
+    { '.left': [
+      { 'div': 'Logo && App Name' },
+      { 'div.left-menu': [
+        { '@menu': '' },
+        { '@root.hidden(style="cursor: pointer; width: 50px; margint: 20px 0")': '<- Root' },
+        { '@pages.hidden': [
+          // { 'div': [
+          //   { 'h3': 'Navigation' }]
+          // },
+          { 'div@navigation': [
+            { 'h3': 'Navigation' },
+            { 'h3@add-page': '+' },
+            { 'div@nav-items': '' }
+            ]
+          },
+          { 'div@page-settings.hidden': [
+            { 'h3': 'Page Settings'},
+            { 'div@back': '<- Back'},
+            { 'div@page-items': ''}]
+          }]
+        },
+        { '@design.hidden': 'Design' },
+        { '@commerce.hidden': 'Commerce' },
+        { '@analytics.hidden': 'Analytics' },
+        { '@settings.hidden': 'Settings' }] 
+      }]
+    },
     { '.middle': [
       { '@sim.sim': 'Simulator' },
       { '@sim-single.sim.sim-single.hidden': 'Simulator Single' },
@@ -1700,14 +1726,17 @@ CopeAppEditorClass.dom(vu => [
 
 CopeAppEditorClass.render(vu => {
 
-  let currPage = vu.map('currPage', x => x || 'page-'),
+  let pageSettings = vu.map('pageSettings', x => x || []),
+      currPage = vu.map('currPage', x => x || 'page-'),
       sections = vu.get('sectionsOf')[currPage] || [],
       itemOnclick,
       savePage,
       toggleBack,
       addNewData,
+      appNameInput,
+      pages,
+      thatVu = vu;
       appId = vu.get('appId');
-
   // SS: Section Simulator
   let SS = PurelyViews.class('SortableList').build({
     sel: vu.sel('@sim')
@@ -1841,7 +1870,196 @@ CopeAppEditorClass.render(vu => {
       console.log('TBD'); 
     });
   }; // end of toggleBack
-  
+
+  // Left side
+  let buttonCss = {
+    'background': '#3498db',
+    'border': 'none',
+    'border-radius': '20px',
+    'width': '70%',
+    'color': 'white',
+    'margin': '10px auto',
+    'padding': '6px 10px',
+    'text-align': 'center',
+    'cursor': 'pointer'
+  };// end of buttonCss
+
+  let nav = function(page) {
+    vu.$el('.left-menu').children().addClass('hidden');
+    vu.$el('@' + page).removeClass('hidden');
+    vu.$el('@root').removeClass('hidden');
+    if (page == 'root') {
+      vu.$el('@menu').removeClass('hidden');
+      vu.$el('@root').addClass('hidden');
+    }
+  }; // end of nav
+
+  vu('@menu').html('');
+  [{ 
+    label: 'Pages',
+    name: 'pages'
+  }, {
+    label: 'Design',
+    name: 'design'
+  }, {
+    label: 'Commerce',
+    name: 'commerce'
+  }, {
+    label: 'Analysis',
+    name: 'analysis'
+  }, {
+    label: 'Settings',
+    name: 'settings'
+  }].map((x, idx) => {
+    vu('@menu').append([
+      { 'div': [
+        [ 'div@menu-btn-' + idx, x.label]]
+      }
+    ]);
+    // @menu-btn event
+    vu.$el('@menu-btn-' + idx).off('click').on('click', e => {
+      nav(x.name);
+    });
+    // set @menu-btn Css
+    vu.$el('@menu-btn-' + idx).css(buttonCss);
+  }); // end of map
+  vu.$el('.left').css({'background-color': '#eee'});
+  // @root click event
+  vu.$el('@root').off('click').on('click', e => {
+    nav('root');
+  }); //end of @root click
+
+  pages = PurelyViews.class('SortableList').build({
+    sel: vu.sel('@nav-items')
+  }).res('item clicked', item => { // pages's res
+    vu.$el('@navigation').addClass('hidden');
+    vu.$el('@root').addClass('hidden');
+    vu.$el('@page-settings').removeClass('hidden');
+    
+    vu('@page-items').html('');
+    [{ key: 'title', title: 'Page Title' }, { key: 'slug', title: 'URL Slug' }].map((obj, i) => {
+      let x = obj.key,
+          value = item.view.get()[x];
+      if (x === 'slug') { value = '/' + value }
+
+      vu('@page-items').append([
+        { 'h5[mb:0; fz:12px;]': obj.title },
+        ['@item-' + i]
+      ]);
+
+      let input = PurelyViews.class('Input').build({
+        sel: vu.sel('@item-' + i),
+        data: {
+          type: 'text',
+          value: value,
+          editable: item.view.get().pageId != 'page-'
+        }
+      }).res('done', value => {
+        item.view.val(x, value);
+        //console.log('After', vu.get('pageSettings'));
+        console.log('TBD', value);
+        input.val('value', '/' + item.view.val(x));
+      });
+    }); //end of map
+  })// end of page's res
+
+
+  // Build PageItemClass
+  let PageItemClass = Cope.views().class('PageItem'); // Cope.class()
+  PageItemClass.dom(vu => [
+    {'div': 'page'}]
+  );
+  PageItemClass.render(vu => {
+    let title, slug, extUrl, pageId, 
+        pageSettings = thatVu.get('pageSettings'),
+        currPageId = vu.get('pageId');
+
+        //console.log('Before', pageSettings);
+    title = vu.map('title', title => title || 'New Page');
+    pageId = vu.map('pageId', pageId => {
+      if (!pageId) {
+        return 'page-' + Math.random().toString(36).slice(2, 7);
+      }
+      return pageId;
+    });
+    slug = vu.map('slug', slug => {
+      if (vu.get('pageId') != 'page-') {
+        let newSlug, dict = [];
+        newSlug = slug || title.replace(/[\s]/g, '-').toLowerCase();
+      
+        newSlug = newSlug.replace(/[\/]{2,}/g, '/');
+        if (newSlug.charAt(0) == '/') { newSlug = newSlug.slice(1); }
+
+        if (!newSlug.match(/^[\w\d\-\/]+$/)) {
+          newSlug = pageId.slice(5);
+          //console.log(newSlug);
+        }
+        
+        for (let i = 0; i < pageSettings.length; i++) {
+           dict[i] = newSlug + '-' + (i + 1);
+        }
+        dict = [newSlug].concat(dict);
+
+        pageSettings = pageSettings.filter(x => (currPageId != x.pageId));
+                
+        
+        // Duplicates found, assign new slug
+        if (pageSettings.length) {
+          for (let i = 0; i < dict.length; i++) {
+            let matched = false;
+            for (let j = 0; j < pageSettings.length; j++) {
+              if (dict[i] == pageSettings[j].slug) {
+                matched = true;
+                break;
+              }
+            }
+            if (!matched) {
+              newSlug = dict[i];
+              break;
+            }
+          }
+        }
+        return newSlug;
+      }
+      return slug;
+    });
+
+    vu().html(vu.get('title'));
+  }); // end of PageItemClass
+
+  // Append page fo pages
+  pages.val('new', {
+    viewClass: PageItemClass,
+    data: {
+      title: 'Home',
+      slug: '',
+      pageId: 'page-'
+    }
+  });
+
+  // @add-page click event 
+  vu.$el('@add-page').off('click').on('click', e => {
+    pages.val('new', {
+      viewClass: PageItemClass
+    })
+
+    let newPageItemData = pages.get('List').getByIdx(-1).view.get();
+    if (newPageItemData) {
+      pageSettings = pageSettings.concat(newPageItemData)
+      vu.set('pageSettings', pageSettings);
+    }
+  });
+
+  // page-settings event
+  vu.$el('@back').off('click').on('click', e => {
+    vu.$el('@page-settings').addClass('hidden');
+    vu.$el('@navigation').removeClass('hidden');
+    vu.$el('@root').removeClass('hidden');
+  })
+
+
+
+  // Middle part
   // Set onclick event of Section Simulator
   SS.res('item clicked', itemOnclick);
 

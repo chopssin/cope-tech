@@ -416,11 +416,12 @@ TextareaView.render(vu => {
 // "done" <- array: get each of Paragraph's Data
 RichTextareaClass.dom(vu => [
   { 'div.view-richtextarea': [
+    { '@toolbar': [
+      { 'button@add': 'Add Image' }] 
+    },
     { 'div@content(contenteditable = true)': [
       { 'p': 'Title' }] 
-    }, 
-    { 'button@add': 'Add Image' },
-    { 'button@done.hidden': 'Done' }]
+    }]
   }
 ]);
 
@@ -472,7 +473,7 @@ RichTextareaClass.render(vu => {
     vu.res('data', data)
     return data;
   }; // end of getData
-
+  // @content bulr event
   vu.$el('@content').off('blur').on('blur', e => {
     let data = getData();
     console.log(getData());
@@ -481,7 +482,7 @@ RichTextareaClass.render(vu => {
       vu.$el('@content').append('<p><br></p>');
     }
   });
-
+  // @content keyup event
   vu.$el('@content').off('keyup').on('keyup', e => {
     let html = vu.$el('@content').html();
 
@@ -489,7 +490,7 @@ RichTextareaClass.render(vu => {
       let data = getData();
     }
   });
-
+  // @content keydown event
   vu.$el('@content').off('keydown').on('keydown', e => {
     let html = vu.$el('@content').html();
     if (html === '<p><br></p>' && e.which === 8) {
@@ -497,11 +498,11 @@ RichTextareaClass.render(vu => {
       return;
     }
   });
-
+  // @add click event
   vu.$el('@add').off('click').on('click', function(e) {
     vu.$el('@content').append('<p><img src="http://fakeimg.pl/250x100/"></p>')
   })
-
+  // @done click
   vu.$el('@done').off('click').on('click', function(e) {
     vu.res('done', getData());
   })
@@ -735,34 +736,6 @@ DataUploaderClass.render(vu => {
     vu.$el('@page-' + idx).removeClass('hidden');
   }
 
-  //function renderTags() {
-    
-    // let tagEl = {};
-    // tags = vu.get('tags');
-
-    // vu('@tags').html('');
-    // Object.keys(tags).filter(tagname => tags[tagname]).map((tagname, idx) => {
-
-    //   tagEl['li.tagEl(style="list-style-type: none;")'] = [
-    //   [ 'span@tag-'+ idx + '(style="margin: 3px; cursor: pointer;")', 'X' ],
-    //   { 'a(style="text-decoration: none")': '#' + tagname }];
-
-    //   vu('@tags').append([tagEl]);
-    //   vu.$el('@tag-' + idx).off('click').on('click', function(e) {
-    //     //$(this).parent('li').remove();
-    //     vu.map('tags', x => {
-    //       x[tagname] = false;
-    //       return x;
-    //     }, true);
-
-    //     vu.map('tagItems', x => {
-    //       x[tagname] = false;
-    //       return x;
-    //     })
-    //   })
-    // });
-  //};
-
   ['blog', 'item'].map(x => {
     vu.$el('@' + x).off('click').on('click', e => {
        vu.$el('@page-1').children()
@@ -820,6 +793,9 @@ DataUploaderClass.render(vu => {
       }).res('done', data => {
         console.log('clicked done', data);
       });
+      // Richtextarea Css
+      richTextarea.$el().css('height', vu.$el('@panel-display').height());
+      richTextarea.$el('@content')
       break;
     case 'item':
       itemList = SortableListClass.build({
@@ -850,6 +826,9 @@ DataUploaderClass.render(vu => {
     default:
       break;
   } // end of switch
+
+
+
 
   // Build ListItem for category on page 3
   catView = ListItemView.build({
@@ -1548,13 +1527,15 @@ ListItemView.render(vu => {
         vu.res('value', vu.map('value', x => {
           let newVal = $textInput.val().trim();
           if (!newVal) newVal = '';
-          console.log(displayValue);
           return newVal;
         }));
         if (e.which === 13) {
           vu.res('done', vu.get('value'));
           vu.val('edit', false);
         }
+      });
+      $textInput.off('focusout').on('focusout', e => {
+        vu.val('edit', false);
       })
       break;
     case 'textarea':
@@ -1625,7 +1606,8 @@ ListItemView.render(vu => {
   if (editable) {
     vu.$el().addClass('hover-effect');
     vu.$el('@form').off('click').on('click', e => {
-        vu.val('edit', true);
+      vu.val('edit', true);
+      vu.$el('@editable').find('input').focus();
     });
   }
 
@@ -1640,6 +1622,7 @@ ListItemView.render(vu => {
     vu.$el('@label-display').off('click').on('click', e => {
       vu.$el('@label-display').addClass('hidden');
       vu.$el('@label-editable').removeClass('hidden');
+      vu.$el('@label-editable').find('input').focus();
     });
     vu.$el('@label-editable').find('input').off('keyup').on('keyup', function(e) {
       let label = $(this).val().trim();

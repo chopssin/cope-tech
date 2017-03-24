@@ -419,37 +419,84 @@ Test.go(log => {
 
   let TodoClass = V.class('Todo');
   TodoClass.dom(vu => [
-    { 'div': 'Todo' }
+    { 'div': [
+      { 'ul(style="padding: 5px 20px")@itemList': ''},
+      { 'input@input(style="width:50%;")': ''},
+      { 'div(style="display: flex; width:50%")': [
+        { 'button@add.btn.btn-primary(style="flex: 1")': 'Add'},
+        { 'button@delete.btn.btn-danger(style="flex: 1")': 'Delete'}]
+      }]
+    }
   ]);
   TodoClass.render(vu => {
-    let items = vu.get('items') || [];
-    items.map(item => {
-      vu().append(item);
+    let items = vu.get('items') || [],
+        itemEl = {},
+        delCss = {},
+        selected = {};
+    // selected Css
+    delCss = {
+      'color': 'red',
+      'text-decoration': 'line-through' 
+    }
+    // clear @itemList's element
+    vu('@itemList').html('');
+
+    items.map((item, idx) => {
+      selected[item] = false;
+      itemEl = ['li(style="cursor: pointer;")@item-' + idx, item];
+      vu('@itemList').append([itemEl]);
+      // item click event
+      vu.$el('@item-' + idx).off('click').on('click', function(e) {
+        if (!selected[item]) {
+          $(this).css(delCss);
+          selected[item] = true;
+        } else {
+          $(this).css({'color': '', 'text-decoration': ''});
+          selected[item] = false;
+        }
+      }); // end of item click event
+    });// end of map
+    vu.$el('@add').off('click').on('click', e => {
+      let value = vu.$el('@input').val().trim() || '';
+      if (!value) { return; }
+      items = items.concat(value);
+      vu.$el('@input').val('');
+      todoNode.val('items', items)
+      .then(data => {
+        vu.val('items', data.items || []);
+      });
+    }); // end of @add event
+
+    vu.$el('@delete').off('click').on('click', e => {
+      items = items.filter(item => !selected[item]);
+      todoNode.val('items', items)
+      .then(data => {
+        vu.val('items', data.items || []);
+      })
+    });
+    vu.$el('@input').off('keyup').on('keyup', e => {
+      if (e.which === 13) {
+        vu.$el('@add').click();
+      }
     });
   });
+  // End of TodoClass
 
-  // let todo = TodoClass.build({
-  //   sel: log.sel()
-  // });
+  let todo = TodoClass.build({
+    sel: log.sel()
+  });
 
-  // let todoNode = G.node('todo');
-  // todoNode.val({
-  //   'items': ['Todo 1', 'Todo 2'],
-  //   'another key': 'test value'
-  // })
-  // .val({
-  //   'array': ['Item 1', 'Item 2']
-  // })
-  // .then(data => {
-  //   console.log(data);
-  //   todo.val('items', data.items || []);
-
-  //   let a = data['another key'] + ' yeah';
-  //   todoNode.val('another key', a)
-  //     .then(data => {
-  //       console.log(data);
-  //     })
-  // })
+  let todoNode = G.node('todo');
+  todoNode.val({
+    'another key': 'test value'
+  })
+  .val({
+    'array': ['Item 1', 'Item 2']
+  })
+  .then(data => {
+    console.log(data);
+    todo.val('items', data.items || []);
+  })
 });
 
 Test.go(log => {

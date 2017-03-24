@@ -1657,7 +1657,33 @@ CopeAppOverviewClass.render(vu => {
 CopeAppEditorClass.dom(vu => [
   { 'div.view-app-editor': [
     { '.full-bg': '' },
-    { '@menu.left': 'Menu' },
+    { '.left': [
+      { 'div': 'Logo && App Name' },
+      { 'div.left-menu': [
+        { '@menu': '' },
+        { '@root.hidden(style="cursor: pointer; width: 50px; margint: 20px 0")': '<- Root' },
+        { '@pages.hidden': [
+          // { 'div': [
+          //   { 'h3': 'Navigation' }]
+          // },
+          { 'div@navigation': [
+            { 'h3': 'Navigation' },
+            { 'h3@add-page': '+' },
+            { 'div@nav-items': '' }
+            ]
+          },
+          { 'div@page-settings.hidden': [
+            { 'h3': 'Page Settings'},
+            { 'div@back': '<- Back'},
+            { 'div@page-items': ''}]
+          }]
+        },
+        { '@design.hidden': 'Design' },
+        { '@commerce.hidden': 'Commerce' },
+        { '@analytics.hidden': 'Analytics' },
+        { '@settings.hidden': 'Settings' }] 
+      }]
+    },
     { '.middle': [
       { '@sim.sim': 'Simulator' },
       { '@sim-single.sim.sim-single.hidden': 'Simulator Single' },
@@ -1676,13 +1702,16 @@ CopeAppEditorClass.dom(vu => [
 
 CopeAppEditorClass.render(vu => {
 
-  let currPage = vu.map('currPage', x => x || 'page-'),
+  let pageSettings = vu.map('pageSettings', x => x || []),
+      currPage = vu.map('currPage', x => x || 'page-'),
       sections = vu.get('sectionsOf')[currPage] || [],
       itemOnclick,
       savePage,
       toggleBack,
-      addNewData;
-
+      addNewData,
+      appNameInput,
+      pages,
+      thatVu = vu;
   // SS: Section Simulator
   let SS = PurelyViews.class('SortableList').build({
     sel: vu.sel('@sim')
@@ -1807,7 +1836,168 @@ CopeAppEditorClass.render(vu => {
       console.log('TBD'); 
     });
   }; // end of toggleBack
-  
+
+  // Left side
+  let buttonCss = {
+    'background': '#3498db',
+    'border': 'none',
+    'border-radius': '20px',
+    'width': '70%',
+    'color': 'white',
+    'margin': '10px auto',
+    'padding': '6px 10px',
+    'text-align': 'center',
+    'cursor': 'pointer'
+  };// end of buttonCss
+
+  let nav = function(page) {
+    vu.$el('.left-menu').children().addClass('hidden');
+    vu.$el('@' + page).removeClass('hidden');
+    vu.$el('@root').removeClass('hidden');
+    if (page == 'root') {
+      vu.$el('@menu').removeClass('hidden');
+      vu.$el('@root').addClass('hidden');
+    }
+  }; // end of nav
+
+  vu('@menu').html('');
+  [{ 
+    label: 'Pages',
+    name: 'pages'
+  }, {
+    label: 'Design',
+    name: 'design'
+  }, {
+    label: 'Commerce',
+    name: 'commerce'
+  }, {
+    label: 'Analysis',
+    name: 'analysis'
+  }, {
+    label: 'Settings',
+    name: 'settings'
+  }].map((x, idx) => {
+    vu('@menu').append([
+      { 'div': [
+        [ 'div@menu-btn-' + idx, x.label]]
+      }
+    ]);
+    // @menu-btn event
+    vu.$el('@menu-btn-' + idx).off('click').on('click', e => {
+      nav(x.name);
+    });
+    // set @menu-btn Css
+    vu.$el('@menu-btn-' + idx).css(buttonCss);
+  }); // end of map
+  vu.$el('.left').css({'background-color': '#eee'});
+  // @root click event
+  vu.$el('@root').off('click').on('click', e => {
+    nav('root');
+  }); //end of @root click
+
+  pages = PurelyViews.class('SortableList').build({
+    sel: vu.sel('@nav-items')
+  }).res('item clicked', item => { // pages's res
+    vu.$el('@navigation').addClass('hidden');
+    vu.$el('@root').addClass('hidden');
+    vu.$el('@page-settings').removeClass('hidden');
+    console.log(item.view.get());
+    vu('@page-items').html('');
+    ['title', 'slug'].map(x => {
+      let itemList = PurelyViews.class('ListItem').build({
+        sel: vu.sel('@page-items'),
+        method: 'append',
+        data: {
+          type: 'text',
+          label: x.slice(0,1).toUpperCase() + x.slice(1),
+          value: item.view.get()[x],
+          editable: true
+        }
+      });
+    }); //end of map
+  })// end of page's res
+
+
+  // Build PageItemClass
+  let PageItemClass = Cope.views().class('PageItem'); // Cope.class()
+  PageItemClass.dom(vu => [
+    {'div': 'page'}]
+  );
+  PageItemClass.render(vu => {
+    let title, slug, extUrl, pageId, 
+        pageSettings = thatVu.get('pageSettings');
+        //console.log(pageSettings);
+    title = vu.map('title', title => title || 'New Page');
+    slug = vu.map('slug', slug => {
+      if (!slug) {
+        let newSlug;
+        newSlug = title.replace(/[\s]/g, '-').toLowerCase();
+        if (!newSlug.match(/^[\w\d\-]+$/)) {
+          newSlug = Math.random().toString(36).slice(2, 7);
+          //console.log(newSlug);
+        }
+        if (pageSettings.filter(x => newSlug === x.slug) && pageSettings.length > 0) {
+          for (let i = 0; i < pageSettings.length; i++) {
+            let matched = false;
+            for (let j = 0; j < pageSettings.length; j++) {
+              if ((newSlug + '-' + (i + 1)) == pageSettings[j].slug) {
+                matched = true;
+                break;
+              }
+            }
+            if (!matched) { 
+              newSlug = (newSlug + '-' + (i + 1)).toLowerCase();
+              break;
+            }
+          }
+        }
+        return newSlug;
+      }
+      return slug;
+    });
+    pageId = vu.map('pageId', pageId => {
+      if (!pageId) {
+        return 'page-' + slug;
+      }
+      return pageId;
+    });
+
+    vu().html(vu.get('title'));
+  }); // end of PageItemClass
+
+  // Append page fo pages
+  pages.val('new', {
+    viewClass: PageItemClass,
+    data: {
+      title: 'Home',
+      slug: '/',
+      pageId: 'page-'
+    }
+  });
+
+  // @add-page click event 
+  vu.$el('@add-page').off('click').on('click', e => {
+    pages.val('new', {
+      viewClass: PageItemClass
+    })
+
+    let newPageItemData = pages.get('List').getByIdx(-1).view.get();
+    if (newPageItemData) {
+      pageSettings = pageSettings.concat(newPageItemData)
+      vu.set('pageSettings', pageSettings);
+    }
+  });
+
+  // page-settings event
+  vu.$el('@back').off('click').on('click', e => {
+    vu.$el('@page-settings').addClass('hidden');
+    vu.$el('@navigation').removeClass('hidden');
+    vu.$el('@root').removeClass('hidden');
+  })
+
+
+
+  // Middle part
   // Set onclick event of Section Simulator
   SS.res('item clicked', itemOnclick);
 

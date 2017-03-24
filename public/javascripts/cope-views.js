@@ -1929,22 +1929,30 @@ CopeAppEditorClass.render(vu => {
     vu.$el('@navigation').addClass('hidden');
     vu.$el('@root').addClass('hidden');
     vu.$el('@page-settings').removeClass('hidden');
-    console.log(item.view.get());
+    
     vu('@page-items').html('');
-    ['title', 'slug'].map((x, i) => {
+    [{ key: 'title', title: 'Page Title' }, { key: 'slug', title: 'URL Slug' }].map((obj, i) => {
+      let x = obj.key,
+          value = item.view.get()[x];
+      if (x === 'slug') { value = '/' + value }
+
       vu('@page-items').append([
-        { 'h5[mb:0; fz:12px; c:#eee]': x.slice(0,1).toUpperCase() + x.slice(1) },
+        { 'h5[mb:0; fz:12px;]': obj.title },
         ['@item-' + i]
       ]);
 
-      let itemList = PurelyViews.class('Input').build({
+      let input = PurelyViews.class('Input').build({
         sel: vu.sel('@item-' + i),
         data: {
           type: 'text',
-          //label: x.slice(0,1).toUpperCase() + x.slice(1),
-          value: item.view.get()[x],
-          editable: true
+          value: value,
+          editable: item.view.get().pageId != 'page-'
         }
+      }).res('done', value => {
+        item.view.val(x, value);
+        //console.log('After', vu.get('pageSettings'));
+        console.log('TBD', value);
+        input.val('value', '/' + item.view.val(x));
       });
     }); //end of map
   })// end of page's res
@@ -1957,28 +1965,50 @@ CopeAppEditorClass.render(vu => {
   );
   PageItemClass.render(vu => {
     let title, slug, extUrl, pageId, 
-        pageSettings = thatVu.get('pageSettings');
-        //console.log(pageSettings);
+        pageSettings = thatVu.get('pageSettings'),
+        currPageId = vu.get('pageId');
+
+        //console.log('Before', pageSettings);
     title = vu.map('title', title => title || 'New Page');
+    pageId = vu.map('pageId', pageId => {
+      if (!pageId) {
+        return 'page-' + Math.random().toString(36).slice(2, 7);
+      }
+      return pageId;
+    });
     slug = vu.map('slug', slug => {
-      if (!slug) {
-        let newSlug;
-        newSlug = title.replace(/[\s]/g, '-').toLowerCase();
-        if (!newSlug.match(/^[\w\d\-]+$/)) {
-          newSlug = Math.random().toString(36).slice(2, 7);
+      if (vu.get('pageId') != 'page-') {
+        let newSlug, dict = [];
+        newSlug = slug || title.replace(/[\s]/g, '-').toLowerCase();
+      
+        newSlug = newSlug.replace(/[\/]{2,}/g, '/');
+        if (newSlug.charAt(0) == '/') { newSlug = newSlug.slice(1); }
+
+        if (!newSlug.match(/^[\w\d\-\/]+$/)) {
+          newSlug = pageId.slice(5);
           //console.log(newSlug);
         }
-        if (pageSettings.filter(x => newSlug === x.slug) && pageSettings.length > 0) {
-          for (let i = 0; i < pageSettings.length; i++) {
+        
+        for (let i = 0; i < pageSettings.length; i++) {
+           dict[i] = newSlug + '-' + (i + 1);
+        }
+        dict = [newSlug].concat(dict);
+
+        pageSettings = pageSettings.filter(x => (currPageId != x.pageId));
+                
+        
+        // Duplicates found, assign new slug
+        if (pageSettings.length) {
+          for (let i = 0; i < dict.length; i++) {
             let matched = false;
             for (let j = 0; j < pageSettings.length; j++) {
-              if ((newSlug + '-' + (i + 1)) == pageSettings[j].slug) {
+              if (dict[i] == pageSettings[j].slug) {
                 matched = true;
                 break;
               }
             }
-            if (!matched) { 
-              newSlug = (newSlug + '-' + (i + 1)).toLowerCase();
+            if (!matched) {
+              newSlug = dict[i];
               break;
             }
           }
@@ -1986,12 +2016,6 @@ CopeAppEditorClass.render(vu => {
         return newSlug;
       }
       return slug;
-    });
-    pageId = vu.map('pageId', pageId => {
-      if (!pageId) {
-        return 'page-' + slug;
-      }
-      return pageId;
     });
 
     vu().html(vu.get('title'));
@@ -2002,7 +2026,7 @@ CopeAppEditorClass.render(vu => {
     viewClass: PageItemClass,
     data: {
       title: 'Home',
-      slug: '/',
+      slug: '',
       pageId: 'page-'
     }
   });

@@ -17,6 +17,7 @@ let NavView = Views.class('Nav'),
   UListView = Views.class('UList'),
   FormView = Views.class('Form'),
   ListItemView = Views.class('ListItem'),
+  InputClass = Views.class('Input'),
   SortableListClass = Views.class('SortableList');
   
   ContactsView = Views.class('Contacts'), // to be deprecated
@@ -601,6 +602,7 @@ ParagraphClass.render(vu => {
 // - category: string, the chosen category
 // - tagItems: object
 // - tags: object, the chosen tags
+// "data" <- current user inputs
 DataUploaderClass.dom(vu => [
   { 'div.view-datauploader': [
     { 'div.panel-display@panel-display': [
@@ -777,7 +779,7 @@ DataUploaderClass.render(vu => {
       }
       idx = idx - 1;
       console.log(viewData);
-      vu.res('viewData', viewData);
+      vu.res('data', viewData);
     }
   }); // end of @next click
 
@@ -1593,6 +1595,9 @@ ListItemView.render(vu => {
           type: 'link',
           text: 'link'
         }
+      }).res('values', values => {
+        vu.set('value', values);
+        vu.res('value', vu.get('value'));
       });
       break;
     default:
@@ -1654,7 +1659,6 @@ ListItemView.render(vu => {
       console.log('open modal');
       let modalView = Cope.modal('file', {
         maxWidth: 400,
-        saveOriginal: true
       }).res('done', files => {
         if (files && files[0]) { 
           // TBD: imgsrc should be the true url
@@ -1715,6 +1719,255 @@ ListItemView.render(vu => {
   }
 }); 
 // End of ListItem
+
+// Input
+// - type: 
+//   'text' || 'textarea'
+//   || 'media' || 'text-select' || 'link'
+// - editable: boolean
+// - mode: 'normal' || 'edit'
+// - value: mixed, current value
+// - placeholder: string
+// - items: array, options for "text-select"
+//          could be an array of string values 
+//          or objects like { value }
+// "done" <- mixed, current value
+// "value" <- mixed, current value
+InputClass.dom(vu => [
+  { 'div.view-input': '' }
+]);
+
+InputClass.render(vu => {
+  let type = vu.map('type', type => type || 'text'),
+      value = vu.get('value'),
+      onEdit = vu.get('editable') && (vu.get('mode') === 'edit'),
+      placeholder = vu.get('placeholder'),
+      normal, // switch to normal mode 
+      edit; // switch to edit mode
+
+  normal = function() {
+    vu.res('value', vu.get('value'));
+    vu.res('done', vu.get('value'));
+    vu.val('mode', 'normal');
+  };
+
+  switch(type) {
+    case 'media':
+      value = typeof value == 'object' ? value : {};
+      vu.$el().css({
+        'width': '100px',
+        'height': '100px',
+        'margin-top': '8px',
+        'background-color': '#eee',
+        'background-position': '50% 50%',
+        'background-size': 'cover',
+        'background-repeat': 'no-repeat',
+        'cursor': 'pointer'
+      });
+
+      if (value.vidsrc) {
+        // Video
+      } else if (value.imgsrc) {
+        // Image
+        let url = value.imgsrc;
+        vu.$el().css({
+          'background-image': 'url("' + url + '")'
+        });
+      }
+      break;
+    case 'textarea':
+      value = value || '';
+      if (!onEdit) { // Normal mode
+        vu().html(value.replace(/\n/g, '<br>'));
+      } else {       // Edit mode
+        let textarea = TextareaView.build({
+          sel: vu.sel(),
+          data: {
+            value: value,
+            placeholder: placeholder
+          }
+        });
+        textarea.res('value', value => {
+          vu.set('value', value);
+          vu.res('value', value);
+        });
+        textarea.$el().on('focusout', e => {
+          normal();
+        }).focus();
+      }
+      break;
+    case 'text-select':
+      value = value || '';
+      if (!value && placeholder) {
+        value = [{ 'span(style="color:#ccc;")': placeholder }];
+      }
+      if (!onEdit) { // Normal mode
+        vu().html(value);
+        vu.$el().addClass('text-select');
+      } else {       // Edit mode
+        let items = vu.get('items'),
+            pl = vu.get('placeholder') || '';
+        if (pl) { pl = ' placeholder = "' + pl+ '" '; }
+        vu().html([
+          [ 'input@input(type="text"' 
+            + pl
+            + 'value = "' + value + '"'
+            + ')' ],
+          { '@select-list.select-list': '' }
+        ]);
+
+        setTimeout(function() {
+          vu.$el('@input').focus();
+        });
+
+        // Validate items
+        items = vu.map('items', items => {
+          if (!Array.isArray(items)) {
+            return [];
+          }
+          return items.map((item, i) => {
+            if (typeof item === 'string') {
+              item = { value: item };
+            }
+            item.comp = '@item-' + i;
+            item.dom = ['div' + item.comp, item.value];
+            return item; 
+          });
+        });
+
+        // Render items
+        let renderItems = function(items, key) { // key is the search key
+          if (key) {
+            items = items
+              .filter(x => x.value.indexOf(key) > -1)
+          }
+          vu('@select-list').html(items.map(item => item.dom));
+        };
+        renderItems(items);
+
+        // Bind click events to each items
+        items.map(item => {
+          vu.$el(item.comp).off('click').on('click', e => {
+            e.stopPropagation();
+            vu.set('value', item.value);
+            normal();
+          });
+        });
+
+        // Text input keyup event
+        vu.$el('@input').off('keyup').on('keyup', e => {
+          let inputValue = vu.$el('@input').val().trim();
+          renderItems(items, inputValue);
+          vu.set('value', inputValue);
+        }).off('keydown').on('keydown', e => {
+          if (e.which === 13) { normal(); }
+        });
+        
+        vu.$el('@input').off('focusout').on('focusout', e => {
+          setTimeout(function() {
+            normal();
+          }, 100);
+        });
+      }
+      break;
+    case 'link':
+      value = typeof value == 'object' ? value : {};
+      let editBtn = vu.get('editable') ? { 'span@edit.btn-edit.bg-blue.color-w': 'Edit' } : '',
+          href = value.url ? '(href = "' + value.url + '")' : '';
+      if (!onEdit) {
+        vu().html([
+          editBtn,
+          [ 'a' + href, value.title || placeholder || 'Link' ]
+        ]);
+        vu.$el().addClass('link');
+      } else {
+        vu().html([
+          { 'input@title(type="text" placeholder="Title")': '' },
+          { 'input@url(type="text" placeholder="URL")': '' },
+          { '@done.btn-done.color-blue': 'Done' }
+        ]); 
+        ['title', 'url'].map(key => {
+          vu.$el('@' + key)
+            .val(value[key] || '')
+            .off('keyup').on('keyup', e => {
+              value[key] = vu.$el('@' + key).val();
+              vu.set('value', value);
+            });
+        });
+        vu.$el('@done').off('click').on('click', e => {
+          e.stopPropagation();
+          normal();
+        });
+      }
+      break;
+    case 'text':
+    default:
+      value = value || '';
+      if (!onEdit) { // Normal mode
+        vu().html(value);
+      } else {       // Edit mode
+        let pl = placeholder || '';
+        if (pl) pl = 'placeholder = "' + pl + '"';
+        vu().html([[ 'input@input(type = "text" ' + pl + ')' ]]);
+        vu.$el('@input').off('keyup').on('keyup', e => {
+          vu.set('value', vu.$el('@input').val().trim());
+          vu.res('value', vu.get('value'));
+        });
+        vu.$el('@input').off('keydown').on('keydown', e => {
+          if (e.which === 13) { normal(); }
+        });
+        vu.$el('@input').off('focusout').on('focusout', e => {
+          normal();
+        });
+        vu.$el('@input').val(value).focus();
+      }
+  } // end of switch
+
+  // Define how to switch between normal and edit mode
+  if (vu.get('editable')) {
+    switch (type) {
+      case 'media':
+        vu.$el().off('click').on('click', e => {
+          vu.set('mode', 'edit');
+          Cope.modal('file', {
+            maxWidth: 400
+          }).res('done', files => {
+            let obj = files && files[0],
+                newValue = {};
+            if (obj) {
+              newValue.type = 'media';
+              newValue.file = obj;
+              if (obj.image) {
+                newValue.mediaType = 'image';
+                newValue.imgsrc = obj.image;
+              } else if (obj.video) {
+                newValue.mediaType = 'video';
+                newValue.vidsrc = obj.video;
+              }
+              vu.set('value', newValue);
+              vu.res('value', vu.get('value'));
+              normal();
+            }
+          })
+        }); // end of Cope.modal
+        break;
+      case 'link':
+        vu.$el('@edit').off('click').on('click', e => { 
+          vu.val('mode', 'edit');
+        });
+        break;
+      case 'text':
+      case 'textarea':
+      case 'text-select':
+        vu.$el().off('click').on('click', e => { 
+          vu.val('mode', 'edit');
+        });
+        break;
+      default:
+    } // end of switch
+  } // end of editable
+});
+// End of Input
 
 // SortableList
 // - List: object, inner sortable list

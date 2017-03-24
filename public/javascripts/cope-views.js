@@ -365,7 +365,25 @@ SectionEditorClass.render(vu => {
             editable: (i > 0)
           }
         }).res('value', value => {
-          if (x.key) {
+
+          let appId = vu.get('appId');
+          console.log(appId, x.key, value);
+          if (appId && x.key == 'media' && value.file) {
+            let media = {},
+                file = value.file && value.file.file;
+            Cope.graph(appId).upload(file).then(obj => {
+              media.url = obj.url;
+              switch (obj.node.snap().type) {
+                case 'image': media.imgsrc = obj.url; break;
+                case 'video': media.vidsrc = obj.url; break;
+                case 'audio': media.audsrc = obj.url; break;
+                default:
+              }
+              console.log(media);
+              vu.set(x.key, media);
+              vu.res('data', vu.get());
+            });
+          } else if (x.key) {
             vu.set(x.key, value);
             vu.res('data', vu.get());
           }
@@ -1712,6 +1730,7 @@ CopeAppEditorClass.render(vu => {
       appNameInput,
       pages,
       thatVu = vu;
+      appId = vu.get('appId');
   // SS: Section Simulator
   let SS = PurelyViews.class('SortableList').build({
     sel: vu.sel('@sim')
@@ -1738,6 +1757,7 @@ CopeAppEditorClass.render(vu => {
     });
 
     sectionEditor.set(null);
+    sectionEditor.set('appId', appId);
     sectionEditor.val(view.val());
     sectionEditor.res('data', data => {
       tmpSection.val(data);
@@ -1773,7 +1793,15 @@ CopeAppEditorClass.render(vu => {
       toggleBack();
     });
 
-    // To remove the selected section
+    // "New Data"
+    vu.$el('@control-add').off('click').on('click', e => {
+      Cope.modal(PurelyViews.class('DataUploader'))
+        .res('data', data => {
+          console.log(data);
+        });
+    });
+
+    // "Remove Section": To remove the selected section
     vu.$el('@control-remove').off('click').on('click', e => {
       // Update the selected section
       toggleBack();
@@ -1903,13 +1931,17 @@ CopeAppEditorClass.render(vu => {
     vu.$el('@page-settings').removeClass('hidden');
     console.log(item.view.get());
     vu('@page-items').html('');
-    ['title', 'slug'].map(x => {
-      let itemList = PurelyViews.class('ListItem').build({
-        sel: vu.sel('@page-items'),
-        method: 'append',
+    ['title', 'slug'].map((x, i) => {
+      vu('@page-items').append([
+        { 'h5[mb:0; fz:12px; c:#eee]': x.slice(0,1).toUpperCase() + x.slice(1) },
+        ['@item-' + i]
+      ]);
+
+      let itemList = PurelyViews.class('Input').build({
+        sel: vu.sel('@item-' + i),
         data: {
           type: 'text',
-          label: x.slice(0,1).toUpperCase() + x.slice(1),
+          //label: x.slice(0,1).toUpperCase() + x.slice(1),
           value: item.view.get()[x],
           editable: true
         }

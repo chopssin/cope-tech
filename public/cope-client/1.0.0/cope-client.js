@@ -2264,13 +2264,15 @@
     let modal = function(name, params) {
       let Class;
 
-      if (typeof name === 'string' && typeof params === 'object') {
+      if (typeof name === 'string') {
         Class = modalViews.class(name);
-      } else if (name && name.build && typeof params === 'object') {
+      } else if (name && name.build) {
         Class = name;
       } else {
         return;
       }
+
+      params = typeof params == 'object' ? params : {};
 
       if (Class) {
         myModal.val('useBtn', 'none');

@@ -1972,6 +1972,7 @@ InputClass.render(vu => {
 // SortableList
 // - List: object, inner sortable list
 // - height: number, each block's height
+// - clear: boolean, set true to clear up List
 // "item clicked" <= obj, the selected item
 SortableListClass.dom(vu => [
   { 'div.view-sortable-list': '' }
@@ -2013,7 +2014,14 @@ SortableListClass.render(vu => {
 
   // List
   List = vu.map('List', List => {
-    if(!List) {
+    let clear = vu.get('clear');
+    if (clear) { vu.set('clear', false); }
+
+    if(!List || clear) {
+
+      // Reset the dom before start
+      vu().html('');
+
       let makeList = function(o) {
         let items = [], // { rid, comp, idx, view }
             my = {};

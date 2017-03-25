@@ -60,7 +60,6 @@
   width: 15%;
   left: 1%;
   max-height: 70vh;
-  background: #fff;
 }
 
 .view-app-editor > .middle {
@@ -77,6 +76,40 @@
   padding: 6px;
   overflow: auto;
   background: #fff;
+}
+
+.view-app-editor .logo-n-name {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 50px;
+}
+
+.view-app-editor .menu-btn,
+.view-app-editor .btn-red {
+  font-size: 16px;
+  text-align: center;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.view-app-editor .menu-btn:hover {
+  background: #fff;
+  color: #dc5519;
+}
+
+.view-app-editor .btn-red {
+  text-align: left;
+}
+
+.view-app-editor .btn-red:hover {
+  color: #dc5519;
+}
+
+.view-app-editor .btn-red.btn-add-page {
+  margin-top: 3px;
+  margin-bottom: 8px;
+  font-size: 28px;
 }
 
 .view-app-editor .sim {

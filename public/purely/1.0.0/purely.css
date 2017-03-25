@@ -792,6 +792,10 @@ textarea {
   min-width: 100px;
 }
 
+.view-input:hover {
+  color: #dc5519;
+}
+
 .view-input.link .btn-edit {
   padding: 0 4px;
   margin-right: 8px;

@@ -335,9 +335,9 @@ SectionEditorClass.render(vu => {
   settings.collection = [
     { key: 'title', type: 'text', label: phr('Title'), value: vu.get('title') },
     { key: 'content', type: 'textarea', label: phr('Content'), value: vu.get('content') },
-    { key: 'colName', type: 'select', label: phr('Collection Type'), value: vu.get('colName'), options: [] },
-    { key: 'sort', type: 'select', label: phr('Sorted By'), value: vu.get('sort'), options: [] },
-    { key: 'limit', type: 'number', label: phr('Max Number'), value: vu.get('limit') }
+    { key: 'colName', type: 'text-select', label: phr('Collection Type'), value: vu.get('colName'), options: [] },
+    { key: 'sort', type: 'text-select', label: phr('Sorted By'), value: vu.get('sort'), options: [] },
+    { key: 'limit', type: 'text', label: phr('Max Number'), value: vu.get('limit') }
   ];
   settings.contacts = [
     { key: 'title', type: 'text', label: phr('Title'), value: vu.get('title') },
@@ -403,8 +403,13 @@ SectionEditorClass.render(vu => {
 
   if (vu.get('type') === 'collection') {
     vu('@settings').append([{ '@add-data.cope-card.as-btn.bg-blue.color-w': phr('New Data') }]);
+
+    // "New Data"
     vu.$el('@add-data').off('click').on('click', e => {
-      console.log('adada');
+      Cope.modal(PurelyViews.class('DataUploader'))
+        .res('data', data => {
+          console.log(data);
+        });
     });
   }
   vu.$el('@done').off('click').on('click', e => {
@@ -1055,8 +1060,6 @@ PurelyAppView.render(vu => {
     vu.$el('@style-settings').addClass('hidden');
     vu.$el('@page-settings').addClass('hidden');
 
-    // Darken #page
-    $('#page').addClass('darken');
   }; // end of itemOnclick
 
   PS.res('order', newOrder => { // <- eg. [1, 2, 0, 3]
@@ -1682,26 +1685,25 @@ CopeAppEditorClass.dom(vu => [
   { 'div.view-app-editor': [
     { '.full-bg': '' },
     { '.left': [
-      { 'div': 'Logo && App Name' },
-      { 'div.left-menu': [
+      { 'div.logo-n-name': 'Logo && App Name' },
+      { 'div@menu-wrap.menu-wrap': [
         { '@menu': '' },
-        { '@root.hidden(style="cursor: pointer; width: 50px; margint: 20px 0")': '<- Root' },
+        { '@root.hidden.btn-red': '<- Menu' },
         { '@pages.hidden': [
-          // { 'div': [
-          //   { 'h3': 'Navigation' }]
-          // },
           { 'div@navigation': [
-            { 'h3': 'Navigation' },
-            { 'h3@add-page': '+' },
-            { 'div@nav-items': '' }
-            ]
+            { 'div[flex;]': [
+              { 'h3[flex:1]': 'Navigation' },
+              { '@add-page.btn-red.btn-add-page': '+' }]
+            },
+            { 'div@nav-items': '' }]
           },
           { 'div@page-settings.hidden': [
-            { 'h3': 'Page Settings'},
-            { 'div@back': '<- Back'},
+            { 'div@back.btn-red': '<- Pages'},
+            { 'h3[mb:30px]': 'Page Settings'},
             { 'div@page-items': ''}]
           }]
         },
+        { '@data.hidden': 'Data' },
         { '@design.hidden': 'Design' },
         { '@commerce.hidden': 'Commerce' },
         { '@analytics.hidden': 'Analytics' },
@@ -1713,7 +1715,8 @@ CopeAppEditorClass.dom(vu => [
       { '@sim-single.sim.sim-single.hidden': 'Simulator Single' },
       { '@control.control': 'Control' }] 
     },
-    { '@section-editor.right': [
+    { '@page-editor.right.hidden': '' },
+    { '@section-editor.right.hidden': [
       { '.upper-toggle[flex; fz:16px;]': [
         { '@toggle-editor.bg-blue.color-w': 'Data' },
         { '@toggle-styler': 'Style' }] 
@@ -1727,104 +1730,201 @@ CopeAppEditorClass.dom(vu => [
 CopeAppEditorClass.render(vu => {
 
   let pageSettings = vu.map('pageSettings', x => x || []),
-      currPage = vu.map('currPage', x => x || 'page-'),
-      sections = vu.get('sectionsOf')[currPage] || [],
-      itemOnclick,
+      SS,
+      sectionEditor,
+      sectionStyler,
+      simSections, // function(sections): to render sections in simulator
       savePage,
-      toggleBack,
+      open,
       addNewData,
       appNameInput,
       pages,
-      thatVu = vu;
+      thatVu = vu,
       appId = vu.get('appId');
-  // SS: Section Simulator
-  let SS = PurelyViews.class('SortableList').build({
+
+  // Init currPage
+  vu.map('currPage', x => x || 'page-');
+
+  // Init Section Simulator
+  SS = PurelyViews.class('SortableList').build({
     sel: vu.sel('@sim')
+  }).res('item clicked', function(item) {
+    open('pages/page/sec', { item: item });
   });
 
-  let sectionEditor = SectionEditorClass.build({
+  // Init Section Editor
+  sectionEditor = SectionEditorClass.build({
     sel: vu.sel('@editor')
   });
 
-  let sectionStyler = SectionStylerClass.build({
+  // Init Section Styler
+  sectionStyler = SectionStylerClass.build({
     sel: vu.sel('@styler')
   });
 
-  itemOnclick = function(item) {
-    let view = item.view;
-    let tmpData = view.val();
-    tmpData.vh = 400;
-    //tmpData.width = '';
+  // To start over to render with sections data
+  simSections = function(sections) {
 
-    // Tmp Single Section in Edit Mode
-    let tmpSection = SectionSimulatorClass.build({ //SimSecClass.build({
-      sel: vu.sel('@sim-single'),
-      data: tmpData
-    });
+    // Reset the sortable list
+    SS.val('clear', true);
 
-    sectionEditor.set(null);
-    sectionEditor.set('appId', appId);
-    sectionEditor.val(view.val());
-    sectionEditor.res('data', data => {
-      tmpSection.val(data);
-      //SS.get('List').getByIdx(item.idx).view.val(preData(data, 'SS'));
-    });
-    
-    sectionStyler.set(null);
-    sectionStyler.val('style', view.get('style'));
-    sectionStyler.res('style', style => {
-      sectionEditor.set('style', style);
-      tmpSection.val('style', style);
-      //SS.get('List').getByIdx(item.idx).view.val('style', style);
-    });
+    sections.map(data => {
+      data.vh = 400;
+      SS.val('new', {
+        viewClass: SectionSimulatorClass, //SimSecClass,
+        data: data
+      }) 
+    }); // end of sections.map
+  }; // end of simSections
 
-    // Switch to Edit Mode: Darken Purely App Background
-    vu.$el('.full-bg').addClass('darken');
-    vu.$el('@sim-single').removeClass('hidden');
-    vu.$el('@sim').addClass('hidden');
-
-    // Build action buttons for the selected section
-    vu('@control').html([
-      { 'div@control-back.cope-card.as-btn.bg-w': '<-' }, 
-      { 'div@control-add.cope-card.as-btn.bg-blue.color-w': 'New Data' }, 
-      { 'div@control-remove.cope-card.as-btn.bg-orange.color-w.right': 'Remove Section' }
-    ]);
-
-    // Set action buttons
-    // "Back"
-    vu.$el('@control-back').off('click').on('click', e => {
-      // Update the selected section
-      view.val(tmpSection.val());
-      savePage();
-      toggleBack();
-    });
-
-    // "New Data"
-    vu.$el('@control-add').off('click').on('click', e => {
-      Cope.modal(PurelyViews.class('DataUploader'))
-        .res('data', data => {
-          console.log(data);
+  // Define navigation function
+  open = function(path, params) {
+    switch (path) {
+      case 'pages':
+        break;
+      case 'pages/page':
+        let currPage = vu.map('currPage', x => {
+          let currPage = params && params.currPage;
+          if (x != currPage) {
+            let sections = vu.get('sectionsOf')[currPage] || [];
+            simSections(sections);
+            x = currPage;
+          }
+          return x;
         });
-    });
 
-    // "Remove Section": To remove the selected section
-    vu.$el('@control-remove').off('click').on('click', e => {
-      // Update the selected section
-      toggleBack();
-      item.view.$el().fadeOut(800);
-      setTimeout(function() {
-        SS.val('remove', item.idx);
-        savePage();
-      }, 1200);
-    });
-    
-    // Show the right part
-    vu.$el('@section-editor').show();
+        console.log(vu.get());
+        
+        vu.$el('.right').addClass('hidden');
+        vu.$el('@page-editor')
+          .html(currPage)
+          .removeClass('hidden');
+        break;
+      case 'pages/page/sec':
+        let item = params && params.item,
+            tmpData = item.view.val(),
+            view = item.view;
 
-  }; // end of itemOnclick
+        tmpData.vh = 400;
+
+        if (!item || !view) { return; }
+        
+        // Tmp Single Section in Edit Mode
+        let tmpSection = SectionSimulatorClass.build({ 
+          sel: vu.sel('@sim-single'),
+          data: tmpData
+        });
+
+        sectionEditor.set(null);
+        sectionEditor.set('appId', appId);
+        sectionEditor.val(view.val());
+        sectionEditor.res('data', data => {
+          tmpSection.val(data);
+        });
+        
+        sectionStyler.set(null);
+        sectionStyler.val('style', view.get('style'));
+        sectionStyler.res('style', style => {
+          sectionEditor.set('style', style);
+          tmpSection.val('style', style);
+        });
+
+        // Switch to Edit Mode: Darken Purely App Background
+        vu.$el('@section-editor').removeClass('hidden');
+        vu.$el('.full-bg').addClass('darken');
+        vu.$el('@menu-wrap').addClass('hidden');
+        vu.$el('@sim-single').removeClass('hidden');
+        vu.$el('@sim').addClass('hidden');
+
+        // Build action buttons for the selected section
+        vu('@control').html([
+          { 'div@control-back.cope-card.as-btn.bg-w': '<-' }, 
+          { 'div@control-remove.cope-card.as-btn.bg-orange.color-w.right': 'Remove Section' }
+        ]);
+
+        // Set action buttons
+        // "Back"
+        vu.$el('@control-back').off('click').on('click', e => {
+          // Update the selected section
+          item.view.val(tmpSection.val());
+          savePage();
+          //toggleBack();
+          open('back');
+        });
+
+        // "Remove Section": To remove the selected section
+        vu.$el('@control-remove').off('click').on('click', e => {
+          // Update the selected section
+          //toggleBack();
+          open('back');
+          item.view.$el().fadeOut(800);
+          setTimeout(function() {
+            SS.val('remove', item.idx);
+            savePage();
+          }, 1200);
+        });
+        
+        // Show the right part
+        vu.$el('@section-editor').removeClass('hidden');
+        break;
+      case 'data':
+        break;
+      case 'data/node':
+        break;
+
+      case 'back':
+      case 'root':
+      default: // root
+        let removePageBtn = (vu.get('currPage') != 'page-') 
+          ? { 'div@control-remove.cope-card.as-btn.bg-orange.color-w.right': 'Remove Page' }
+          : '';
+
+        vu('@control').html([
+          { 'div@control-add-sec.cope-card.as-btn.bg-w': 'Add Section' }, 
+          { 'div@control-arrange.cope-card.as-btn.bg-blue.color-w': 'Edit' },
+          removePageBtn
+        ]);
+        vu.$el('@section-editor').addClass('hidden');
+        vu.$el('.full-bg').removeClass('darken');
+        vu.$el('@menu-wrap').removeClass('hidden');
+        vu.$el('@sim-single').addClass('hidden');
+        vu.$el('@sim').removeClass('hidden');
+
+        // To add a new section
+        vu.$el('@control-add-sec').off('click').on('click', e => {
+          SS.val('new', {
+            viewClass: SectionSimulatorClass,
+            data: {
+              title: 'Title',
+              content: 'Content',
+              style: 'sec-bright/sec-op-8/sec-wrap/text-bold-title'
+            }
+          });
+          vu.$el('@sim').animate({ scrollTop: vu.$el('@sim')[0].scrollHeight }, 400);
+          setTimeout(function() {
+            SS.get('List').getByIdx(-1).view.$el().click();
+
+            // Update page data
+            savePage();
+          }, 400);
+        });
+
+        // To remove the page
+        vu.$el('@control-remove').off('click').on('click', e => {
+          console.log('Remove page', vu.get('currPage'));
+        });
+
+        // To rearrange sections
+        vu.$el('@control-arrange').off('click').on('click', e => {
+          console.log('TBD'); 
+        });
+      // end of "default"/"root"
+    } // end of switch
+  }; // end of open
 
   savePage = function() {
     vu.map('sectionsOf', x => {
+      let currPage = vu.get('currPage');
       let sections = [];
       SS.get('List').get().map(item => {
         sections[item.idx] = item.view.get();
@@ -1834,58 +1934,11 @@ CopeAppEditorClass.render(vu => {
     });
 
     vu.res('save page');
-  };
+  }; // end of savePage
 
-  toggleBack = function() {
-    vu('@control').html([
-      { 'div@control-add-sec.cope-card.as-btn.bg-w': 'Add Section' }, 
-      { 'div@control-arrange.cope-card.as-btn.bg-blue.color-w': 'Edit' } 
-    ]);
-    vu.$el('@section-editor').hide();
-    vu.$el('.full-bg').removeClass('darken');
-    vu.$el('@sim-single').addClass('hidden');
-    vu.$el('@sim').removeClass('hidden');
-
-    // To add a new section
-    vu.$el('@control-add-sec').off('click').on('click', e => {
-      SS.val('new', {
-        viewClass: SectionSimulatorClass,
-        data: {
-          title: 'Title',
-          content: 'Content',
-          style: 'sec-bright/sec-op-8/sec-wrap/text-bold-title'
-        }
-      });
-      vu.$el('@sim').animate({ scrollTop: vu.$el('@sim')[0].scrollHeight }, 400);
-      setTimeout(function() {
-        SS.get('List').getByIdx(-1).view.$el().click();
-
-        // Update page data
-        savePage();
-      }, 400);
-    });
-
-    // To rearrange sections
-    vu.$el('@control-arrange').off('click').on('click', e => {
-      console.log('TBD'); 
-    });
-  }; // end of toggleBack
-
-  // Left side
-  let buttonCss = {
-    'background': '#3498db',
-    'border': 'none',
-    'border-radius': '20px',
-    'width': '70%',
-    'color': 'white',
-    'margin': '10px auto',
-    'padding': '6px 10px',
-    'text-align': 'center',
-    'cursor': 'pointer'
-  };// end of buttonCss
-
+  // @hydra's code
   let nav = function(page) {
-    vu.$el('.left-menu').children().addClass('hidden');
+    vu.$el('@menu-wrap').children().addClass('hidden');
     vu.$el('@' + page).removeClass('hidden');
     vu.$el('@root').removeClass('hidden');
     if (page == 'root') {
@@ -1899,21 +1952,24 @@ CopeAppEditorClass.render(vu => {
     label: 'Pages',
     name: 'pages'
   }, {
+    label: 'Data',
+    name: 'data'
+  }, {
     label: 'Design',
     name: 'design'
   }, {
     label: 'Commerce',
     name: 'commerce'
   }, {
-    label: 'Analysis',
-    name: 'analysis'
+    label: 'Analytics',
+    name: 'analytics'
   }, {
     label: 'Settings',
     name: 'settings'
   }].map((x, idx) => {
     vu('@menu').append([
       { 'div': [
-        [ 'div@menu-btn-' + idx, x.label]]
+        [ 'div@menu-btn-' + idx + '.menu-btn', x.label]]
       }
     ]);
     // @menu-btn event
@@ -1921,9 +1977,9 @@ CopeAppEditorClass.render(vu => {
       nav(x.name);
     });
     // set @menu-btn Css
-    vu.$el('@menu-btn-' + idx).css(buttonCss);
+    //vu.$el('@menu-btn-' + idx).css(buttonCss);
   }); // end of map
-  vu.$el('.left').css({'background-color': '#eee'});
+  
   // @root click event
   vu.$el('@root').off('click').on('click', e => {
     nav('root');
@@ -1937,15 +1993,18 @@ CopeAppEditorClass.render(vu => {
     vu.$el('@page-settings').removeClass('hidden');
     
     vu('@page-items').html('');
-    [{ key: 'title', title: 'Page Title' }, { key: 'slug', title: 'URL Slug' }].map((obj, i) => {
+    [{ key: 'title', title: 'Page Title' }, 
+     { key: 'slug', title: 'URL Slug' }].map((obj, i) => {
       let x = obj.key,
           value = item.view.get()[x];
       if (x === 'slug') { value = '/' + value }
 
       vu('@page-items').append([
-        { 'h5[mb:0; fz:12px;]': obj.title },
-        ['@item-' + i]
+        { 'h5[mt:8px; mb:4px; fz:12px; c:#888]': obj.title },
+        ['@item-' + i + '[fz:16px;]']
       ]);
+
+      console.log(item.view.get());
 
       let input = PurelyViews.class('Input').build({
         sel: vu.sel('@item-' + i),
@@ -1958,7 +2017,9 @@ CopeAppEditorClass.render(vu => {
         item.view.val(x, value);
         //console.log('After', vu.get('pageSettings'));
         console.log('TBD', value);
-        input.val('value', '/' + item.view.val(x));
+        if (x === 'slug') {
+          input.val('value', '/' + item.view.val(x));
+        }
       });
     }); //end of map
   })// end of page's res
@@ -1966,9 +2027,7 @@ CopeAppEditorClass.render(vu => {
 
   // Build PageItemClass
   let PageItemClass = Cope.views().class('PageItem'); // Cope.class()
-  PageItemClass.dom(vu => [
-    {'div': 'page'}]
-  );
+  PageItemClass.dom(vu => [{ 'div.btn-red': '' }]);
   PageItemClass.render(vu => {
     let title, slug, extUrl, pageId, 
         pageSettings = thatVu.get('pageSettings'),
@@ -2025,9 +2084,13 @@ CopeAppEditorClass.render(vu => {
     });
 
     vu().html(vu.get('title'));
+
+    vu.$el().off('click').on('click', e => {
+      open('pages/page', { currPage: vu.get('pageId') });
+    });
   }); // end of PageItemClass
 
-  // Append page fo pages
+  // Append page to pages
   pages.val('new', {
     viewClass: PageItemClass,
     data: {
@@ -2055,24 +2118,11 @@ CopeAppEditorClass.render(vu => {
     vu.$el('@page-settings').addClass('hidden');
     vu.$el('@navigation').removeClass('hidden');
     vu.$el('@root').removeClass('hidden');
-  })
+  });
 
+  // End of @hydra
 
-
-  // Middle part
-  // Set onclick event of Section Simulator
-  SS.res('item clicked', itemOnclick);
-
-  // Render with sections data
-  sections.map(data => {
-    data.vh = 400;
-    SS.val('new', {
-      viewClass: SectionSimulatorClass, //SimSecClass,
-      data: data
-    }) 
-  }); // end of sections.map
-
-  // Set the toggle between editor and styler
+  // TBD: wrap it in sectionEditor! Set the toggle between editor and styler
   ['editor', 'styler'].map(x => {
     let $that = vu.$el('@toggle-' + x);
     $that.off('click').on('click', e => {
@@ -2088,8 +2138,11 @@ CopeAppEditorClass.render(vu => {
     });
   });
 
-  // Start with toggleBack
-  toggleBack();
+  // Start with "root"
+  open('root');
+
+  // Render home page
+  simSections(vu.get('sectionsOf')['page-'] || []);
 });
 // End of Cope.App.AppEditor
 

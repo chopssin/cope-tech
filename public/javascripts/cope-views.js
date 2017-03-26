@@ -1729,21 +1729,34 @@ CopeAppEditorClass.dom(vu => [
 
 CopeAppEditorClass.render(vu => {
 
-  let pageSettings = vu.map('pageSettings', x => x || []),
-      SS,
+  let pageList, // sortable list of page items
+      SS, // sortable list of section simulator
       sectionEditor,
       sectionStyler,
+      pageItemClass,
+      buildPageItems, // function to render page items
       simSections, // function(sections): to render sections in simulator
       savePage,
       open,
       addNewData,
       appNameInput,
-      pages,
       thatVu = vu,
       appId = vu.get('appId');
 
-  // Init currPage
+  // Init currPage and pageSettings
   vu.map('currPage', x => x || 'page-');
+  vu.map('pageSettings', x => x || [{ 
+    title: 'Home',
+    slug: '',
+    pageId: 'page-'
+  }]);
+
+  // Init Page List
+  pageList = PurelyViews.class('SortableList').build({
+    sel: vu.sel('@nav-items')
+  }).res('item clicked', function(item) {
+    open('pages/page', { item: item });
+  });
 
   // Init Section Simulator
   SS = PurelyViews.class('SortableList').build({
@@ -1762,7 +1775,18 @@ CopeAppEditorClass.render(vu => {
     sel: vu.sel('@styler')
   });
 
-  // To start over to render with sections data
+  // To render with page items
+  buildPageItems = function(pages) {
+    pageList.val('clear', true);
+    pages.map(data => {
+      pageList.val('new', {
+        viewClass: PageItemClass,
+        data: data
+      });
+    });
+  };
+
+  // To render with sections data
   simSections = function(sections) {
 
     // Reset the sortable list
@@ -1771,7 +1795,7 @@ CopeAppEditorClass.render(vu => {
     sections.map(data => {
       data.vh = 400;
       SS.val('new', {
-        viewClass: SectionSimulatorClass, //SimSecClass,
+        viewClass: SectionSimulatorClass,
         data: data
       }) 
     }); // end of sections.map
@@ -1779,12 +1803,14 @@ CopeAppEditorClass.render(vu => {
 
   // Define navigation function
   open = function(path, params) {
+    let item;
     switch (path) {
       case 'pages':
         break;
       case 'pages/page':
+        item = params && params.item;
         let currPage = vu.map('currPage', x => {
-          let currPage = params && params.currPage;
+          let currPage = item && item.view && item.view.get('pageId');
           if (x != currPage) {
             let sections = vu.get('sectionsOf')[currPage] || [];
             simSections(sections);
@@ -1794,15 +1820,45 @@ CopeAppEditorClass.render(vu => {
         });
 
         console.log(vu.get());
+
+        vu('@page-editor').html('');
+        [{ key: 'title', title: 'Page Title' }, 
+         { key: 'slug', title: 'URL Slug' }].map((obj, i) => {
+          let x = obj.key,
+              value = item.view.get()[x];
+          if (x === 'slug') { value = '/' + value }
+
+          vu('@page-editor').append([
+            { 'h5[mt:8px; mb:4px; fz:12px; c:#888]': obj.title },
+            ['@item-' + i + '[fz:16px;]']
+          ]);
+
+          console.log(item.view.get());
+
+          let input = PurelyViews.class('Input').build({
+            sel: vu.sel('@item-' + i),
+            data: {
+              type: 'text',
+              value: value,
+              editable: x == 'title' || item.view.get('pageId') != 'page-'
+            }
+          }).res('done', value => {
+            item.view.val(x, value);
+            //console.log('After', vu.get('pageSettings'));
+            console.log('TBD', value);
+            if (x === 'slug') {
+              input.val('value', '/' + item.view.val(x));
+            }
+          });
+        }); //end of map
         
         vu.$el('.right').addClass('hidden');
-        vu.$el('@page-editor')
-          .html(currPage)
-          .removeClass('hidden');
+        vu.$el('@page-editor').removeClass('hidden');
         break;
       case 'pages/page/sec':
-        let item = params && params.item,
-            tmpData = item.view.val(),
+        item = params && params.item;
+
+        let tmpData = item.view.val(),
             view = item.view;
 
         tmpData.vh = 400;
@@ -1985,48 +2041,8 @@ CopeAppEditorClass.render(vu => {
     nav('root');
   }); //end of @root click
 
-  pages = PurelyViews.class('SortableList').build({
-    sel: vu.sel('@nav-items')
-  }).res('item clicked', item => { // pages's res
-    vu.$el('@navigation').addClass('hidden');
-    vu.$el('@root').addClass('hidden');
-    vu.$el('@page-settings').removeClass('hidden');
-    
-    vu('@page-items').html('');
-    [{ key: 'title', title: 'Page Title' }, 
-     { key: 'slug', title: 'URL Slug' }].map((obj, i) => {
-      let x = obj.key,
-          value = item.view.get()[x];
-      if (x === 'slug') { value = '/' + value }
-
-      vu('@page-items').append([
-        { 'h5[mt:8px; mb:4px; fz:12px; c:#888]': obj.title },
-        ['@item-' + i + '[fz:16px;]']
-      ]);
-
-      console.log(item.view.get());
-
-      let input = PurelyViews.class('Input').build({
-        sel: vu.sel('@item-' + i),
-        data: {
-          type: 'text',
-          value: value,
-          editable: item.view.get().pageId != 'page-'
-        }
-      }).res('done', value => {
-        item.view.val(x, value);
-        //console.log('After', vu.get('pageSettings'));
-        console.log('TBD', value);
-        if (x === 'slug') {
-          input.val('value', '/' + item.view.val(x));
-        }
-      });
-    }); //end of map
-  })// end of page's res
-
-
   // Build PageItemClass
-  let PageItemClass = Cope.views().class('PageItem'); // Cope.class()
+  PageItemClass = Cope.class(); // Cope.class()
   PageItemClass.dom(vu => [{ 'div.btn-red': '' }]);
   PageItemClass.render(vu => {
     let title, slug, extUrl, pageId, 
@@ -2084,32 +2100,19 @@ CopeAppEditorClass.render(vu => {
     });
 
     vu().html(vu.get('title'));
-
-    vu.$el().off('click').on('click', e => {
-      open('pages/page', { currPage: vu.get('pageId') });
-    });
   }); // end of PageItemClass
-
-  // Append page to pages
-  pages.val('new', {
-    viewClass: PageItemClass,
-    data: {
-      title: 'Home',
-      slug: '',
-      pageId: 'page-'
-    }
-  });
 
   // @add-page click event 
   vu.$el('@add-page').off('click').on('click', e => {
-    pages.val('new', {
+    pageList.val('new', {
       viewClass: PageItemClass
     })
 
-    let newPageItemData = pages.get('List').getByIdx(-1).view.get();
+    let newPageItemData = pageList.get('List').getByIdx(-1).view.get();
     if (newPageItemData) {
-      pageSettings = pageSettings.concat(newPageItemData)
-      vu.set('pageSettings', pageSettings);
+      vu.map('pageSettings', x => {
+        x = x.concat(newPageItemData);
+      });
     }
   });
 
@@ -2140,6 +2143,9 @@ CopeAppEditorClass.render(vu => {
 
   // Start with "root"
   open('root');
+
+  // Render page items
+  buildPageItems(vu.get('pageSettings'));
 
   // Render home page
   simSections(vu.get('sectionsOf')['page-'] || []);

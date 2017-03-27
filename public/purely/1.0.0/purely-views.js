@@ -2206,7 +2206,7 @@ SortableListClass.render(vu => {
             // pageLeft = e.pageX;
             vu.$el('@' + item.comp).after(`<div style="height:${itemHeight}px;" class="block"></div>`);
             clearTimeout(item._exec);
-          }, 400);
+          }, 100);
         },
         onmousemove: function (item, e) {
           e.stopPropagation();
@@ -2296,7 +2296,6 @@ SortableListClass.render(vu => {
             vu.res('order', List.get().map(item => item.idx));
           }
           startItem = '';
-          //console.log(startItem);
         },
         onmouseleave: function(item, e){
           if(startItem){

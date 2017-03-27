@@ -2206,11 +2206,7 @@ SortableListClass.render(vu => {
             // pageLeft = e.pageX;
             vu.$el('@' + item.comp).after(`<div style="height:${itemHeight}px;" class="block"></div>`);
             clearTimeout(item._exec);
-<<<<<<< HEAD
-          }, 200);
-=======
-          }, 400);
->>>>>>> dev
+          }, 100);
         },
         onmousemove: function (item, e) {
           e.stopPropagation();

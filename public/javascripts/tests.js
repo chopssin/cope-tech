@@ -409,7 +409,7 @@ Test.go(log => {
       catItems: { hi: false, there: false },
       tagItems: { hello: false, world: false }
     }
-  })
+  });
 })
 
 Test.go(log => {

@@ -2040,7 +2040,7 @@ SortableListClass.render(vu => {
         my.getByIdx = function(idx) {
           let i = idx;
           if (isNaN(idx)) {
-            return items.sort((a, b) {
+            return items.sort((a, b) => {
               return (a.idx > b.idx);
             });
           }
@@ -2204,7 +2204,7 @@ SortableListClass.render(vu => {
             // pageLeft = e.pageX;
             vu.$el('@' + item.comp).after(`<div style="height:${itemHeight}px;" class="block"></div>`);
             clearTimeout(item._exec);
-          }, 500);
+          }, 200);
         },
         onmousemove: function (item, e) {
           e.stopPropagation();
@@ -2294,7 +2294,6 @@ SortableListClass.render(vu => {
             vu.res('order', List.get().map(item => item.idx));
           }
           startItem = '';
-          //console.log(startItem);
         },
         onmouseleave: function(item, e){
           if(startItem){

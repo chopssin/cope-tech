@@ -79,6 +79,7 @@ Pages.use('/', params => {
       //c.add(); 
     }
 
+    console.log('TBD: Get data for page items shown in Navigation');
     console.log(appData);
 
     // Try to access page "/" of the app
@@ -129,7 +130,9 @@ Pages.use('/', params => {
 
     // Find the node by currAppId and update app data
     let G = Cope.graph(currAppId);
-    G.node(currPage).val('sections', appData.sectionsOf[currPage]);
+    G.node(currPage)
+      .col('page')
+      .val('sections', appData.sectionsOf[currPage]);
   }); // end of "save" of copeApp
 
   // Set res of copeNav

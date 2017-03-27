@@ -1773,7 +1773,9 @@ CopeAppEditorClass.render(vu => {
   }).res('item clicked', function(item) {
     open('pages/page/sec', { item: item });
   }).res('order', order => {
+    console.log(order);
     console.log(SS.get('List').getByIdx());
+    console.log(SS.get('List').get());
   });
 
   // Init Section Editor
@@ -1904,7 +1906,6 @@ CopeAppEditorClass.render(vu => {
         vu.$el('.full-bg').addClass('darken');
         vu.$el('@menu-wrap').addClass('hidden');
         vu.$el('@sim-single').removeClass('hidden');
-        vu.$el('@sim-empty').addClass('hidden');
         vu.$el('@sim').addClass('hidden');
 
         // Build action buttons for the selected section
@@ -1931,6 +1932,9 @@ CopeAppEditorClass.render(vu => {
           item.view.$el().fadeOut(800);
           setTimeout(function() {
             SS.val('remove', item.idx);
+            if (SS.get('List').get().length < 1) {
+              vu.$el('@sim-empty').removeClass('hidden');
+            }
             savePage();
           }, 1200);
         });
@@ -1963,6 +1967,7 @@ CopeAppEditorClass.render(vu => {
 
         // To add a new section
         vu.$el('@control-add-sec').off('click').on('click', e => {
+          vu.$el('@sim-empty').addClass('hidden');
           SS.val('new', {
             viewClass: SectionSimulatorClass,
             data: {

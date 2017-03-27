@@ -2040,7 +2040,9 @@ SortableListClass.render(vu => {
         my.getByIdx = function(idx) {
           let i = idx;
           if (isNaN(idx)) {
-            return items;
+            return items.sort((a, b) {
+              return (a.idx > b.idx);
+            });
           }
           if (i < 0) {
             i = items.length + i;

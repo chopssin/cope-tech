@@ -803,7 +803,7 @@ DataUploaderClass.render(vu => {
       })
       vu.$el('@button').removeClass('hidden');
       itemList.val('new', {
-        viewClass: ListItemView,
+        viewClass: Views.class('Input'),
         data: {
           type: 'text',
           label: 'Name',
@@ -813,7 +813,7 @@ DataUploaderClass.render(vu => {
         }
       });
       itemList.val('new', {
-        viewClass: ListItemView,
+        viewClass: Views.class('Input'),
         data: {
           type: 'text',
           label: 'Price',
@@ -875,7 +875,7 @@ DataUploaderClass.render(vu => {
         }, 600);
 
         itemList.val('new',{
-          viewClass: ListItemView,
+          viewClass: Views.class('Input'),
           data: {
             type: type,
             label: 'Label',
@@ -1605,7 +1605,7 @@ ListItemView.render(vu => {
 
   if (editable) {
     vu.$el().addClass('hover-effect');
-    vu.$el('@form').off('click').on('click', e => {
+    vu.$el('@form').off('dblclick').on('dblclick', e => {
       vu.val('edit', true);
       vu.$el('@editable').find('input').focus();
     });
@@ -1619,7 +1619,7 @@ ListItemView.render(vu => {
       + ')' ]
   ]);
   if (labelEditable) {
-    vu.$el('@label-display').off('click').on('click', e => {
+    vu.$el('@label-display').off('dblclick').on('dblclick', e => {
       vu.$el('@label-display').addClass('hidden');
       vu.$el('@label-editable').removeClass('hidden');
       vu.$el('@label-editable').find('input').focus();
@@ -2040,7 +2040,9 @@ SortableListClass.render(vu => {
         my.getByIdx = function(idx) {
           let i = idx;
           if (isNaN(idx)) {
-            return items;
+            return items.sort((a, b) {
+              return (a.idx > b.idx);
+            });
           }
           if (i < 0) {
             i = items.length + i;
@@ -2146,6 +2148,7 @@ SortableListClass.render(vu => {
         }; // end of my.swap
 
         my.order = function(order) {
+          console.log('@@@@');
           let tmp = order.concat([]);
           if (order.length != items.length || !Array.isArray(order)) { return; }
           if (tmp.sort((a, b) => a-b).filter((idx, i) => idx != i).length != 0) { return; }
@@ -2173,12 +2176,15 @@ SortableListClass.render(vu => {
         },
         onmousedown: function (item, e) { // mousedown -> ... -> mouseup -> click
           item._mouseUp = false;
-          let exec = setTimeout(function() {
-            if (item._mouseUp) { 
-              //vu.res('item clicked', item);
-              clearTimeout(exec);
+          if (item._exec) {
+            return;
+          }
+          item._exec = setTimeout(function() {
+            item._exec = null;
+            if (item._mouseUp) {
               return; 
             }
+
             draggedRid = item.rid;
             startItem = item; //vu.$el('@' + item.comp); // .col-item wrap of the dragged item
             let itemRectAbs = item.view.$el().offset();
@@ -2197,11 +2203,12 @@ SortableListClass.render(vu => {
             // pageTop = e.pageY - itemHeight*item.idx;
             // pageLeft = e.pageX;
             vu.$el('@' + item.comp).after(`<div style="height:${itemHeight}px;" class="block"></div>`);
-          }, 100);
+            clearTimeout(item._exec);
+          }, 500);
         },
         onmousemove: function (item, e) {
           e.stopPropagation();
-          item._mouseUp = false;
+          //item._mouseUp = false;
           let targetRect = item.view.$el()[0].getBoundingClientRect();
           if(startItem) {
             vu.$el('@' + startItem.comp).css({
@@ -2283,9 +2290,11 @@ SortableListClass.render(vu => {
               vu.$el('.block').remove();
               itemHeight = 0;
             }
-            startItem = '';
+            //startItem = '';
             vu.res('order', List.get().map(item => item.idx));
           }
+          startItem = '';
+          //console.log(startItem);
         },
         onmouseleave: function(item, e){
           if(startItem){

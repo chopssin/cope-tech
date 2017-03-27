@@ -1711,6 +1711,9 @@ CopeAppEditorClass.dom(vu => [
       }]
     },
     { '.middle': [
+      { '@sim-empty.hidden.sim-empty': [
+        { 'div': 'Empty' }] 
+      },
       { '@sim.sim': 'Simulator' },
       { '@sim-single.sim.sim-single.hidden': 'Simulator Single' },
       { '@control.control': 'Control' }] 
@@ -1733,6 +1736,7 @@ CopeAppEditorClass.render(vu => {
       SS, // sortable list of section simulator
       sectionEditor,
       sectionStyler,
+      pageSettings,
       pageItemClass,
       buildPageItems, // function to render page items
       simSections, // function(sections): to render sections in simulator
@@ -1745,11 +1749,16 @@ CopeAppEditorClass.render(vu => {
 
   // Init currPage and pageSettings
   vu.map('currPage', x => x || 'page-');
-  vu.map('pageSettings', x => x || [{ 
-    title: 'Home',
-    slug: '',
-    pageId: 'page-'
-  }]);
+  pageSettings = vu.map('pageSettings', x => { 
+    if (!x) { 
+      x = [{ 
+        title: 'Home',
+        slug: '',
+        pageId: 'page-'
+      }]
+    }
+    return x;
+  });
 
   // Init Page List
   pageList = PurelyViews.class('SortableList').build({
@@ -1763,6 +1772,8 @@ CopeAppEditorClass.render(vu => {
     sel: vu.sel('@sim')
   }).res('item clicked', function(item) {
     open('pages/page/sec', { item: item });
+  }).res('order', order => {
+    console.log(SS.get('List').getByIdx());
   });
 
   // Init Section Editor
@@ -1788,6 +1799,9 @@ CopeAppEditorClass.render(vu => {
 
   // To render with sections data
   simSections = function(sections) {
+      
+    // Hide simulator's fallback
+    vu.$el('@sim-empty').addClass('hidden');
 
     // Reset the sortable list
     SS.val('clear', true);
@@ -1799,6 +1813,10 @@ CopeAppEditorClass.render(vu => {
         data: data
       }) 
     }); // end of sections.map
+
+    if (!sections || sections.length < 1) {
+      vu.$el('@sim-empty').removeClass('hidden');
+    }
   }; // end of simSections
 
   // Define navigation function
@@ -1819,8 +1837,6 @@ CopeAppEditorClass.render(vu => {
           return x;
         });
 
-        console.log(vu.get());
-
         vu('@page-editor').html('');
         [{ key: 'title', title: 'Page Title' }, 
          { key: 'slug', title: 'URL Slug' }].map((obj, i) => {
@@ -1832,8 +1848,6 @@ CopeAppEditorClass.render(vu => {
             { 'h5[mt:8px; mb:4px; fz:12px; c:#888]': obj.title },
             ['@item-' + i + '[fz:16px;]']
           ]);
-
-          console.log(item.view.get());
 
           let input = PurelyViews.class('Input').build({
             sel: vu.sel('@item-' + i),
@@ -1890,6 +1904,7 @@ CopeAppEditorClass.render(vu => {
         vu.$el('.full-bg').addClass('darken');
         vu.$el('@menu-wrap').addClass('hidden');
         vu.$el('@sim-single').removeClass('hidden');
+        vu.$el('@sim-empty').addClass('hidden');
         vu.$el('@sim').addClass('hidden');
 
         // Build action buttons for the selected section
@@ -2046,10 +2061,8 @@ CopeAppEditorClass.render(vu => {
   PageItemClass.dom(vu => [{ 'div.btn-red': '' }]);
   PageItemClass.render(vu => {
     let title, slug, extUrl, pageId, 
-        pageSettings = thatVu.get('pageSettings'),
         currPageId = vu.get('pageId');
 
-        //console.log('Before', pageSettings);
     title = vu.map('title', title => title || 'New Page');
     pageId = vu.map('pageId', pageId => {
       if (!pageId) {
@@ -2059,7 +2072,11 @@ CopeAppEditorClass.render(vu => {
     });
     slug = vu.map('slug', slug => {
       if (vu.get('pageId') != 'page-') {
-        let newSlug, dict = [];
+        let newSlug, dict = [],
+            pageSettings = thatVu.get('pageSettings');
+
+        console.log(pageSettings);
+
         newSlug = slug || title.replace(/[\s]/g, '-').toLowerCase();
       
         newSlug = newSlug.replace(/[\/]{2,}/g, '/');
@@ -2099,7 +2116,17 @@ CopeAppEditorClass.render(vu => {
       return slug;
     });
 
-    vu().html(vu.get('title'));
+    vu().html(title);
+
+    // Update app editor's pageSettings
+    thatVu.map('pageSettings', v => {
+      return v.map(x => {
+        if (x.pageId == pageId) {
+          return vu.get();
+        }
+        return x;
+      });
+    })
   }); // end of PageItemClass
 
   // @add-page click event 
@@ -2112,6 +2139,7 @@ CopeAppEditorClass.render(vu => {
     if (newPageItemData) {
       vu.map('pageSettings', x => {
         x = x.concat(newPageItemData);
+        return x;
       });
     }
   });

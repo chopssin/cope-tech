@@ -2040,9 +2040,11 @@ SortableListClass.render(vu => {
         my.getByIdx = function(idx) {
           let i = idx;
           if (isNaN(idx)) {
-            return items.sort((a, b) => {
-              return (a.idx > b.idx);
+            let arr = [];
+            items.map(x => {
+              arr[x.idx] = x;
             });
+            return arr;
           }
           if (i < 0) {
             i = items.length + i;
@@ -2204,7 +2206,11 @@ SortableListClass.render(vu => {
             // pageLeft = e.pageX;
             vu.$el('@' + item.comp).after(`<div style="height:${itemHeight}px;" class="block"></div>`);
             clearTimeout(item._exec);
+<<<<<<< HEAD
           }, 200);
+=======
+          }, 400);
+>>>>>>> dev
         },
         onmousemove: function (item, e) {
           e.stopPropagation();

@@ -2169,19 +2169,20 @@ SortableListClass.render(vu => {
       List = makeList({
         height: height,
         onclick: function(item, e) {
-          console.log('up');
           item._mouseUp = true;
           vu.res('item clicked', item);
         },
         onmousedown: function (item, e) { // mousedown -> ... -> mouseup -> click
-          console.log('down');
           item._mouseUp = false;
-          let exec = setTimeout(function() {
+          if (item._exec) {
+            return;
+          }
+          item._exec = setTimeout(function() {
+            item._exec = null;
             if (item._mouseUp) {
-              //vu.res('item clicked', item);
-              clearTimeout(exec);
               return; 
             }
+
             draggedRid = item.rid;
             startItem = item; //vu.$el('@' + item.comp); // .col-item wrap of the dragged item
             let itemRectAbs = item.view.$el().offset();
@@ -2200,7 +2201,8 @@ SortableListClass.render(vu => {
             // pageTop = e.pageY - itemHeight*item.idx;
             // pageLeft = e.pageX;
             vu.$el('@' + item.comp).after(`<div style="height:${itemHeight}px;" class="block"></div>`);
-          }, 100);
+            clearTimeout(item._exec);
+          }, 500);
         },
         onmousemove: function (item, e) {
           e.stopPropagation();

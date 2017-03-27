@@ -1952,14 +1952,14 @@ InputClass.render(vu => {
         }); // end of Cope.modal
         break;
       case 'link':
-        vu.$el('@edit').off('click').on('click', e => { 
+        vu.$el('@edit').off('dblclick').on('dblclick', e => { 
           vu.val('mode', 'edit');
         });
         break;
       case 'text':
       case 'textarea':
       case 'text-select':
-        vu.$el().off('click').on('click', e => { 
+        vu.$el().off('dblclick').on('dblclick', e => { 
           vu.val('mode', 'edit');
         });
         break;

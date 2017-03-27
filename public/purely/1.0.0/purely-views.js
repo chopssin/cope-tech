@@ -1966,6 +1966,10 @@ InputClass.render(vu => {
       default:
     } // end of switch
   } // end of editable
+
+  vu.$el('input').off('mousedown').on('mousedown', e => {
+    e.stopPropagation();
+  });
 });
 // End of Input
 

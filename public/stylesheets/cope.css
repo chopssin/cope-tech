@@ -20,6 +20,31 @@
 }
 
 /* Views */
+/* Cope.App.Overview */
+.view-cope-overview {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.view-cope-overview .profile > div {
+  width: 100%;
+  text-align: center;
+}
+
+.view-cope-overview .profile .avatar {
+  background: #fff;
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 80px;
+  margin: 0 auto;
+}
+
+.view-cope-overview .profile .account {
+  padding: 16px 0;
+}
 
 /* Cope.App.AppEditor */
 .view-app-editor {
@@ -82,7 +107,24 @@
   display: block;
   width: 100%;
   text-align: center;
-  padding: 50px;
+  padding: 50px 0;
+}
+.view-app-editor .logo-n-name .profile-logo {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+}
+
+.view-app-editor .logo-n-name .no-logo {
+  background: #aaa;
+  position: absolute;
+  width: 100px; 
+  height: 100px; 
+  left: 50%;
+  transform: translateX(-50%);
+  line-height: 100px; 
+  z-index: -500;
 }
 
 .view-app-editor .menu-btn,

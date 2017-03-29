@@ -1643,17 +1643,37 @@ CopeAppClass.render(vu => {
 // End of Cope.App
 
 // Cope.App.Overview
+// "sava profile" <- object, user's profile data  
 CopeAppOverviewClass.dom(vu => [
   { 'div.view-cope-overview': [
-    { 'div.profile': [
+    { '@btn-close.btn-close.hidden': 'X' },
+    { 'div@profile.profile': [
       { 'div': [
         { 'div@avatar.avatar': '' }]
       },
       { 'div': [
-        { 'div@account.account': '' }]
+        { 'div@display-name.account-item': '' }] 
       }]
     },
-    { 'div.app-list': [
+    { '@profile-editor.profile-editor.hidden': [
+      { 'div': [
+        { 'div@avatar-edit.avatar': 'Media input' }]
+      },
+      { 'div[text-align: center]': [
+        { 'div@name-edit.account-item': 'Text input' }]  
+      },
+       { 'div[text-align: center]': [
+        { 'div@email-edit.account-item': 'Email input' }]  
+      },
+      { 'div[w:100%]': [
+        { 'div.cope-card.bg-orange.color-w.as-btn[m:0 auto; fz:14px]': 'Sign out' }]
+      },
+      { 'div': '' }] // TBD: edit profile
+    },
+    { 'div@app-list.app-list': [
+      { 'div[w:100%]': [
+        { 'div.cope-card.bg-blue.color-w.as-btn[m:0 auto; fz:14px]': 'Create New App' }]
+      },
       { 'h3@app-list-title': '' },
       { '@apps': '' }] 
     }] 
@@ -1661,9 +1681,11 @@ CopeAppOverviewClass.dom(vu => [
 ]);
 
 CopeAppOverviewClass.render(vu => {
-  vu.use('email, name').then(v => {
-    vu('@account').html('Hello, ' + v.name + ' (' + v.email + ')');
-  });
+  let avatarEdit,
+      accountEdit;
+
+  vu('@display-name').html(vu.get('name') || vu.get('email') || 'Hello');
+  
 
   vu.use('apps, appIds').then(v => {
     if (!v.appIds || !v.appIds.length) { return; }
@@ -1680,8 +1702,78 @@ CopeAppOverviewClass.render(vu => {
         // Ask for data from outside
         vu.res('app selected', appId);
       });
+    }); // end of map
+  }); // end of use('apps, appIds')
+
+  // Build Input in @avatar-edit && @name-edit && @email-edit
+  avatarEdit = PurelyViews.class('Input').build({
+    sel: vu.sel('@avatar-edit'),
+    data: {
+      type: 'media',
+      editable: true
+    }
+  }).res('value', value => {
+    vu.set('display', value.imgsrc);
+    vu.$el('@avatar').css('background-image', 'url("' + value.imgsrc +'")');
+
+    vu.res('sava profile', {
+      name: vu.get('name') || null,
+      email: vu.get('email') || null,
+      display: vu.get('display') || null
     });
   });
+
+  nameEdit = PurelyViews.class('Input').build({
+    sel: vu.sel('@name-edit'),
+    data: {
+      type: 'text',
+      value: vu.get('name'),
+      editable: true
+    }
+  }).res('value', value => {
+    vu.set('name', value);
+    vu.$el('@display-name').html(value);
+    vu.res('sava profile', {
+      name: vu.get('name') || null,
+      email: vu.get('email') || null,
+      display: vu.get('display') || null
+    });
+  });
+
+  emailEdit = PurelyViews.class('Input').build({
+  sel: vu.sel('@email-edit'),
+  data: {
+    type: 'text',
+    value: vu.get('email'),
+    editable: true
+    }
+  }).res('value', value => {
+    vu.set('email', value);
+    vu.res('sava profile', {
+      name: vu.get('name') || null,
+      email: vu.get('email') || null,
+      display: vu.get('display') || null
+    });
+  });
+
+  avatarEdit.$el().addClass('circle');
+
+  // Overview toggle
+  vu.$el('@avatar').off('click').on('click', e => {
+    vu.$el('@profile-editor').removeClass('hidden');
+    vu.$el('@btn-close').removeClass('hidden');
+    vu.$el('@app-list').addClass('hidden');
+    vu.$el('@profile').addClass('hidden');
+    vu.$el().addClass('cope-card');
+  });
+  vu.$el('@btn-close').off('click').on('click', e => {
+    vu.$el('@profile-editor').addClass('hidden');
+    vu.$el('@btn-close').addClass('hidden');
+    vu.$el('@app-list').removeClass('hidden');
+    vu.$el('@profile').removeClass('hidden');
+    vu.$el().removeClass('cope-card');
+  });
+
 });
 // End of Cope.App.Overview
 

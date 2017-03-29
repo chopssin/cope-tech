@@ -7,6 +7,8 @@ let debug = Cope.Util.setDebug('cope-views', false),
     CopeAppClass = Views.class('Cope.App'),
     CopeAppOverviewClass = Views.class('Cope.App.Overview'),
     CopeAppEditorClass = Views.class('Cope.App.AppEditor'),
+    // ...
+
     ViewAppCard = Views.class('AppCard'),
     ListItemView = Views.class('ListItem'),
 
@@ -1598,6 +1600,10 @@ CopeAppClass.render(vu => {
 
       // Fetch data from outside
       vu.res('app selected', appId);
+    }).res('save profile', profile => {
+      vu.set(profile);
+
+      vu.res('save profile', profile);
     });
     return overview;
   });
@@ -1715,9 +1721,8 @@ CopeAppOverviewClass.render(vu => {
     vu.set('display', value.imgsrc);
     vu.$el('@avatar').css('background-image', 'url("' + value.imgsrc +'")');
 
-    vu.res('sava profile', {
+    vu.res('save profile', {
       name: vu.get('name') || null,
-      email: vu.get('email') || null,
       display: vu.get('display') || null
     });
   });// end of avatarEdit
@@ -1726,15 +1731,14 @@ CopeAppOverviewClass.render(vu => {
     sel: vu.sel('@name-edit'),
     data: {
       type: 'text',
-      value: vu.get('name'),
+      value: vu.get('name') || 'Me',
       editable: true
     }
   }).res('value', value => {
     vu.set('name', value);
     vu.$el('@display-name').html(value);
-    vu.res('sava profile', {
+    vu.res('save profile', {
       name: vu.get('name') || null,
-      email: vu.get('email') || null,
       display: vu.get('display') || null
     });
   }); // nameEdit
@@ -1747,15 +1751,18 @@ CopeAppOverviewClass.render(vu => {
     }
   }).res('value', value => {
     vu.set('email', value);
-    vu.res('sava profile', {
+    vu.res('save profile', {
       name: vu.get('name') || null,
-      email: vu.get('email') || null,
       display: vu.get('display') || null
     });
   }); // emailEdit
 
   avatarEdit.$el().addClass('circle');
 
+  if(vu.get('display')){
+    avatarEdit.$el().css('background-image', 'url("' + vu.get('display') +'")');
+  }
+  console.log(vu.get('name'));
   // Overview toggle
   vu.$el('@avatar').off('click').on('click', e => {
     vu.$el('@profile-editor').removeClass('hidden');
@@ -1763,6 +1770,9 @@ CopeAppOverviewClass.render(vu => {
     vu.$el('@app-list').addClass('hidden');
     vu.$el('@profile').addClass('hidden');
     vu.$el().addClass('cope-card');
+    // if(vu.get('display')){
+    //   avatarEdit.css('background-image', 'url("' + vu.get('display') +'")');
+    // }
   });
   vu.$el('@btn-close').off('click').on('click', e => {
     vu.$el('@profile-editor').addClass('hidden');
@@ -1771,7 +1781,6 @@ CopeAppOverviewClass.render(vu => {
     vu.$el('@profile').removeClass('hidden');
     vu.$el().removeClass('cope-card');
   });
-
 });
 // End of Cope.App.Overview
 
@@ -1812,7 +1821,7 @@ CopeAppEditorClass.dom(vu => [
         { '@settings.hidden': 'Settings' }] 
       }]
     },
-    { '.middle': [
+    { '@simulator.middle': [
       { '@sim-empty.hidden.sim-empty': [
         { 'div': 'Empty' }] 
       },
@@ -1820,6 +1829,11 @@ CopeAppEditorClass.dom(vu => [
       { '@sim-single.sim.sim-single.hidden': 'Simulator Single' },
       { '@control.control': 'Control' }] 
     },
+    { '@panel-data.middle.hidden': 'Data' },
+    { '@panel-design.middle.hidden': 'Design' },
+    { '@panel-commerce.middle.hidden': 'Commerce' },
+    { '@panel-analytics.middle.hidden': 'Analytics' },
+    { '@panel-settings.middle.hidden': 'Settings' },
     { '@page-editor.right.hidden': '' },
     { '@section-editor.right.hidden': [
       { '.upper-toggle[flex; fz:16px;]': [
@@ -1926,6 +1940,8 @@ CopeAppEditorClass.render(vu => {
     let item;
     switch (path) {
       case 'pages':
+        vu.$el('.middle').addClass('hidden');
+        vu.$el('@simulator').removeClass('hidden');
         break;
       case 'pages/page':
         item = params && params.item;
@@ -2043,10 +2059,27 @@ CopeAppEditorClass.render(vu => {
         vu.$el('@section-editor').removeClass('hidden');
         break;
       case 'data':
+        vu.$el('.middle').addClass('hidden');
+        vu.$el('@panel-data').removeClass('hidden');
         break;
       case 'data/node':
         break;
-
+      case 'design':
+        vu.$el('.middle').addClass('hidden');
+        vu.$el('@panel-design').removeClass('hidden');
+        break;
+      case 'commerce':
+        vu.$el('.middle').addClass('hidden');
+        vu.$el('@panel-commerce').removeClass('hidden');
+        break;
+      case 'analytics':
+        vu.$el('.middle').addClass('hidden');
+        vu.$el('@panel-analytics').removeClass('hidden');
+        break;
+      case 'settings':
+        vu.$el('.middle').addClass('hidden');
+        vu.$el('@panel-settings').removeClass('hidden');
+        break;
       case 'back':
       case 'root':
       default: // root
@@ -2112,6 +2145,10 @@ CopeAppEditorClass.render(vu => {
     vu.res('save page');
   }; // end of savePage
 
+
+
+
+
   // @hydra's code
   
   // Build profile input
@@ -2131,8 +2168,9 @@ CopeAppEditorClass.render(vu => {
       value: 'App Name',
       editable: true
     }
-  })
-  // set profileLogo's css
+  });
+
+  // Set profileLogo's css
   profileLogo.$el().css({
     'background-color': '',
     'width': '100px',
@@ -2176,7 +2214,8 @@ CopeAppEditorClass.render(vu => {
     ]);
     // @menu-btn event
     vu.$el('@menu-btn-' + idx).off('click').on('click', e => {
-      nav(x.name);
+      open(x.name);
+      if (x.name == 'pages') { nav(x.name); }
     });
     // set @menu-btn Css
     //vu.$el('@menu-btn-' + idx).css(buttonCss);
@@ -2283,6 +2322,11 @@ CopeAppEditorClass.render(vu => {
   });
 
   // End of @hydra
+
+
+
+
+
 
   // TBD: wrap it in sectionEditor! Set the toggle between editor and styler
   ['editor', 'styler'].map(x => {

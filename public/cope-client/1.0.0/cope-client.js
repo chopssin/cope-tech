@@ -3084,13 +3084,14 @@
     }; // end of myGraph.create
 
     // TBD: To find nodes
-    // query: object, { col, tags, sort, limit }
+    // query: object, { col, tags, sort, value, limit }
     myGraph.find = function(query) {
       let q, col, tags, sort, limit, intersect;
       q = typeof query == 'object' ? query : {};
       col = typeof q.col == 'string' ? q.col : null;
       tags = Array.isArray(q.tags) ? q.tags : [];
       sort = typeof q.sort == 'string' ? q.sort : 'recent';
+      value = q.value || null;
       limit = !isNaN(q.limit) ? q.limit : 1;
       intersect = function(a, b) {
         let o = {};
@@ -3148,6 +3149,19 @@
               });
             });
           } // end of finding tags
+
+          if (value) {
+            c.add(ids => {
+              ref.child('data').orderByValue()
+                .equalTo(value).once('value').then(snap => {
+                let _ids = snap.val() || {};
+                if (_ids) {
+                  ids = intersect(ids, _ids);
+                }
+                c.next(ids);
+              });
+            }); 
+          } // end of finding via value
 
           // TBD: Merge, sort and limit
           c.add(ids => {

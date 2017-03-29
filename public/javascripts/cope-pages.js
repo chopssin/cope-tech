@@ -74,49 +74,69 @@ Pages.use('/', params => {
 
     // Get the app data
     appData = appsData && appsData[appId];
-    if (!appData) {
-      console.error('Failed to find appData')
+    //if (!appData) {
+    //  console.error('Failed to find appData')
       //c.add(); 
-    }
+    //}
 
+    console.log('TBD: Get page data for page items shown in Navigation');
     console.log(appData);
-
-    // Try to access page "/" of the app
-    if (!appData.sectionsOf || !appData.sectionsOf[currPage]) {
-
-      // Get sections of page "/"
-      c.add(() => {
-        let homePage = G.node(currPage);
-        homePage.val('sections').then(sections => {
-          if (!sections) {
-            
-            // Init sections of page "/" with sampleSections
-            homePage.val('sections', sampleSections)
-              .then(data => {
-              
-              // Pass on sections of page "/"
-              c.next(sampleSections);
-            });
-          } else {
-
-            // Pass on sections of page "/"
-            c.next(sections);
-          }
-        });
-      })
-
-      // Update the core dataSnap
-      c.add(sections => {
-        ds.map('apps', x => {
-          x[appId].sectionsOf[currPage] = sections;
-          return x;
-        });
-        c.next(); // keep going
-      });
-    } // end of if
-
-    // Toggle to app editor
     c.add(() => {
+      if (appData && appData.pages) {
+        c.next(); 
+      } else {
+      //if (!appData || !appData.pages) {
+        appData.pages = {};
+        
+        G.find({ col: 'page' }).then(nodes => {
+          let inner = Cope.chain();
+              
+          // Get all page data
+          nodes.map(pageNode => {
+            inner.add(function() {
+              pageNode.val().then(data => {
+                console.log(pageNode.id, data);
+                appData.pages[pageNode.id] = data;
+                inner.next();
+              });
+            });
+          });
+
+          // Get or init the page order for navigation
+          inner.add(() => {
+
+            // Init sample sections
+            if (!appData.pages['page-']) {
+              appData.pages['page-'] = {
+                sections: sampleSections
+              };
+            }
+
+            let appNode = G.node('app');
+            appNode.val('navigation').then(arr => {
+              console.log('navigation', arr);
+              if (!arr) {
+                arr = Object.keys(appData.pages);
+                appNode.val('navigation', arr);
+              }
+              appData.navigation = arr;
+      
+              // Update the core dataSnap
+              ds.map('apps', x => {
+                x[appId] = appData;
+                return x;
+              });
+
+              // Keep going
+              c.next();
+            });
+          });
+        }); // end of G.find
+      } // end of if
+    }); // end of c.add
+
+    c.add(() => {
+      // Toggle to app editor
       copeApp.val('toggle', 'app-editor');
     });
   }) // end of "app selected" of copeApp
@@ -129,7 +149,9 @@ Pages.use('/', params => {
 
     // Find the node by currAppId and update app data
     let G = Cope.graph(currAppId);
-    G.node(currPage).val('sections', appData.sectionsOf[currPage]);
+    G.node(currPage)
+      .col('page')
+      .val('sections', appData.pages[currPage].sections);
   }); // end of "save" of copeApp
 
   // Set res of copeNav

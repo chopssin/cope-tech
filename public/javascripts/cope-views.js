@@ -1743,7 +1743,7 @@ CopeAppOverviewClass.render(vu => {
     sel: vu.sel('@email-edit'),
     data: {
       type: 'text',
-      value: vu.get('email'),
+      value: vu.get('email')
     }
   }).res('value', value => {
     vu.set('email', value);
@@ -1875,7 +1875,7 @@ CopeAppEditorClass.render(vu => {
   }).res('item clicked', function(item) {
     open('pages/page/sec', { item: item });
   }).res('order', order => {
-    console.log(SS.get('List').getByIdx());
+    savePage();
   });
 
   // Init Section Editor
@@ -1932,7 +1932,7 @@ CopeAppEditorClass.render(vu => {
         let currPage = vu.map('currPage', x => {
           let currPage = item && item.view && item.view.get('pageId');
           if (x != currPage) {
-            let sections = vu.get('sectionsOf')[currPage] || [];
+            let sections = vu.get('pages')[currPage].sections || [];
             simSections(sections);
             x = currPage;
           }
@@ -2006,7 +2006,6 @@ CopeAppEditorClass.render(vu => {
         vu.$el('.full-bg').addClass('darken');
         vu.$el('@menu-wrap').addClass('hidden');
         vu.$el('@sim-single').removeClass('hidden');
-        vu.$el('@sim-empty').addClass('hidden');
         vu.$el('@sim').addClass('hidden');
 
         // Build action buttons for the selected section
@@ -2033,6 +2032,9 @@ CopeAppEditorClass.render(vu => {
           item.view.$el().fadeOut(800);
           setTimeout(function() {
             SS.val('remove', item.idx);
+            if (SS.get('List').get().length < 1) {
+              vu.$el('@sim-empty').removeClass('hidden');
+            }
             savePage();
           }, 1200);
         });
@@ -2065,6 +2067,7 @@ CopeAppEditorClass.render(vu => {
 
         // To add a new section
         vu.$el('@control-add-sec').off('click').on('click', e => {
+          vu.$el('@sim-empty').addClass('hidden');
           SS.val('new', {
             viewClass: SectionSimulatorClass,
             data: {
@@ -2096,14 +2099,14 @@ CopeAppEditorClass.render(vu => {
   }; // end of open
 
   savePage = function() {
-    vu.map('sectionsOf', x => {
+    vu.map('pages', pages => {
       let currPage = vu.get('currPage');
       let sections = [];
       SS.get('List').get().map(item => {
         sections[item.idx] = item.view.get();
       });
-      x[currPage] = sections;
-      return x;
+      pages[currPage].sections = sections;
+      return pages;
     });
 
     vu.res('save page');
@@ -2301,10 +2304,11 @@ CopeAppEditorClass.render(vu => {
   open('root');
 
   // Render page items
-  buildPageItems(vu.get('pageSettings'));
+  buildPageItems(vu.get('navigation'));
 
   // Render home page
-  simSections(vu.get('sectionsOf')['page-'] || []);
+  console.log(vu.get());
+  simSections(vu.get('pages')['page-'].sections || []);
 });
 // End of Cope.App.AppEditor
 

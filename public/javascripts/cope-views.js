@@ -1741,11 +1741,10 @@ CopeAppOverviewClass.render(vu => {
   });
 
   emailEdit = PurelyViews.class('Input').build({
-  sel: vu.sel('@email-edit'),
-  data: {
-    type: 'text',
-    value: vu.get('email'),
-    editable: true
+    sel: vu.sel('@email-edit'),
+    data: {
+      type: 'text',
+      value: vu.get('email')
     }
   }).res('value', value => {
     vu.set('email', value);

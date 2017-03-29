@@ -28,6 +28,14 @@
   margin: 0 auto;
 }
 
+.view-cope-overview .btn-close {
+  font-size: 18px;
+  width: 10px;
+  height: 20px;
+  float: right;
+  cursor: pointer;
+}
+
 .view-cope-overview .profile > div {
   width: 100%;
   text-align: center;
@@ -40,11 +48,36 @@
   height: 80px;
   border-radius: 80px;
   margin: 0 auto;
+  cursor: pointer;
+  background-size: cover;
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
 }
 
-.view-cope-overview .profile .account {
+.view-cope-overview .profile .account-item {
   padding: 16px 0;
 }
+
+.view-cope-overview .profile-editor > div {
+  margin: 5px;
+}
+
+.view-cope-overview .profile-editor .avatar {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+  cursor: pointer;
+}
+
+.view-cope-overview .profile-editor .avatar .circle {
+  background-color: #fff;
+  border: 2px solid #fff;
+  -webkit-border-radius: 100px;
+  -moz-border-radius: 100px;
+  border-radius: 100px;
+}
+
 
 /* Cope.App.AppEditor */
 .view-app-editor {

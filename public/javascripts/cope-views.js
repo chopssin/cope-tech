@@ -1645,7 +1645,14 @@ CopeAppClass.render(vu => {
 // Cope.App.Overview
 CopeAppOverviewClass.dom(vu => [
   { 'div.view-cope-overview': [
-    { '@account.account': 'Hello' },
+    { 'div.profile': [
+      { 'div': [
+        { 'div@avatar.avatar': '' }]
+      },
+      { 'div': [
+        { 'div@account.account': '' }]
+      }]
+    },
     { 'div.app-list': [
       { 'h3@app-list-title': '' },
       { '@apps': '' }] 
@@ -1685,7 +1692,12 @@ CopeAppEditorClass.dom(vu => [
   { 'div.view-app-editor': [
     { '.full-bg': '' },
     { '.left': [
-      { 'div.logo-n-name': 'Logo && App Name' },
+      { 'div@logo-n-name.logo-n-name': [
+        { 'div': [
+          { 'div.no-logo': 'Logo'},
+          { 'div.profile-logo@profile-logo': ''}]
+        }]
+      },
       { 'div@menu-wrap.menu-wrap': [
         { '@menu': '' },
         { '@root.hidden.btn-red': '<- Menu' },
@@ -2011,6 +2023,32 @@ CopeAppEditorClass.render(vu => {
   }; // end of savePage
 
   // @hydra's code
+  
+  // Build profile input
+  let profileLogo = PurelyViews.class('Input').build({
+    sel: vu.sel('@profile-logo'),
+    data: {
+      type: 'media',
+      value: 'Logo',
+      editable: true,
+    }
+  });
+
+  let profileAppName = PurelyViews.class('Input').build({
+    sel: vu.sel('@profile-appname'),
+    data: {
+      type: 'text',
+      value: 'App Name',
+      editable: true
+    }
+  })
+  // set profileLogo's css
+  profileLogo.$el().css({
+    'background-color': '',
+    'width': '100px',
+    'height': '100px'
+  });
+
   let nav = function(page) {
     vu.$el('@menu-wrap').children().addClass('hidden');
     vu.$el('@' + page).removeClass('hidden');

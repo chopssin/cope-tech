@@ -1773,9 +1773,7 @@ CopeAppEditorClass.render(vu => {
   }).res('item clicked', function(item) {
     open('pages/page/sec', { item: item });
   }).res('order', order => {
-    console.log(order);
-    console.log(SS.get('List').getByIdx());
-    console.log(SS.get('List').get());
+    savePage();
   });
 
   // Init Section Editor
@@ -1832,7 +1830,7 @@ CopeAppEditorClass.render(vu => {
         let currPage = vu.map('currPage', x => {
           let currPage = item && item.view && item.view.get('pageId');
           if (x != currPage) {
-            let sections = vu.get('sectionsOf')[currPage] || [];
+            let sections = vu.get('pages')[currPage].sections || [];
             simSections(sections);
             x = currPage;
           }
@@ -1999,14 +1997,14 @@ CopeAppEditorClass.render(vu => {
   }; // end of open
 
   savePage = function() {
-    vu.map('sectionsOf', x => {
+    vu.map('pages', pages => {
       let currPage = vu.get('currPage');
       let sections = [];
       SS.get('List').get().map(item => {
         sections[item.idx] = item.view.get();
       });
-      x[currPage] = sections;
-      return x;
+      pages[currPage].sections = sections;
+      return pages;
     });
 
     vu.res('save page');
@@ -2178,10 +2176,11 @@ CopeAppEditorClass.render(vu => {
   open('root');
 
   // Render page items
-  buildPageItems(vu.get('pageSettings'));
+  buildPageItems(vu.get('navigation'));
 
   // Render home page
-  simSections(vu.get('sectionsOf')['page-'] || []);
+  console.log(vu.get());
+  simSections(vu.get('pages')['page-'].sections || []);
 });
 // End of Cope.App.AppEditor
 

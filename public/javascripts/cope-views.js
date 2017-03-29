@@ -1685,7 +1685,6 @@ CopeAppOverviewClass.render(vu => {
       accountEdit;
 
   vu('@display-name').html(vu.get('name') || vu.get('email') || 'Hello');
-  
 
   vu.use('apps, appIds').then(v => {
     if (!v.appIds || !v.appIds.length) { return; }
@@ -1721,7 +1720,7 @@ CopeAppOverviewClass.render(vu => {
       email: vu.get('email') || null,
       display: vu.get('display') || null
     });
-  });
+  });// end of avatarEdit
 
   nameEdit = PurelyViews.class('Input').build({
     sel: vu.sel('@name-edit'),
@@ -1738,7 +1737,7 @@ CopeAppOverviewClass.render(vu => {
       email: vu.get('email') || null,
       display: vu.get('display') || null
     });
-  });
+  }); // nameEdit
 
   emailEdit = PurelyViews.class('Input').build({
     sel: vu.sel('@email-edit'),
@@ -1753,7 +1752,7 @@ CopeAppOverviewClass.render(vu => {
       email: vu.get('email') || null,
       display: vu.get('display') || null
     });
-  });
+  }); // emailEdit
 
   avatarEdit.$el().addClass('circle');
 

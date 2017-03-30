@@ -413,6 +413,17 @@ Test.go(log => {
 })
 
 Test.go(log => {
+  log.title('AppSettings');
+  let Views = Cope.views('cope'),
+      sel = log.sel(),
+      AppSettingsClass = Views.class('Cope.App.Settings');
+  
+  AppSettingsClass.build({
+    sel: sel
+  });   
+})
+
+Test.go(log => {
   log.title('Cope.graph("testApp3")');
   let G = Cope.graph('testApp3'),
       V = Cope.views();

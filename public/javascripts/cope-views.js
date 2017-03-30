@@ -7,8 +7,13 @@ let debug = Cope.Util.setDebug('cope-views', false),
     CopeAppClass = Views.class('Cope.App'),
     CopeAppOverviewClass = Views.class('Cope.App.Overview'),
     CopeAppEditorClass = Views.class('Cope.App.AppEditor'),
-    // ...
-
+    // ------------------------------------------------------
+    AppSettingsClass = Views.class('Cope.App.Settings'),
+    AppDataClass = Views.class('Cope.App.Data'),
+    AppDesignClass = Views.class('Cope.App.Design'),
+    AppCommerceClass = Views.class('Cope.App.Commerce'),
+    AppAnalyticsClass = Views.class('Cope.App.Analytics'),
+    // ------------------------------------------------------
     ViewAppCard = Views.class('AppCard'),
     ListItemView = Views.class('ListItem'),
 
@@ -1205,7 +1210,28 @@ PurelyAppView.render(vu => {
 }); //end of PureAppView.render
 
 
-
+AppSettingsClass.dom(vu => [
+  { 'div@app-settings.app-settings': [
+    { 'div': [
+      { 'h2': 'Settings' },
+      { '@subtitle.subtitle': '' }]
+    },
+    { 'div': [
+      { 'div': 'App Name' },
+      { '@settings-appname': '' }]
+    },
+    { 'div': [
+      { 'div': 'Collaborators' },
+      { '@list-co': '' },
+      { '@btn-add-co': 'Add CollAaborator' }]
+    },
+    { 'div': [
+      { 'div': 'Contacts' },
+      { '@all-contacts': '' }]
+    },
+    { '@btn-remove-app.cope-card.as-btn.bg-orange.color-w:': 'Remove App' }]
+  }
+]);
 
 
 

@@ -1764,7 +1764,7 @@ CopeAppOverviewClass.render(vu => {
   if(vu.get('display')){
     avatarEdit.$el().css('background-image', 'url("' + vu.get('display') +'")');
   }
-  console.log(vu.get('name'));
+
   // Overview toggle
   vu.$el('@avatar').off('click').on('click', e => {
     vu.$el('@profile-editor').removeClass('hidden');

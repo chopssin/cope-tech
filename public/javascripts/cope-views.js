@@ -1621,6 +1621,8 @@ CopeAppClass.render(vu => {
           currPage: appEditor.val('currPage'),
           appData: appEditor.val()
         }); 
+      }).res('save navigation', obj => {
+        vu.res('save navigation', obj);
       })
     }
   });
@@ -1840,7 +1842,7 @@ CopeAppEditorClass.render(vu => {
       sectionEditor,
       sectionStyler,
       pageSettings,
-      pageItemClass,
+      PageItemClass,
       buildPageItems, // function to render page items
       simSections, // function(sections): to render sections in simulator
       savePage,
@@ -1890,9 +1892,14 @@ CopeAppEditorClass.render(vu => {
   });
 
   // To render with page items
-  buildPageItems = function(pages) {
+  buildPageItems = function(navigation) {
+    let pages = vu.get('pages');
+    if (!pages) {
+      return;
+    }
     pageList.val('clear', true);
-    pages.map(data => {
+    navigation.map(pageId => {
+      let data = Object.assign({ pageId: pageId }, pages[pageId]);
       pageList.val('new', {
         viewClass: PageItemClass,
         data: data
@@ -1940,12 +1947,15 @@ CopeAppEditorClass.render(vu => {
           return x;
         });
 
+        console.log(item.view.get());
+
         vu('@page-editor').html('');
-        [{ key: 'title', title: 'Page Title' }, 
-         { key: 'slug', title: 'URL Slug' }].map((obj, i) => {
+        [{ key: 'pageTitle', title: 'Page Title' }, 
+         { key: 'urlSlug', title: 'URL Slug' }].map((obj, i) => {
           let x = obj.key,
               value = item.view.get()[x];
-          if (x === 'slug') { value = '/' + value }
+        
+          if (x === 'urlSlug') { value = '/' + value }
 
           vu('@page-editor').append([
             { 'h5[mt:8px; mb:4px; fz:12px; c:#888]': obj.title },
@@ -1957,16 +1967,37 @@ CopeAppEditorClass.render(vu => {
             data: {
               type: 'text',
               value: value,
-              editable: x == 'title' || item.view.get('pageId') != 'page-'
+              editable: x == 'pageTitle' || item.view.get('pageId') != 'page-'
             }
           }).res('done', value => {
             item.view.val(x, value);
             //console.log('After', vu.get('pageSettings'));
             console.log('TBD', value);
-            if (x === 'slug') {
+            if (x === 'urlSlug') {
               input.val('value', '/' + item.view.val(x));
             }
-          });
+
+            let newNavObj = {
+              navigation: [],
+              pageSettings: {}
+            };
+
+            newNavObj.navigation = pageList
+              .get('List').getByIdx()
+              .map(x => x.view.get('pageId'));
+
+            pageList.get('List').get().map(x => {
+              newNavObj.navigation[x.idx] = x.view.get('pageId');
+              newNavObj.pageSettings[x.view.get('pageId')] = x.view.get();
+              vu.map('pages', pages => {
+                pages[currPage][x] = value;
+                return pages;
+              });
+            });
+
+            vu.res('save navigation', newNavObj);
+            savePage();
+          }); // end of input "done"
         }); //end of map
         
         vu.$el('.right').addClass('hidden');
@@ -2102,10 +2133,11 @@ CopeAppEditorClass.render(vu => {
   savePage = function() {
     vu.map('pages', pages => {
       let currPage = vu.get('currPage');
-      let sections = [];
+      let sections = []; 
       SS.get('List').get().map(item => {
         sections[item.idx] = item.view.get();
       });
+
       pages[currPage].sections = sections;
       return pages;
     });
@@ -2192,24 +2224,28 @@ CopeAppEditorClass.render(vu => {
   PageItemClass = Cope.class(); // Cope.class()
   PageItemClass.dom(vu => [{ 'div.btn-red': '' }]);
   PageItemClass.render(vu => {
-    let title, slug, extUrl, pageId, 
-        currPageId = vu.get('pageId');
+    let pageTitle, urlSlug, extUrl, 
+        pageId = vu.get('pageId'),
+        fallbackTitle = 'New Page';
+    if (pageId === 'page-') { fallbackTitle = 'Home' }
 
-    title = vu.map('title', title => title || 'New Page');
+    console.log(vu.get());
+    pageTitle = vu.map('pageTitle', pageTitle => pageTitle || fallbackTitle);
     pageId = vu.map('pageId', pageId => {
       if (!pageId) {
         return 'page-' + Math.random().toString(36).slice(2, 7);
       }
       return pageId;
     });
-    slug = vu.map('slug', slug => {
+    urlSlug = vu.map('urlSlug', slug => {
       if (vu.get('pageId') != 'page-') {
         let newSlug, dict = [],
-            pageSettings = thatVu.get('pageSettings');
+            pageSettings = thatVu.get('pages'),
+            pageIds = Object.keys(pageSettings);
 
         console.log(pageSettings);
 
-        newSlug = slug || title.replace(/[\s]/g, '-').toLowerCase();
+        newSlug = slug || pageTitle.replace(/[\s]/g, '-').toLowerCase();
       
         newSlug = newSlug.replace(/[\/]{2,}/g, '/');
         if (newSlug.charAt(0) == '/') { newSlug = newSlug.slice(1); }
@@ -2219,20 +2255,19 @@ CopeAppEditorClass.render(vu => {
           //console.log(newSlug);
         }
         
-        for (let i = 0; i < pageSettings.length; i++) {
+        for (let i = 0; i < pageIds.length; i++) {
            dict[i] = newSlug + '-' + (i + 1);
         }
         dict = [newSlug].concat(dict);
 
-        pageSettings = pageSettings.filter(x => (currPageId != x.pageId));
-                
+        pageIds = pageIds.filter(x => (pageId != x));
         
         // Duplicates found, assign new slug
-        if (pageSettings.length) {
+        if (pageIds.length) {
           for (let i = 0; i < dict.length; i++) {
             let matched = false;
-            for (let j = 0; j < pageSettings.length; j++) {
-              if (dict[i] == pageSettings[j].slug) {
+            for (let j = 0; j < pageIds.length; j++) {
+              if (dict[i] == pageSettings[pageIds[j]].slug) {
                 matched = true;
                 break;
               }
@@ -2244,20 +2279,19 @@ CopeAppEditorClass.render(vu => {
           }
         }
         return newSlug;
+      } else if (vu.get('pageId') == 'page-') {
+        return '';
       }
-      return slug;
-    });
+    }); // end of the value "urlSlug"
 
-    vu().html(title);
+    vu().html(pageTitle);
 
     // Update app editor's pageSettings
-    thatVu.map('pageSettings', v => {
-      return v.map(x => {
-        if (x.pageId == pageId) {
-          return vu.get();
-        }
-        return x;
-      });
+    thatVu.map('pages', v => {
+      console.log('pages', v);
+      v[pageId].pageTitle = pageTitle;
+      v[pageId].urlSlug = urlSlug;
+      return v;
     })
   }); // end of PageItemClass
 

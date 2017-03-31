@@ -1246,15 +1246,17 @@ AppSettingsClass.render(vu => {
       collaborators = vu.get('collaborators') || [],
       appNameInput,
       collaboratorsInput,
-      getData;
+      getData,
+      globalDS = vu.get('copeApp');
 
   sendData = function() {
     let data = {};
     data.appName = vu.get('appName');
     data.collaborators = vu.get('collaborators');
     data.contacts = vu.get('contacts');
-    vu.res('data', data);
+    // vu.res('data', data);
     console.log(data);
+    globalDS.val(data);
   };
 
   // @subtitle    
@@ -1660,6 +1662,7 @@ CopeAppClass.dom(vu => [
 
 CopeAppClass.render(vu => {
   // Build Cope.App.Main only once
+  let globalDS = vu.root();
   vu.map('overview', x => {
     if (x) return x;
     let overview = Views.class('Cope.App.Overview').build({
@@ -1677,6 +1680,7 @@ CopeAppClass.render(vu => {
 
       vu.res('save profile', profile);
     });
+    globalDS.enroll(overview);
     return overview;
   });
 
@@ -1932,7 +1936,8 @@ CopeAppEditorClass.render(vu => {
       addNewData,
       appNameInput,
       thatVu = vu,
-      appId = vu.get('appId');
+      appId = vu.get('appId'),
+      globalDS = vu.get('copeApp');
 
   // Init currPage and pageSettings
   vu.map('currPage', x => x || 'page-');
@@ -2150,13 +2155,20 @@ CopeAppEditorClass.render(vu => {
       case 'settings':
         vu.$el('.middle').addClass('hidden');
         vu.$el('@panel-settings').removeClass('hidden');
-  
-        let appSettings = AppSettingsClass.build({
-          sel: vu.sel('@panel-settings'),
-          data: {
-            appId: vu.get('appId'),
-            name: vu.get('name')
+        
+        vu.map('appSettings', x => {
+          if (x) {
+            return x;
           }
+          let appSettings = AppSettingsClass.build({
+            sel: vu.sel('@panel-settings'),
+            data: {
+              //appId: vu.get('appId'),
+              //name: vu.get('name'),
+              globalDS: vu.get('globalDS')
+            }
+          });
+          return appSettings;
         });
 
         break;

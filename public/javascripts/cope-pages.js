@@ -145,14 +145,24 @@ Pages.use('/', params => {
         currPage = obj.currPage, // page-<path>
         appData = obj.appData;
 
-    console.log('save page', obj);
+    console.log('save page', appData.pages[currPage]);
 
     // Find the node by currAppId and update app data
     let G = Cope.graph(currAppId);
     G.node(currPage)
       .col('page')
-      .val('sections', appData.pages[currPage].sections);
-  }); // end of "save" of copeApp
+      .val({
+        'sections': appData.pages[currPage].sections,
+        'pageTitle': appData.pages[currPage].pageTitle,
+        'urlSlug': appData.pages[currPage].urlSlug
+      });
+  }) // end of "save page" of copeApp
+  .res('save profile', obj => {
+    console.log('TBD: save profile', obj);
+  }) // end of "save profile" of copeApp
+  .res('save navigation', obj => {
+    console.log('TBD: save navigation', obj);
+  });
 
   // Set res of copeNav
   copeNav.res('logo clicked', () => {

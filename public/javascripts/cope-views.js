@@ -1209,30 +1209,76 @@ PurelyAppView.render(vu => {
   });// end of add section event
 }); //end of PureAppView.render
 
-
+// Cope.App.Settings
+// - appId: str
+// - collaborators: array, an array of object { name, email }
+// "data" <- object, data sent to outside
+// "invite" <- string, an email string
 AppSettingsClass.dom(vu => [
-  { 'div@app-settings.app-settings': [
+  { 'div.view-app-settings': [
     { 'div': [
       { 'h2': 'Settings' },
       { '@subtitle.subtitle': '' }]
     },
     { 'div': [
-      { 'div': 'App Name' },
-      { '@settings-appname': '' }]
+      { 'h5': 'App Name' },
+      { '@settings-appname.settings-appname': '' }]
     },
     { 'div': [
-      { 'div': 'Collaborators' },
-      { '@list-co': '' },
-      { '@btn-add-co': 'Add CollAaborator' }]
+      { 'h5': 'Collaborators' },
+      { '@list-co.list-co': '' },
+      { 'div[flex; w:100%;]': [
+        { 'input(type = "text" placeholder="Email")': '' },
+        { 'button@btn-add-co.btn-add-co.cope-card.as-btn.bg-blue.color-w(disabled)[width:86px; fz:14px; ml:8px; p:6px]': 'Invite' }]
+      }]
     },
-    { 'div': [
-      { 'div': 'Contacts' },
-      { '@all-contacts': '' }]
-    },
+    // { 'div': [
+    //   { 'h5': 'Contacts' },
+    //   { '@all-contacts.all-contacts': '' }]
+    // },
     { '@btn-remove-app.cope-card.as-btn.bg-orange.color-w:': 'Remove App' }]
   }
 ]);
 
+AppSettingsClass.render(vu => {
+  let appId = vu.get('appId'),
+      name = vu.get('username') || 'Me',
+      collaborators = vu.get('collaborators') || [],
+      appNameInput,
+      collaboratorsInput,
+      getData;
+
+  sendData = function() {
+    let data = {};
+    data.appName = vu.get('appName');
+    data.collaborators = vu.get('collaborators');
+    data.contacts = vu.get('contacts');
+    vu.res('data', data);
+    console.log(data);
+  };
+
+  // @subtitle    
+  vu.$el('@subtitle').html(appId + ' hosted by ' + name);
+
+  // @settings-appname
+  appNameInput = PurelyViews.class('Input').build({
+    sel: vu.sel('@settings-appname'),
+    data: {
+      type: 'text',
+      value: vu.get('appName'),
+      editable: true
+    }
+  }).res('done', value => {
+    vu.set('appName', value);
+    sendData();
+  });
+
+  // @collaborators
+  vu.$el('@collaborators').html('');
+  collaborators.map(obj => {
+    vu.$el('@list-co').append('<li>' + obj.name + '</li>');
+  });
+});
 
 
 
@@ -1788,7 +1834,6 @@ CopeAppOverviewClass.render(vu => {
   if(vu.get('display')){
     avatarEdit.$el().css('background-image', 'url("' + vu.get('display') +'")');
   }
-  console.log(vu.get('name'));
   // Overview toggle
   vu.$el('@avatar').off('click').on('click', e => {
     vu.$el('@profile-editor').removeClass('hidden');
@@ -2105,6 +2150,15 @@ CopeAppEditorClass.render(vu => {
       case 'settings':
         vu.$el('.middle').addClass('hidden');
         vu.$el('@panel-settings').removeClass('hidden');
+  
+        let appSettings = AppSettingsClass.build({
+          sel: vu.sel('@panel-settings'),
+          data: {
+            appId: vu.get('appId'),
+            name: vu.get('name')
+          }
+        });
+
         break;
       case 'back':
       case 'root':

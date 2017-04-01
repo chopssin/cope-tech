@@ -1967,10 +1967,10 @@ CopeAppEditorClass.render(vu => {
         vu('@page-editor').html('');
         [{ key: 'pageTitle', title: 'Page Title' }, 
          { key: 'urlSlug', title: 'URL Slug' }].map((obj, i) => {
-          let x = obj.key,
-              value = item.view.get()[x];
+          let key = obj.key,
+              value = item.view.get()[key];
         
-          if (x === 'urlSlug') { value = '/' + value }
+          if (key === 'urlSlug') { value = '/' + value }
 
           vu('@page-editor').append([
             { 'h5[mt:8px; mb:4px; fz:12px; c:#888]': obj.title },
@@ -1982,17 +1982,18 @@ CopeAppEditorClass.render(vu => {
             data: {
               type: 'text',
               value: value,
-              editable: x == 'pageTitle' || item.view.get('pageId') != 'page-'
+              editable: key == 'pageTitle' || item.view.get('pageId') != 'page-'
             }
           }).res('done', value => {
-            item.view.val(x, value);
+            item.view.val(key, value);
             //console.log('After', vu.get('pageSettings'));
             console.log('TBD', value);
-            if (x === 'urlSlug') {
-              input.val('value', '/' + item.view.val(x));
+            if (key === 'urlSlug') {
+              input.val('value', '/' + item.view.val(key));
             }
 
             let newNavObj = {
+              currAppId: appId, 
               navigation: [],
               pageSettings: {}
             };
@@ -2005,7 +2006,7 @@ CopeAppEditorClass.render(vu => {
               newNavObj.navigation[x.idx] = x.view.get('pageId');
               newNavObj.pageSettings[x.view.get('pageId')] = x.view.get();
               vu.map('pages', pages => {
-                pages[currPage][x] = value;
+                pages[currPage][key] = value;
                 return pages;
               });
             });
@@ -2305,7 +2306,7 @@ CopeAppEditorClass.render(vu => {
           for (let i = 0; i < dict.length; i++) {
             let matched = false;
             for (let j = 0; j < pageIds.length; j++) {
-              if (dict[i] == pageSettings[pageIds[j]].slug) {
+              if (dict[i] == pageSettings[pageIds[j]].urlSlug) {
                 matched = true;
                 break;
               }
@@ -2324,9 +2325,12 @@ CopeAppEditorClass.render(vu => {
 
     vu().html(pageTitle);
 
-    // Update app editor's pageSettings
+    // Update app editor's pages
     thatVu.map('pages', v => {
       console.log('pages', v);
+      if (!v[pageId]) { 
+        v[pageId] = {}; 
+      }
       v[pageId].pageTitle = pageTitle;
       v[pageId].urlSlug = urlSlug;
       return v;

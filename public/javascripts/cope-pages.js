@@ -162,6 +162,9 @@ Pages.use('/', params => {
   }) // end of "save profile" of copeApp
   .res('save navigation', obj => {
     console.log('TBD: save navigation', obj);
+    let currAppId = obj.currAppId,
+        G = Cope.graph(currAppId);
+    G.node('app').val('navigation', obj.navigation);
   });
 
   // Set res of copeNav

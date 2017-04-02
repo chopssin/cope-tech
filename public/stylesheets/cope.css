@@ -79,6 +79,16 @@
   border-radius: 100px;
 }
 
+/* Cope.App.Settings*/
+.view-app-settings {
+
+}
+
+.view-app-settings > div {
+  margin: 20px;
+}
+
+
 
 /* Cope.App.AppEditor */
 .view-app-editor {

@@ -1228,8 +1228,8 @@ AppSettingsClass.dom(vu => [
       { 'h5': 'Collaborators' },
       { '@list-co.list-co': '' },
       { 'div[flex; w:100%;]': [
-        { 'input(type = "text" placeholder="Email")': '' },
-        { 'button@btn-add-co.btn-add-co.cope-card.as-btn.bg-blue.color-w(disabled)[width:86px; fz:14px; ml:8px; p:6px]': 'Invite' }]
+        { 'input@input-invite(type = "text" placeholder="Email")': '' },
+        { 'button@btn-add-co.btn-add-co.cope-card.as-btn.bg-blue.color-w[width:86px; fz:14px; ml:8px; p:6px]': 'Invite' }]
       }]
     },
     // { 'div': [
@@ -1246,17 +1246,15 @@ AppSettingsClass.render(vu => {
       collaborators = vu.get('collaborators') || [],
       appNameInput,
       collaboratorsInput,
-      getData,
-      globalDS = vu.get('copeApp');
+      getData;
 
   sendData = function() {
     let data = {};
     data.appName = vu.get('appName');
     data.collaborators = vu.get('collaborators');
     data.contacts = vu.get('contacts');
-    // vu.res('data', data);
-    console.log(data);
-    globalDS.val(data);
+    vu.res('data', data);
+    vu.res('save app name', data.appName);
   };
 
   // @subtitle    
@@ -1267,12 +1265,15 @@ AppSettingsClass.render(vu => {
     sel: vu.sel('@settings-appname'),
     data: {
       type: 'text',
+      placeholder: 'App Name',
       value: vu.get('appName'),
       editable: true
     }
   }).res('done', value => {
-    vu.set('appName', value);
-    sendData();
+    if (value) {
+      vu.set('appName', value);
+      sendData();
+    }
   });
 
   // @collaborators
@@ -1280,6 +1281,20 @@ AppSettingsClass.render(vu => {
   collaborators.map(obj => {
     //vu.$el('@list-co').append('<li>' + obj.name + '</li>');
     vu('@list-co').append([{ 'li': obj.name }]);
+  });
+
+  //@btn-add-co 
+  vu.$el('@btn-add-co').off('click').on('click', () => {
+    let val = vu.$el('@input-invite').val();
+    if (val != '') {
+      vu.res('invite collaborator', val)
+      vu.$el('@input-invite').val('');
+    }
+  });
+
+  //@btn-remove-app
+  vu.$el('@btn-remove-app').off('click').on('click', () => {
+    vu.res('save remove app');
   });
 });
 
@@ -1663,7 +1678,6 @@ CopeAppClass.dom(vu => [
 
 CopeAppClass.render(vu => {
   // Build Cope.App.Main only once
-  let globalDS = Cope.dataSnap(); // TBD: vu.root();
   vu.map('overview', x => {
     if (x) return x;
     let overview = Views.class('Cope.App.Overview').build({
@@ -1681,7 +1695,6 @@ CopeAppClass.render(vu => {
 
       vu.res('save profile', profile);
     });
-    globalDS.enroll(overview);
     return overview;
   });
 
@@ -1706,6 +1719,13 @@ CopeAppClass.render(vu => {
         }); 
       }).res('save navigation', obj => {
         vu.res('save navigation', obj);
+      }).res('save app name', str => {
+        console.log('App Name', str);
+        //vu.res('save app name', str);
+      }).res('invite collaborator', str => {
+        console.log('invite collaborator', str);
+      }).res('save remove app', () => {
+        console.log('Remove App');
       })
     }
   });
@@ -1940,8 +1960,7 @@ CopeAppEditorClass.render(vu => {
       addNewData,
       appNameInput,
       thatVu = vu,
-      appId = vu.get('appId'),
-      globalDS = vu.get('copeApp');
+      appId = vu.get('appId');
 
   // Init currPage and pageSettings
   vu.map('currPage', x => x || 'page-');
@@ -2196,10 +2215,15 @@ CopeAppEditorClass.render(vu => {
           let appSettings = AppSettingsClass.build({
             sel: vu.sel('@panel-settings'),
             data: {
-              //appId: vu.get('appId'),
-              //name: vu.get('name'),
-              globalDS: vu.get('globalDS')
+              appId: vu.get('appId'),
+              name: vu.get('name')
             }
+          }).res('save app name', str => {
+            vu.res('save app name', str);
+          }).res('invite collaborator', str => {
+            vu.res('invite collaborator', str);
+          }).res('save remove app', () => {
+            vu.res('save remove app');
           });
           return appSettings;
         });

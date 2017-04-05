@@ -1278,7 +1278,8 @@ AppSettingsClass.render(vu => {
   // @collaborators
   vu.$el('@collaborators').html('');
   collaborators.map(obj => {
-    vu.$el('@list-co').append('<li>' + obj.name + '</li>');
+    //vu.$el('@list-co').append('<li>' + obj.name + '</li>');
+    vu('@list-co').append([{ 'li': obj.name }]);
   });
 });
 
@@ -1662,7 +1663,7 @@ CopeAppClass.dom(vu => [
 
 CopeAppClass.render(vu => {
   // Build Cope.App.Main only once
-  let globalDS = vu.root();
+  let globalDS = Cope.dataSnap(); // TBD: vu.root();
   vu.map('overview', x => {
     if (x) return x;
     let overview = Views.class('Cope.App.Overview').build({
@@ -1840,7 +1841,7 @@ CopeAppOverviewClass.render(vu => {
   if(vu.get('display')){
     avatarEdit.$el().css('background-image', 'url("' + vu.get('display') +'")');
   }
-  
+
   // Overview toggle
   vu.$el('@avatar').off('click').on('click', e => {
     vu.$el('@profile-editor').removeClass('hidden');

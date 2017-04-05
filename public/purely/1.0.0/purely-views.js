@@ -416,17 +416,18 @@ TextareaView.render(vu => {
 // "done" <- array: get each of Paragraph's Data
 RichTextareaClass.dom(vu => [
   { 'div.view-richtextarea': [
-    { '@toolbar': [
+    { '@toolbar.toolbar': [
       { 'button@add': 'Add Image' }] 
     },
-    { 'div@content(contenteditable = true)': [
+    { 'div@content.content(contenteditable = true)': [
       { 'p': 'Title' }] 
     }]
   }
 ]);
 
 RichTextareaClass.render(vu => {
-  let vus = {};
+  let vus = {},
+      medias = {};
 
   if (vu.get('showDone')) {
     vu.$el('@done').removeClass('hidden');
@@ -454,6 +455,13 @@ RichTextareaClass.render(vu => {
         })
         vus[a.id] = a;
       }
+
+      // Verify whether the paragraph is media
+      let tmp = p.match(/^\<img\salt="(.+)"\swidth="300"\ssrc=".+"\>/);
+      if (tmp && tmp[1] && medias[tmp[1]]) {
+        obj.type = 'media';
+        obj.media = medias[tmp[1]];
+      }
       
       // Get type and value 
       $el = $(this).children(0);
@@ -463,14 +471,15 @@ RichTextareaClass.render(vu => {
         let restoreData = vus[vuId].get();
         obj = restoreData;
       }
+      // Concat data
       if (p === '<br>' || !p) {
         // Do nothing...
       } else {
         data = data.concat(obj);
       }
     }); // end of each
-    vu.set('data', data)
-    vu.res('data', data)
+    vu.set('data', data);
+    vu.res('data', data);
     return data;
   }; // end of getData
   // @content bulr event
@@ -500,7 +509,18 @@ RichTextareaClass.render(vu => {
   });
   // @add click event
   vu.$el('@add').off('click').on('click', function(e) {
-    vu.$el('@content').append('<p><img src="http://fakeimg.pl/250x100/"></p>')
+    //vu.$el('@content').append('<p><img src="http://fakeimg.pl/250x100/"></p>')
+    let modalView = Cope.modal('file', {
+      maxWidth: 400,
+      openModal: false
+    }).res('done', files => {
+      files.map(file => {
+        let imgId = Math.random().toString(36).slice(-5);
+        medias[imgId] = file;
+        vu.$el('@content').append('<p><img alt="' + imgId + '" width="300" src="' + file.thumbImage + '"></p>');
+        getData();
+      });
+    })
   })
   // @done click
   vu.$el('@done').off('click').on('click', function(e) {
@@ -794,7 +814,7 @@ DataUploaderClass.render(vu => {
         console.log('clicked done', data);
       });
       // Richtextarea Css
-      richTextarea.$el().css('height', vu.$el('@panel-display').height());
+      richTextarea.$el().css('min-height', '245px');//vu.$el('@panel-display').height());
       richTextarea.$el('@content')
       break;
     case 'item':

@@ -221,6 +221,32 @@ textarea {
   letter-spacing: 0;
 }
 
+/* Richtextarea */
+.view-richtextarea {
+  width: 100%;
+  min-height: 200px;
+  margin: 0 auto;
+  padding: 0;
+  background: #fff;
+}
+
+.view-richtextarea > div {
+  padding: 6px;
+  outline: none;
+}
+
+.view-richtextarea .toolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #ddd;
+}
+
+.view-richtextarea .content {
+  padding-top: 45px;
+}
+
 /* ImageUploader*/
 .view-image-uploader {
   position: relative;
@@ -860,53 +886,64 @@ textarea {
 
 /* DataUpLoader */
 .view-datauploader {
-  background: #aca;
   display: block;
   position: relative;
   width: 100%;
   max-width: 400px;
-  height: 300px;
+  /* height: 300px; */
+  margin: 0 auto;
+  background: #fff;
 }
+
 .view-datauploader .panel {
 }
+
 .view-datauploader .panel-display {
-  background: gray;
-  height: 270px;
+  min-height: 270px;
   overflow: auto;
+  background: #fff;
 }
+
 .view-datauploader .control-bar {
   display: flex;
+  background: #ddd;
   /* justify-content:space-around; */
 }
+
 .view-datauploader .control-bar > div {
   flex:  1;
   text-align: center;
 }
+
 .view-datauploader .btn-red:hover {
   color:  red;
   cursor: pointer;
 }
+
 .view-datauploader .page-1 div {
   height: 130px;
   padding: 5px;
 }
+
 .view-datauploader .page-2 .panel-page {
-  height: 245px;
+  min-height: 245px;
   overflow: auto;
 }
+
 .view-datauploader .page-2 .panel-control {
   background: #999;
   display: flex;
   margin: 0;
   justify-content: space-around;
 }
+
 .view-datauploader .page-2 .panel-page div {
   outline: none;
 }
+
 .view-datauploader .tagEl:hover {
   background: #aaa;
 }
-
 
 /* Extra Small Devices, Phones */
 @media only screen and (min-width : 480px) {

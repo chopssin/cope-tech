@@ -510,10 +510,10 @@ RichTextareaClass.render(vu => {
   // @add click event
   vu.$el('@add').off('click').on('click', function(e) {
     //vu.$el('@content').append('<p><img src="http://fakeimg.pl/250x100/"></p>')
-    let modalView = Cope.modal('file', {
+    let modalView = Cope.openFiles({
       maxWidth: 400,
       openModal: false
-    }).res('done', files => {
+    }).then(files => {
       files.map(file => {
         let imgId = Math.random().toString(36).slice(-5);
         medias[imgId] = file;
@@ -1677,9 +1677,9 @@ ListItemView.render(vu => {
     }
     if (vu.get('type') == 'media') { // type == 'media'
       console.log('open modal');
-      let modalView = Cope.modal('file', {
+      let modalView = Cope.openFiles({
         maxWidth: 400,
-      }).res('done', files => {
+      }).then(files => {
         if (files && files[0]) { 
           // TBD: imgsrc should be the true url
           vu.set('value', { 
@@ -1949,9 +1949,9 @@ InputClass.render(vu => {
       case 'media':
         vu.$el().off('click').on('click', e => {
           vu.set('mode', 'edit');
-          Cope.modal('file', {
+          Cope.openFiles({
             maxWidth: 400
-          }).res('done', files => {
+          }).then(files => {
             let obj = files && files[0],
                 newValue = {};
             if (obj) {

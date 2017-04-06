@@ -18,7 +18,10 @@ let debug = Cope.Util.setDebug('cope-views', false),
     InventoryClass = Views.class('Inventory'),
     // ------------------------------------------------------
     ViewAppCard = Views.class('AppCard'),
-    ListItemView = Views.class('ListItem'),
+    
+    SectionSimulatorClass = Views.class('SectionSimulator'),
+    SectionEditorClass = Views.class('SectionEditor'),
+    SectionStylerClass = Views.class('SectionStyler'),
 
     ViewAppPage = Views.class('AppPage'),
     ViewDataGraph = Views.class('DataGraph'),
@@ -32,11 +35,8 @@ let debug = Cope.Util.setDebug('cope-views', false),
     PurelyAppView = Views.class('Purely.App'),
     PurelySecView = Views.class('Purely.Sec'),
     PurelySettingsView = Views.class('Purely.Settings'),  
-    
-    SectionSimulatorClass = Views.class('SectionSimulator'),
-    SectionEditorClass = Views.class('SectionEditor'),
-    SectionStylerClass = Views.class('SectionStyler'),
 
+    ListItemView = Views.class('ListItem'), // To be deprecated
     PurelyEditNavView = Views.class('Purely.Edit.Nav.Settiings'),// to be depreacted
     PurelyEditSingleView = Views.class('Purely.Edit.Single'), // to be deprecated
     SectionEditView = Views.class('Purely.Edit.Section.Settings'), // to be deprecated
@@ -873,7 +873,7 @@ AppSettingsClass.render(vu => {
 
   //@btn-remove-app
   vu.$el('@btn-remove-app').off('click').on('click', () => {
-    vu.res('save remove app');
+    vu.res('remove app');
   });
 });
 
@@ -1332,6 +1332,9 @@ CopeAppClass.dom(vu => [
 ]);
 
 CopeAppClass.render(vu => {
+
+  let G = Cope.graph(vu.get('appId'));
+
   // Build Cope.App.Main only once
   vu.map('overview', x => {
     if (x) return x;
@@ -1379,7 +1382,13 @@ CopeAppClass.render(vu => {
         //vu.res('save app name', str);
       }).res('invite collaborator', str => {
         console.log('invite collaborator', str);
-      }).res('save remove app', () => {
+      }).res('remove page', obj => {
+        console.log('remove page', obj);
+        //G.node(obj.currPage).del(true).then(() => {
+        console.log(vu.get());
+        //});
+        
+      }).res('remove app', () => {
         console.log('Remove App');
       })
     }
@@ -1716,6 +1725,7 @@ CopeAppEditorClass.render(vu => {
 
         console.log(item.view.get());
 
+        // Build Page Editor
         vu('@page-editor').html('');
         [{ key: 'pageTitle', title: 'Page Title' }, 
          { key: 'urlSlug', title: 'URL Slug' }].map((obj, i) => {
@@ -1767,6 +1777,15 @@ CopeAppEditorClass.render(vu => {
             savePage();
           }); // end of input "done"
         }); //end of map
+        vu('@page-editor').append([
+          { '@remove-page.cope-card.as-btn.bg-orange.color-w': 'Remove this page' }
+        ]);
+        vu.$el('@remove-page').off('click').on('click', e => {
+          vu.res('remove page', {
+            appId: vu.get('appId'),
+            currPage: vu.get('currPage')
+          });
+        });
         
         vu.$el('.right').addClass('hidden');
         vu.$el('@page-editor').removeClass('hidden');
@@ -1890,8 +1909,8 @@ CopeAppEditorClass.render(vu => {
             vu.res('save app name', str);
           }).res('invite collaborator', str => {
             vu.res('invite collaborator', str);
-          }).res('save remove app', () => {
-            vu.res('save remove app');
+          }).res('remove app', () => {
+            vu.res('remove app');
           });
           return appSettings;
         });

@@ -1265,7 +1265,7 @@ AppSettingsClass.render(vu => {
     sel: vu.sel('@settings-appname'),
     data: {
       type: 'text',
-      placeholder: 'App Name',
+      placeholder: 'Untitled',
       value: vu.get('appName'),
       editable: true
     }
@@ -2386,7 +2386,6 @@ CopeAppEditorClass.render(vu => {
         fallbackTitle = 'New Page';
     if (pageId === 'page-') { fallbackTitle = 'Home' }
 
-    console.log(vu.get());
     pageTitle = vu.map('pageTitle', pageTitle => pageTitle || fallbackTitle);
     pageId = vu.map('pageId', pageId => {
       if (!pageId) {
@@ -2399,8 +2398,6 @@ CopeAppEditorClass.render(vu => {
         let newSlug, dict = [],
             pageSettings = thatVu.get('pages'),
             pageIds = Object.keys(pageSettings);
-
-        console.log(pageSettings);
 
         newSlug = slug || pageTitle.replace(/[\s]/g, '-').toLowerCase();
       
@@ -2445,7 +2442,6 @@ CopeAppEditorClass.render(vu => {
 
     // Update app editor's pages
     thatVu.map('pages', v => {
-      console.log('pages', v);
       if (!v[pageId]) { 
         v[pageId] = {}; 
       }
@@ -2507,7 +2503,6 @@ CopeAppEditorClass.render(vu => {
   buildPageItems(vu.get('navigation'));
 
   // Render home page
-  console.log(vu.get());
   simSections(vu.get('pages')['page-'].sections || []);
 });
 // End of Cope.App.AppEditor

@@ -1902,7 +1902,7 @@ InputClass.render(vu => {
       break;
     case 'text':
     default:
-      value = value || '';
+      value = value || placeholder || '';
       if (!onEdit) { // Normal mode
         vu().html(value);
       } else {       // Edit mode

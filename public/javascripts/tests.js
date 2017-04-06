@@ -399,6 +399,26 @@ Test.go(log => {
 });
 
 Test.go(log => {
+  log.title('Cope.openFiles');
+
+  let BTN = Cope.class();
+  BTN.dom(vu => [{ button: 'Choose' }]);
+  BTN.render(vu => { 
+    vu.$el().click(e => { 
+      Cope.openFiles({ 
+        multi: true,
+        maxWidth: 400
+      }).then(files => {
+        console.log(files);
+      });
+    });
+  });
+  BTN.build({
+    sel: log.sel()
+  });
+});
+
+Test.go(log => {
   log.title('DataUploader');
   let purelyViews = Cope.views('Purely'),
       sel = log.sel(),

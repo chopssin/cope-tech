@@ -2186,6 +2186,115 @@
   }(); // end of Cope.modal
 
   // -----------------------------
+  // Cope.openFiles 
+  // -----------------------------
+  Cope.openFiles = function() {
+    let processFile = function(file, params) {
+      return new Promise((res, rej) => {
+        let fileObj = {};
+        
+        // Save the original file
+        fileObj.file = file; 
+        
+        // Get the file type
+        switch (file.type.slice(0, 5)) {
+          case 'image':
+          case 'video':
+          case 'audio':
+            fileObj.type = file.type.slice(0, 5);
+            break;
+          default:
+            fileObj.type = 'file';
+        }
+
+        if (fileObj.type === 'image') {
+          let reader = new FileReader();
+          reader.onload = function(e) {
+            let img = new Image();
+            img.onload = function() {
+              let maxWidth = params && params.maxWidth;
+                
+              fileObj.image = e.target.result;
+              
+              if (!maxWidth) {
+                // Resolve with fileObj
+                res(fileObj);
+                return;
+              } 
+
+              let thumb = Cope.Util.thumbnailer(img, maxWidth);
+              thumb.onload = function() {
+                let thumbDataURL = thumb.canvas.toDataURL(file.type);
+                let thumbFile = dataURItoBlob(thumbDataURL);
+                if (!thumbFile.name) { thumbFile.name = '_thumb_' + file.name; }
+
+                fileObj.thumbImage = thumbDataURL;
+                fileObj.thumbFile = thumbFile;
+
+                // Resolve with fileObj
+                res(fileObj);
+                return;
+              };
+            };
+            img.src = e.target.result;
+          }; // end of reader.onload
+         
+          reader.readAsDataURL(file);
+        } // end of type "image"
+      }); // end of new Promise
+    }; // end of processFile
+
+    let FileInputClass = Cope.class();
+    FileInputClass.dom(vu => [
+      { 'input(type = "file")[none; ml:-9999px]': '' }
+    ]);
+    FileInputClass.render(vu => {
+      let params = {};
+      if (vu.val('maxWidth')) {
+        params.maxWidth = vu.val('maxWidth');
+      }
+      if (vu.val('multi')) {
+        vu.$el('input').prop('multiple', true);
+      }
+        
+      vu.$el('input').off('change').on('change', e => {
+        let tmpFiles = vu.$el('input').get(0).files,
+            files = [], count = 0;
+
+        for (let i = 0; i < tmpFiles.length; i++) {
+          let obj = tmpFiles[i];
+          processFile(obj, params).then(obj => {
+            files[i] = obj;
+            count++;
+            if (count === tmpFiles.length) {
+              vu.res('files', files);
+            }
+          });   
+        }; // end of for
+      }); 
+    });
+
+    let fileInput = FileInputClass.build({
+      sel: 'body',
+      method: 'prepend'
+    });
+
+    let open = function(params) {
+      console.log(params);
+      fileInput.val(params);
+      fileInput.$el('input').click();
+
+      return new Promise((res, rej) => {
+        fileInput.res('files', files => {
+          res(files);
+        });
+      })
+    }; // end of open
+    
+    return open;
+  }(); // end of Cope.openFiles
+
+  // -----------------------------
   // Cope.pages
   // -----------------------------
   let pageSets = {};

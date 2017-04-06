@@ -13,6 +13,9 @@ let debug = Cope.Util.setDebug('cope-views', false),
     AppDesignClass = Views.class('Cope.App.Design'),
     AppCommerceClass = Views.class('Cope.App.Commerce'),
     AppAnalyticsClass = Views.class('Cope.App.Analytics'),
+    OrdersClass = Views.class('Orders'),
+    CustomersClass = Views.class('Customers'),
+    InventoryClass = Views.class('Inventory'),
     // ------------------------------------------------------
     ViewAppCard = Views.class('AppCard'),
     ListItemView = Views.class('ListItem'),
@@ -121,6 +124,7 @@ ViewAccountCard.render(vu => {
 
 // NavBox
 NavBoxView.dom(vu => [{ 'div(draggable = true)': '' }]);
+
 NavBoxView.render(vu => {
 
 
@@ -873,18 +877,94 @@ AppSettingsClass.render(vu => {
   });
 });
 
+// Cope.App.Commerce
+// - appId: str
+AppCommerceClass.dom(vu => [
+  { 'div.view-app-commerce': [
+    { 'div@menu.menu': [
+      { 'div@btn-orders[flex-grow:1]': 'ORDERS' },
+      { 'div@btn-customers[flex-grow:1]': 'CUSTOMERS' },
+      { 'div@btn-inventory[flex-grow:1]': 'INVENTORY' }]
+    },
+    { 'div@data': [
+      { 'div@orders': 'Orders' },
+      { 'div@customers.hidden': 'Customers' },
+      { 'div@inventory.hidden': 'Inventory' }]
+    }]
+  }
+]);
 
+AppCommerceClass.render(vu => {
+  let toggle,
+      orders,
+      customers,
+      inventory;
 
+  toggle = function(btn) {
+    vu.$el('@data').children().addClass('hidden');
+    vu.$el('@menu').children().removeClass('selected');
+    vu.$el('@' + btn).removeClass('hidden');
+    vu.$el('@btn-' + btn).addClass('selected');
+  }; // end of toggle
 
+  ['orders', 'customers', 'inventory'].map(x => {
+    vu.$el('@btn-' + x).off('click').on('click', () => {
+      toggle(x);
+    });
+  }); // end of map
 
+  // Build the OrdersClass
+  orders = OrdersClass.build({
+    sel: vu.sel('@orders')
+  });
+  // Build the CustomersClass
+  customers = CustomersClass.build({
+    sel: vu.sel('@customers')
+  });
+  //Build the InventoryClass
+  inventory = InventoryClass.build({
+    sel: vu.sel('@inventory')
+  });
+});
 
+// "Orders"
+OrdersClass.dom(vu => [
+  { 'div.view-orders': [
+    { 'div': [
+      { 'input(placeholder="Search")': '' }]
+    },
+    { 'div': [
+      { 'div': 'Content' },
+      { 'div@empty-msg': 'There are no orders.' }]
+    }]
+  }
+]);
 
+// "Customers"
+CustomersClass.dom(vu => [
+  { 'div.view-customers': [
+    { 'div': [
+      { 'input(placeholder="Search")': '' }]
+    },
+    { 'div': [
+      { 'div': 'Content'},
+      { 'div@empty-msg': 'When you have orders, you will see your coustomers here.'}]
+    }]
+  }
+]);
 
-
-
-
-
-// Deprecated
+// "Inventory"
+InventoryClass.dom(vu => [
+  { 'div.view-inventory': [
+    { 'div': [
+      { 'input(placeholder="Search")': '' }]
+    },
+    { 'div': [
+      { 'div': 'Content' },
+      { 'div@empty-msg': 'The are no products.' }]
+    }]
+  }
+]);
 
 // "AppPage"
 // "rename app" <= string, the new name
@@ -1775,6 +1855,18 @@ CopeAppEditorClass.render(vu => {
       case 'commerce':
         vu.$el('.middle').addClass('hidden');
         vu.$el('@panel-commerce').removeClass('hidden');
+
+        vu.map('appCommerce', x => {
+          if (x) {
+            return x;
+          }
+          let appCommerce = AppCommerceClass.build({
+            sel: vu.sel('@panel-commerce'),
+            data: {
+              appId: vu.get('appId')
+            }
+          })
+        })
         break;
       case 'analytics':
         vu.$el('.middle').addClass('hidden');

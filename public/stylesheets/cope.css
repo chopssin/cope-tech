@@ -81,14 +81,36 @@
 
 /* Cope.App.Settings*/
 .view-app-settings {
-
 }
 
 .view-app-settings > div {
   margin: 20px;
 }
 
+/* Cope.App.Commerce */
+.view-app-commerce {
+  width: 100%;
+}
 
+.view-app-commerce .menu {
+  width: 100%;
+  display: flex;
+}
+
+.view-app-commerce .menu > div {
+  height: 30px;
+  padding: 6px;
+  text-align: center;
+}
+
+.view-app-commerce .menu > div:hover {
+  background: #aaa;
+  cursor: pointer;
+}
+
+.view-app-commerce .selected {
+  color: #dc5519;
+}
 
 /* Cope.App.AppEditor */
 .view-app-editor {

@@ -432,6 +432,43 @@ Test.go(log => {
   });
 })
 
+Test.go(log => { // C1 -> C2 -> C3
+  log.title('Propagation of Views');
+  
+  let C1 = Cope.class(),
+      C2 = Cope.class(),
+      C3 = Cope.class();
+
+  C1.dom(vu => [{ 'div': 'C1' }]);
+  C2.dom(vu => [{ 'div': 'C2' }]);
+  C3.dom(vu => [{ 'div': 'C3' }]);
+
+  C3.render(vu => {
+    vu.$el().click(e => {
+      vu.res('C3');
+    });
+  });
+
+  C2.render(vu => {
+    //C3.build({ sel: vu.sel() });
+    vu().html(C3);
+  });
+
+  C1.render(vu => {
+    //C2.build({ sel: vu.sel() });
+    vu().html(C2);
+  });
+
+  let v = C1.build({
+    sel: log.sel()
+  });
+
+  v.res('C3', () => {
+    console.log('C3');
+  });
+
+});
+
 Test.go(log => {
   log.title('Cope.graph("testApp3")');
   let G = Cope.graph('testApp3'),

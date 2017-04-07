@@ -1213,6 +1213,7 @@
     newView = function(_data, _load) {
       let vu,
           id,
+          myParent, // parent view of this view
           resFuncs = {},
           myLoadFunc,
           tmpData = {},
@@ -1231,19 +1232,61 @@
         
         ['html', 'append', 'prepend'].map(method => {
           api[method] = function(arg) {
-            let html = (typeof arg == 'string' || !isNaN(arg))
-              ? arg + ''
-              : domToHtml(arg, id);
+            let html = null,
+                viewClass;
+
+            switch (typeof arg) {
+              case 'object':
+                html = domToHtml(arg, id);
+                break
+              case 'string':
+              default:
+                html = arg;
+            } // end of switch
+
+            if (arg && arg.dom && arg.build && arg.render) {
+              // Treat arg as a ViewClass
+              viewClass = arg;
+              html = null;
+            }
+
             try { 
-              $el[method](html);
+              if (typeof html === 'string') {
+                $el[method](html);
+              } else if (viewClass) {
+                let buildObj = {};
+                buildObj.sel = vu.sel();
+                buildObj.method = method;
+                if (typeof sel === 'string') {
+                  buildObj.sel = vu.sel(sel);
+                }
+                if (typeof arguments[1] === 'object') {
+                  buildObj.data = arguments[1];
+                } 
+
+                // Build child-view here and set its parent view
+                let subView = viewClass.build(buildObj)
+                subView.setParent(vu);
+                return subView;
+              }
             } catch (err) { console.error(err); }
           };
         });
         return api;
-      };
+      }; // end of function "vu"
 
       vu.id = id;
       vu.ID = ' data-vuid="' + id + '" ';
+
+      // To set the parent view
+      vu.setParent = function(view) {
+        myParent = view;  
+      }; // end of setParent
+
+      // To get the parent view
+      vu.parent = function() {
+        return myParent;
+      }; // end of parent
 
       vu.sel = function(_path) {
         let root = '[data-vuid="' + id + '"]';
@@ -1268,16 +1311,28 @@
       vu.res = function(_name, _arg) {
         if (typeof _name != 'string') return;
         if (typeof _arg == 'function') {
-          // to set res functions
+          // To set res functions
           resFuncs[_name] = _arg;
         } else {
-          // to run res functions,
+          // To run res functions,
           // which only allowed atmost one parameter
           if (typeof resFuncs[_name] == 'function') {
-            resFuncs[_name].call(vu, _arg);
+            let stopPropagation = false,
+                evt = {}; // evt stands for "event"
+            evt.view = vu;
+            evt.stopPropagation = function() {
+              stopPropagation = true;
+            }; // end of evt.stopPropagation
+            
+            resFuncs[_name].call(vu, _arg, evt);
+
+            // Propagate 
+            if (!stopPropagtion && myParent) {
+              myParent.res(_name, _arg);
+            }
           }
         }
-        return vu; //this;
+        return vu;
       }; // end of vu.res
 
       vu.load = function() {

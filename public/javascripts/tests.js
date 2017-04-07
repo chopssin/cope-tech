@@ -457,15 +457,20 @@ Test.go(log => { // C1 -> C2 -> C3
 
   C1.render(vu => {
     //C2.build({ sel: vu.sel() });
-    vu().html(C2);
+    let c2 = vu().html(C2);
+    c2.res('C3', (params, e) => {
+      e.stopPropagation();
+      log('C2: C3');
+      log.ok();
+    });
   });
 
-  let v = C1.build({
+  let c1 = C1.build({
     sel: log.sel()
   });
 
-  v.res('C3', () => {
-    console.log('C3');
+  c1.res('C3', () => {
+    log('C1: C3');
   });
 
 });

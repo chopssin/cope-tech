@@ -1253,6 +1253,8 @@
             try { 
               if (typeof html === 'string') {
                 $el[method](html);
+                return vu;
+
               } else if (viewClass) {
                 let buildObj = {};
                 buildObj.sel = vu.sel();
@@ -1265,13 +1267,13 @@
                 } 
 
                 // Build child-view here and set its parent view
-                let subView = viewClass.build(buildObj)
-                subView.setParent(vu);
-                return subView;
+                let childView = viewClass.build(buildObj)
+                childView.setParent(vu);
+                return childView;
               }
             } catch (err) { console.error(err); }
           };
-        });
+        }); // end of map
         return api;
       }; // end of function "vu"
 
@@ -1314,22 +1316,22 @@
           // To set res functions
           resFuncs[_name] = _arg;
         } else {
-          // To run res functions,
-          // which only allowed atmost one parameter
+          let stopPropagation = false;
+          
+          // Run the res function if existed
           if (typeof resFuncs[_name] == 'function') {
-            let stopPropagation = false,
-                evt = {}; // evt stands for "event"
+            let evt = {}; // evt stands for "event"
             evt.view = vu;
             evt.stopPropagation = function() {
               stopPropagation = true;
             }; // end of evt.stopPropagation
             
             resFuncs[_name].call(vu, _arg, evt);
+          }
 
-            // Propagate 
-            if (!stopPropagtion && myParent) {
-              myParent.res(_name, _arg);
-            }
+          // Propagate 
+          if (!stopPropagation && myParent && myParent.res) {
+            myParent.res(_name, _arg);
           }
         }
         return vu;

@@ -445,6 +445,7 @@ Test.go(log => { // C1 -> C2 -> C3
 
   C3.render(vu => {
     vu.$el().click(e => {
+      console.log('clicked');
       vu.res('C3');
     });
   });

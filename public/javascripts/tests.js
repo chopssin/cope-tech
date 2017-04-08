@@ -439,29 +439,33 @@ Test.go(log => { // C1 -> C2 -> C3
       C2 = Cope.class(),
       C3 = Cope.class();
 
-  C1.dom(vu => [{ 'div': 'C1' }]);
-  C2.dom(vu => [{ 'div': 'C2' }]);
-  C3.dom(vu => [{ 'div': 'C3' }]);
+  C1.dom(vu => [{ 'div[bgColor:#aca; p:8px]': 'C1' }]);
+  C2.dom(vu => [{ 'div[bgColor:#798; p:8px]': 'C2' }]);
+  C3.dom(vu => [{ 'div[bgColor:#ffa; p:8px]': 'C3' }]);
 
   C3.render(vu => {
     vu.$el().click(e => {
-      console.log('clicked');
-      vu.res('C3');
+      log('C3: clicked')
+      vu.res('clicked', 'from C3');
     });
   });
 
   C2.render(vu => {
     //C3.build({ sel: vu.sel() });
-    vu().html(C3);
+    vu().append(C3);
   });
 
   C1.render(vu => {
     //C2.build({ sel: vu.sel() });
-    let c2 = vu().html(C2);
-    c2.res('C3', (params, e) => {
+    let c2 = vu().prepend(C2);
+    c2.res('clicked', (params, e) => {
       e.stopPropagation();
-      log('C2: C3');
+      log('C2: clicked signal ' + params);
       log.ok();
+    });
+
+    vu.$el().click(e => {
+      vu.res('clicked', 'from C1');
     });
   });
 
@@ -469,8 +473,8 @@ Test.go(log => { // C1 -> C2 -> C3
     sel: log.sel()
   });
 
-  c1.res('C3', () => {
-    log('C1: C3');
+  c1.res('clicked', params => {
+    log('C1: clicked ' + params);
   });
 
 });

@@ -63,6 +63,10 @@ Pages.use('/', params => {
   // Enroll copeApp, copeNav in ds
   ds.enroll(copeApp);
   ds.enroll(copeNav);
+
+  copeApp.res('touched', params => {
+    console.log('touched', params);
+  });
   
   // Set res of copeApp
   copeApp.res('app selected', appId => {

@@ -1461,15 +1461,17 @@ CopeAppOverviewClass.render(vu => {
     vu('@apps').html('');
     v.appIds.map(appId => {
 
-      Views.class('AppCard').build({
-        sel: vu.sel('@apps'),
-        method: 'append',
-        data: v.apps[appId]
-      }).res('touched', function() {
+      //Views.class('AppCard').build({
+      //  sel: vu.sel('@apps'),
+      //  method: 'append',
+      //  data: v.apps[appId]
+      //}).res('touched', function() {
         
         // Ask for data from outside
-        vu.res('app selected', appId);
-      });
+        //vu.res('app selected', appId);
+      //});
+
+      vu('@apps').append(v.apps[appId]);
     }); // end of map
   }); // end of use('apps, appIds')
 

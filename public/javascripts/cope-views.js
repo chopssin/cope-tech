@@ -1338,21 +1338,23 @@ CopeAppClass.render(vu => {
   // Build Cope.App.Main only once
   vu.map('overview', x => {
     if (x) return x;
-    let overview = Views.class('Cope.App.Overview').build({
-      sel: vu.sel('@sec-overview')
-    });
+    //let overview = Views.class('Cope.App.Overview').build({
+    //  sel: vu.sel('@sec-overview')
+    //});
+    let overview = vu('@sec-overview')
+      .html(Views.class('Cope.App.Overview'));
 
     // When an app is selected
-    overview.res('app selected', appId => {
-      vu.set('currAppId', appId);
+    //overview.res('app selected', appId => {
+    //  vu.set('currAppId', appId);
 
       // Fetch data from outside
-      vu.res('app selected', appId);
-    }).res('save profile', profile => {
-      vu.set(profile);
+      //vu.res('app selected', appId);
+    //}).res('save profile', profile => {
+      //vu.set(profile);
 
-      vu.res('save profile', profile);
-    });
+      //vu.res('save profile', profile);
+    //});
     return overview;
   });
 
@@ -1365,6 +1367,13 @@ CopeAppClass.render(vu => {
     if (currAppId && v.toggle === 'app-editor') {
 
       // Build App Editor and updates data from this view
+      vu('@sec-app-editor').html(
+        Views.class('Cope.App.AppEditor'), 
+        vu.get('apps')[currAppId]
+      );
+    }
+  });
+      /* ----------------------------
       let appEditor = Views.class('Cope.App.AppEditor').build({
         sel: vu.sel('@sec-app-editor'),
         data: vu.get().apps[currAppId]
@@ -1391,8 +1400,9 @@ CopeAppClass.render(vu => {
       }).res('remove app', () => {
         console.log('Remove App');
       })
-    }
-  });
+      ---------------------------- */
+    //}
+  //});
 
   // Update user's email
   vu.use('email, name').then(v => {
@@ -1471,7 +1481,7 @@ CopeAppOverviewClass.render(vu => {
         //vu.res('app selected', appId);
       //});
 
-      vu('@apps').append(v.apps[appId]);
+      vu('@apps').append(Views.class('AppCard'), v.apps[appId]);
     }); // end of map
   }); // end of use('apps, appIds')
 
@@ -1487,7 +1497,6 @@ CopeAppOverviewClass.render(vu => {
     vu.$el('@avatar').css('background-image', 'url("' + value.imgsrc +'")');
 
     vu.res('save profile', {
-      name: vu.get('name') || null,
       display: vu.get('display') || null
     });
   });// end of avatarEdit
@@ -1503,8 +1512,7 @@ CopeAppOverviewClass.render(vu => {
     vu.set('name', value);
     vu.$el('@display-name').html(value);
     vu.res('save profile', {
-      name: vu.get('name') || null,
-      display: vu.get('display') || null
+      name: vu.get('name') || null
     });
   }); // nameEdit
 
@@ -1514,13 +1522,7 @@ CopeAppOverviewClass.render(vu => {
       type: 'text',
       value: vu.get('email')
     }
-  }).res('value', value => {
-    vu.set('email', value);
-    vu.res('save profile', {
-      name: vu.get('name') || null,
-      display: vu.get('display') || null
-    });
-  }); // emailEdit
+  });
 
   avatarEdit.$el().addClass('circle');
 
@@ -1971,8 +1973,9 @@ CopeAppEditorClass.render(vu => {
 
   savePage = function() {
     vu.map('pages', pages => {
-      let currPage = vu.get('currPage');
-      let sections = []; 
+      let currPage = vu.get('currPage'),
+          sections = [];
+
       SS.get('List').get().map(item => {
         sections[item.idx] = item.view.get();
       });
@@ -1981,7 +1984,10 @@ CopeAppEditorClass.render(vu => {
       return pages;
     });
 
-    vu.res('save page');
+    vu.res('save page', {
+      currPage: vu.get('currPage'),
+      pageData: vu.get('pages')[vu.get('currPage')] 
+    });
   }; // end of savePage
 
 

@@ -526,13 +526,21 @@ Test.go(log => {
   let c1_2 = c3_1().append(C1),
       c2_5 = c3_2().append(C2);
 
-  let arr = [ c2_1, c2_2, c2_3, c2_4, c2_5, c1_1, c1_2, c3_1, c3_2];
+  let arr = [ c2_1, c2_2, c2_3, c2_4, c2_5, c1_1, c1_2];
 
   arr.map(view => {
     view.res('clicked', (params, e) => {
       e.stopPropagation();
       log('clicked signal form ' + params);
     });
+  });
+
+  c3_1.res('clicked', (params, e) => {
+    e.stopPropagation();
+  });
+
+  c3_2.res('clicked', (params, e) => {
+    e.stopPropagation();
   });
 });
 

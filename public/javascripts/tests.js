@@ -476,7 +476,6 @@ Test.go(log => { // C1 -> C2 -> C3
   c1.res('clicked', params => {
     log('C1: clicked ' + params);
   });
-
 });
 
 Test.go(log => {
@@ -513,7 +512,7 @@ Test.go(log => {
   });
 
   c1.res('clicked', params => {
-    log('C1: clicked form' + params);
+    log('C1: clicked form ' + params);
   });
 
   let c2_1 = c1().append(C2),
@@ -535,8 +534,6 @@ Test.go(log => {
       log('clicked signal form ' + params);
     });
   });
-
-
 });
 
 Test.go(log => {

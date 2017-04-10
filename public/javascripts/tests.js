@@ -480,6 +480,66 @@ Test.go(log => { // C1 -> C2 -> C3
 });
 
 Test.go(log => {
+  log.title('RES practice');
+
+  let C1 = Cope.class(),
+      C2 = Cope.class(),
+      C3 = Cope.class();
+
+  C1.dom(vu => [{ 'div[bgColor:#aca; p:8px]': 'C1' }]);
+  C2.dom(vu => [{ 'div[bgColor:#798; p:8px]': 'C2' }]);
+  C3.dom(vu => [{ 'div[bgColor:#ffa; p:8px]': 'C3' }]);
+
+  C1.render(vu => {
+    vu.$el().click(e => {
+      vu.res('clicked', 'C1');
+    });
+  });
+
+  C2.render(vu => {
+    vu.$el().click(e => {
+      vu.res('clicked', 'C2');
+    });
+  })
+
+  C3.render(vu => {
+    vu.$el().click(e => {
+      vu.res('clicked', 'C3');
+    });
+  })
+
+  let c1 = C1.build({
+    sel: log.sel()
+  });
+
+  c1.res('clicked', params => {
+    log('C1: clicked form' + params);
+  });
+
+  let c2_1 = c1().append(C2),
+      c2_2 = c1().append(C2),
+      c2_3 = c1().append(C2),
+      c1_1 = c2_1().append(C1),
+      c2_4 = c2_2().append(C2),
+      c3_1 = c2_3().append(C3),
+      c3_2 = c2_3().append(C3);
+
+  let c1_2 = c3_1().append(C1),
+      c2_5 = c3_2().append(C2);
+
+  let arr = [ c2_1, c2_2, c2_3, c2_4, c2_5, c1_1, c1_2, c3_1, c3_2];
+
+  arr.map(view => {
+    view.res('clicked', (params, e) => {
+      e.stopPropagation();
+      log('clicked signal form ' + params);
+    });
+  });
+
+
+});
+
+Test.go(log => {
   log.title('Cope.graph("testApp3")');
   let G = Cope.graph('testApp3'),
       V = Cope.views();

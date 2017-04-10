@@ -1461,7 +1461,9 @@ CopeAppOverviewClass.dom(vu => [
 
 CopeAppOverviewClass.render(vu => {
   let avatarEdit,
-      accountEdit;
+      accountEdit,
+      nameEdit,
+      emailEdit;
 
   vu('@display-name').html(vu.get('name') || vu.get('email') || 'Hello');
 

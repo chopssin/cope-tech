@@ -1653,10 +1653,10 @@ CopeAppEditorClass.render(vu => {
   }).res('item clicked', function(item) {
     open('pages/page', { item: item });
   }).res('order', order => {
-    let arr = [];
-    for (let i = 0; i < order.length; i++) {
-      arr = arr.concat(vu.get('navigation')[order[i]]);
-    }
+    let arr = pageList
+              .get('List').getByIdx()
+              .map(x => x.view.get('pageId'));
+    vu.set('navigation', arr);
     vu.res('save navigation', arr);
   });
 
@@ -1800,7 +1800,7 @@ CopeAppEditorClass.render(vu => {
                 }
               });
             }
-
+            vu.set('navigation', newNavObj.navigation);
             vu.res('save navigation', newNavObj.navigation);
             //savePage();
           }); // end of input "done"
@@ -2193,7 +2193,6 @@ CopeAppEditorClass.render(vu => {
         return x;
       });
     }
-    
   });
 
   // page-settings event

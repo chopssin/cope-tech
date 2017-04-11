@@ -420,7 +420,7 @@ SectionEditorClass.render(vu => {
       Cope.modal(PurelyViews.class('DataUploader'), {
         appId: vu.get('appId')
       }).res('data', data => {
-        console.log(data);
+        vu.res('new data', data);
       });
     });
   }
@@ -1662,9 +1662,10 @@ CopeAppEditorClass.render(vu => {
   });
 
   // Init Section Editor
-  sectionEditor = SectionEditorClass.build({
-    sel: vu.sel('@editor')
-  });
+  //sectionEditor = SectionEditorClass.build({
+  //  sel: vu.sel('@editor')
+  //})
+  sectionEditor = vu('@editor').html(SectionEditorClass);
 
   // Init Section Styler
   sectionStyler = SectionStylerClass.build({

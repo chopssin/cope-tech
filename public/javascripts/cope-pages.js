@@ -39,6 +39,41 @@ let sampleSections = [{
   style: 'sec-dark/sec-op-6/comp-full'
 }];
 
+// Fake server
+let fake = {
+  newBlog: function() {
+    return {
+      col: 'u_fake_blog',
+      tags: {
+        'u_衣服': true,
+        'u_men': true
+      },
+      createdAt: new Date().getTime(),
+      updatedAt: new Date().getTime(),
+      publishedAt: 0, // not published
+      content: [
+        { 'type': 'text',  'text': 'Title' },
+        { 'type': 'image', 'url': '/images/sample1.jpg' },
+        { 'text': sampleText } 
+      ]
+    };
+  }, // end of function newBlog
+  newItem: function() {
+    return {
+      col: 'u_fake_item',
+      tags: {
+        'u_女鞋': true
+      },
+      createdAt: new Date().getTime(),
+      updatedAt: new Date().getTime(),
+      publishedAt: 0,
+      data: {
+        'name': '夏末舒適款女鞋',
+        'price': 1000 * Math.floor(1 + Math.random())
+      }
+    };
+  } // end of function newItem
+}; // end of object fake
 
 Pages.use('/', params => {
 
@@ -195,6 +230,10 @@ Pages.use('/', params => {
 
     // let G = Cope.graph(currAppId);
     // G.node('app').val('navigation', obj.navigation);
+  })
+  .res('new data', newData => {
+    let currAppId = copeApp.get('currAppId');
+    console.log(currAppId + ': new data', newData);
   });
 
   // Set res of copeNav

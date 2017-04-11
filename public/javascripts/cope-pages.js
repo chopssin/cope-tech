@@ -164,7 +164,7 @@ Pages.use('/', params => {
     // Try to modify some data in section settings, page settings.
     // Observe obj, make sure we update the page correctly
     // <<<<<<<<<<<
-    console.log('currAppId = ' + currAppId + ' save page', obj);
+    console.log(currAppId + ': save page', obj);
 
     // Find the node by currAppId and update app data
     //let G = Cope.graph(currAppId);
@@ -175,9 +175,14 @@ Pages.use('/', params => {
     //  where key = 'sections' || 'pageTitle' || 'urlSlug'
     //
   }) // end of "save page" of copeApp
+  .res('remove page', obj => {
+    // obj should be { pageId: <the pageId string> }
+    let currAppId = copeApp.get('currAppId');
+    console.log(currAppId + ': remove page', obj);
+  })
   .res('save profile', obj => {
     let currAppId = copeApp.get('currAppId');
-    console.log('TBD: save profile', obj);
+    console.log(currAppId + ': save profile', obj);
     // Hydra >>>>>>>>>>>
     // obj should be an object of {
     //   username: <string>,

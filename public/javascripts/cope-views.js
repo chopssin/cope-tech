@@ -2193,6 +2193,7 @@ CopeAppEditorClass.render(vu => {
         return x;
       });
     }
+    
   });
 
   // page-settings event

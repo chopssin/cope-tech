@@ -185,7 +185,7 @@ Pages.use('/', params => {
     // }
     // <<<<<<<<<<<
   }) // end of "save profile" of copeApp
-  .res('save navigation', obj => {
+  .res('save navigation', arr => {
     console.log('TBD: save navigation', arr);
     let currAppId = copeApp.get('currAppId');
     // Hydra >>>>>>>>>>>

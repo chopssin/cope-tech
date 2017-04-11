@@ -1495,11 +1495,12 @@ CopeAppOverviewClass.render(vu => {
       editable: true
     }
   }).res('value', value => {
-    vu.set('display', value.imgsrc);
+    vu.set('displayFile', value);
     vu.$el('@avatar').css('background-image', 'url("' + value.imgsrc +'")');
-
+    console.log(vu.get());
     vu.res('save profile', {
-      display: vu.get('display') || null
+      username: vu.get('name') || null,
+      displayFile: vu.get('displayFile') || null
     });
   });// end of avatarEdit
 
@@ -1510,11 +1511,12 @@ CopeAppOverviewClass.render(vu => {
       value: vu.get('name') || 'Me',
       editable: true
     }
-  }).res('value', value => {
+  }).res('done', value => {
     vu.set('name', value);
     vu.$el('@display-name').html(value);
     vu.res('save profile', {
-      name: vu.get('name') || null
+      username: vu.get('name') || null,
+      displayFile: vu.get('displayFile') || null
     });
   }); // nameEdit
 
@@ -1528,8 +1530,8 @@ CopeAppOverviewClass.render(vu => {
 
   avatarEdit.$el().addClass('circle');
 
-  if(vu.get('display')){
-    avatarEdit.$el().css('background-image', 'url("' + vu.get('display') +'")');
+  if(vu.get('displayFile')){
+    avatarEdit.$el().css('background-image', 'url("' + vu.get('displayFile').imgsrc +'")');
   }
 
   // Overview toggle
@@ -1650,6 +1652,12 @@ CopeAppEditorClass.render(vu => {
     sel: vu.sel('@nav-items')
   }).res('item clicked', function(item) {
     open('pages/page', { item: item });
+  }).res('order', order => {
+    let arr = pageList
+              .get('List').getByIdx()
+              .map(x => x.view.get('pageId'));
+    vu.set('navigation', arr);
+    vu.res('save navigation', arr);
   });
 
   // Init Section Simulator
@@ -1757,9 +1765,6 @@ CopeAppEditorClass.render(vu => {
             item.view.val(key, value);
             //console.log('After', vu.get('pageSettings'));
             console.log('TBD', value);
-            if (key === 'urlSlug') {
-              input.val('value', '/' + item.view.val(key));
-            }
 
             let newNavObj = {
               currAppId: appId, 
@@ -1780,18 +1785,41 @@ CopeAppEditorClass.render(vu => {
               });
             });
 
-            vu.res('save navigation', newNavObj);
-            savePage();
+            if (key === 'urlSlug') {
+              input.val('value', '/' + item.view.val(key));
+              vu.res('save page', {
+                currPage: vu.get('currPage'),
+                data: {
+                  urlSlug: value
+                }
+              });
+            } else {
+              vu.res('save page', {
+                currPage: vu.get('currPage'),
+                data: {
+                  pageTitle: value
+                }
+              });
+            }
+            vu.set('navigation', newNavObj.navigation);
+            vu.res('save navigation', newNavObj.navigation);
+            //savePage();
           }); // end of input "done"
         }); //end of map
         vu('@page-editor').append([
           { '@remove-page.cope-card.as-btn.bg-orange.color-w': 'Remove this page' }
         ]);
         vu.$el('@remove-page').off('click').on('click', e => {
+          vu.map('navigation', arr => {
+            return arr.filter(x => x != vu.get('currPage'));
+          }); // end of map
+
           vu.res('remove page', {
             appId: vu.get('appId'),
             currPage: vu.get('currPage')
           });
+
+          vu.res('save navigation', vu.get('navigation'));
         });
         
         vu.$el('.right').addClass('hidden');
@@ -1986,10 +2014,15 @@ CopeAppEditorClass.render(vu => {
       pages[currPage].sections = sections;
       return pages;
     });
-
+    // vu.res('save page', {
+    //   currPage: vu.get('currPage'),
+    //   pageData: vu.get('pages')[vu.get('currPage')] 
+    // });
     vu.res('save page', {
       currPage: vu.get('currPage'),
-      pageData: vu.get('pages')[vu.get('currPage')] 
+      data: {
+        sections: vu.get('pages')[vu.get('currPage')].sections
+      }
     });
   }; // end of savePage
 

@@ -1818,8 +1818,6 @@ CopeAppEditorClass.render(vu => {
             appId: vu.get('appId'),
             currPage: vu.get('currPage')
           });
-
-          vu.res('save navigation', vu.get('navigation'));
         });
         
         vu.$el('.right').addClass('hidden');

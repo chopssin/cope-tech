@@ -395,6 +395,7 @@ SectionEditorClass.render(vu => {
           data: {
             type: x.type,
             value: x.value,
+            options: x.options,
             editable: true
           }
         }).res('value', value => {

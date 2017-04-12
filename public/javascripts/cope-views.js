@@ -910,19 +910,20 @@ AppSettingsClass.render(vu => {
 AppDataClass.dom(vu => [
   { 'div.view-datazone': [
     { '.search-input': [
-      { '@search': 'TBD: Input[text-select] with placeholder = "Search"' }] 
+      { '@search[c:#dc5141]': 'TBD: Input[text-select] with placeholder = "Search"' }] 
     },
     { '.filter-control': [
       { 'div': [
         { 'h4': 'Collection' }, 
-        { '@filter-col': 'TBD: Input[select] for collection' }] 
+        { '@filter-col[c:#dc5141]': 'TBD: Input[select] for collection' }] 
       },
       { 'div': [
         { 'h4': 'Tags' }, 
-        { '@filter-tags': 'TBD: Input[select] with multi = true for tags' }] 
+        { '@filter-tags[c:#dc5141]': 'TBD: Input[select] with multi = true for tags' }] 
       }]
     },
     { '.data-result': [
+      { 'h4': 'Data' }, 
       { '@data-result': '' }] 
     }]
   }

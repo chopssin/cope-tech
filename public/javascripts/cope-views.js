@@ -901,6 +901,17 @@ AppSettingsClass.render(vu => {
     vu.res('remove app');
   });
 });
+// End of Cope.App.Settings
+
+// Cope.App.Data
+AppDataClass.dom(vu => [
+  { 'div': 'Cope.App.Data' }
+]);
+
+AppDataClass.render(vu => {
+  { 'div': '' }
+});
+// End of Cope.App.Data
 
 // Cope.App.Commerce
 // - appId: str

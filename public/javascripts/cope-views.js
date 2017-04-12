@@ -904,12 +904,31 @@ AppSettingsClass.render(vu => {
 // End of Cope.App.Settings
 
 // Cope.App.Data
+// - filter-col: Input[select] of collection
+// - filter-tags: Input[select] of tags
 AppDataClass.dom(vu => [
-  { 'div': 'Cope.App.Data' }
+  { 'div.view-datazone': [
+    { '.search-input': [
+      { '@search': 'TBD: Input[text-select] with placeholder = "Search"' }] 
+    },
+    { '.filter-control': [
+      { 'div': [
+        { 'h4': 'Collection' }, 
+        { '@filter-col': 'TBD: Input[select] for collection' }] 
+      },
+      { 'div': [
+        { 'h4': 'Tags' }, 
+        { '@filter-tags': 'TBD: Input[select] with multi = true for tags' }] 
+      }]
+    },
+    { '.data-result': [
+      { '@data-result': '' }] 
+    }]
+  }
 ]);
 
 AppDataClass.render(vu => {
-  { 'div': '' }
+  // Hydra: start from here
 });
 // End of Cope.App.Data
 
@@ -1933,6 +1952,11 @@ CopeAppEditorClass.render(vu => {
       case 'data':
         vu.$el('.middle').addClass('hidden');
         vu.$el('@panel-data').removeClass('hidden');
+
+        vu.map('app data', x => {
+          if (x) { return x; }
+          return vu('@panel-data').html(AppDataClass);
+        });
         break;
       case 'data/node':
         break;
@@ -1944,16 +1968,9 @@ CopeAppEditorClass.render(vu => {
         vu.$el('.middle').addClass('hidden');
         vu.$el('@panel-commerce').removeClass('hidden');
 
-        vu.map('appCommerce', x => {
-          if (x) {
-            return x;
-          }
-          let appCommerce = AppCommerceClass.build({
-            sel: vu.sel('@panel-commerce'),
-            data: {
-              appId: vu.get('appId')
-            }
-          })
+        vu.map('app commerce', x => {
+          if (x) { return x; }
+          return vu('@panel-commerce').html(AppCommerceClass);
         })
         break;
       case 'analytics':
@@ -1964,7 +1981,7 @@ CopeAppEditorClass.render(vu => {
         vu.$el('.middle').addClass('hidden');
         vu.$el('@panel-settings').removeClass('hidden');
         
-        vu.map('appSettings', x => {
+        vu.map('app settings', x => {
           if (x) {
             return x;
           }

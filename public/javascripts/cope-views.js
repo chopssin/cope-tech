@@ -347,8 +347,22 @@ SectionEditorClass.render(vu => {
     { key: 'title', type: 'text', label: phr('Title'), value: vu.get('title') },
     { key: 'content', type: 'textarea', label: phr('Content'), value: vu.get('content') },
     { key: 'colName', type: 'text-select', label: phr('Collection Type'), value: vu.get('colName'), options: [] },
-    { key: 'sort', type: 'text-select', label: phr('Sorted By'), value: vu.get('sort'), options: [] },
-    { key: 'limit', type: 'text', label: phr('Max Number'), value: vu.get('limit') }
+    { key: 'sort', type: 'select', label: phr('Sorted By'), value: vu.get('sort'), options: [
+      { 'value': 'Recent' },
+      { 'value': 'Featured' },
+      { 'value': 'Random' }
+    ]},
+    { key: 'limit', type: 'select', label: phr('Max Number'), value: vu.get('limit'), options: [
+      { 'value': 1 },
+      { 'value': 2 },
+      { 'value': 3 },
+      { 'value': 4 },
+      { 'value': 5 },
+      { 'value': 6 },
+      { 'value': 7 },
+      { 'value': 8 },
+      { 'value': 9 }
+    ]}
   ];
   settings.contacts = [
     { key: 'title', type: 'text', label: phr('Title'), value: vu.get('title') },
@@ -363,10 +377,19 @@ SectionEditorClass.render(vu => {
     case 'collection':
     case 'contacts':
       settings[vu.get('type')].map((x, i) => {
+        let inputData = {};
+        inputData.type = x.type;
+        inputData.value = x.value;
+        inputData.editable = true;
+        if (x.type === 'select' && x.options) {
+          inputData.options = x.options;
+        }
+
         vu('@settings').append([
           { 'h5[c:#bbb; mb:0; fz:14px;]': x.label },
           [ '@s-' + i + '[fz:20px;]', '' ]
         ]);
+
         PurelyViews.class('Input').build({
           sel: vu.sel('@s-' + i), 
           data: {
@@ -787,6 +810,8 @@ PurelySecView.render(vu => {
     });
   });
 });
+
+
 
 // Cope.App.Settings
 // - appId: str

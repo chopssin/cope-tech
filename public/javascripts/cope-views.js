@@ -395,6 +395,7 @@ SectionEditorClass.render(vu => {
           data: {
             type: x.type,
             value: x.value,
+            options: x.options,
             editable: true
           }
         }).res('value', value => {
@@ -1845,7 +1846,7 @@ CopeAppEditorClass.render(vu => {
               vu.res('save page', {
                 currPage: vu.get('currPage'),
                 data: {
-                  urlSlug: value
+                  urlSlug: '/' + item.view.val(key)
                 }
               });
             } else {

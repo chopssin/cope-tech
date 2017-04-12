@@ -1760,6 +1760,7 @@ InputClass.dom(vu => [
 InputClass.render(vu => {
   let type = vu.map('type', type => type || 'text'),
       value = vu.get('value'),
+      options = vu.get('options'),
       onEdit = vu.get('editable') && (vu.get('mode') === 'edit'),
       placeholder = vu.get('placeholder'),
       normal, // switch to normal mode 
@@ -1919,6 +1920,22 @@ InputClass.render(vu => {
           normal();
         });
       }
+      break;
+    case 'select': 
+      value = vu.get('value') || options[0] || null;
+      vu().append([['select@select', '']]);
+      options.map(option => {
+        if (vu.get('value') == option.value) {
+          vu.$el('@select').append('<option selected="selected">' + option.value +'</option>');
+        } else {
+          vu.$el('@select').append('<option>' + option.value +'</option>');
+        }
+      })
+      vu.$el('@select').off('change').on('change', e => {
+        let val = vu.$el('@select').val();
+        vu.set('value', val);
+        vu.res('value', val);
+      });
       break;
     case 'text':
     default:

@@ -1815,7 +1815,7 @@ CopeAppEditorClass.render(vu => {
               vu.res('save page', {
                 currPage: vu.get('currPage'),
                 data: {
-                  urlSlug: value
+                  urlSlug: '/' + item.view.val(key)
                 }
               });
             } else {

@@ -1760,7 +1760,8 @@ InputClass.dom(vu => [
 InputClass.render(vu => {
   let type = vu.map('type', type => type || 'text'),
       value = vu.get('value'),
-      options = vu.get('options'),
+      options = vu.get('options') || [],
+      multi = vu.get('multi'),
       onEdit = vu.get('editable') && (vu.get('mode') === 'edit'),
       placeholder = vu.get('placeholder'),
       normal, // switch to normal mode 
@@ -1922,20 +1923,25 @@ InputClass.render(vu => {
       }
       break;
     case 'select': 
-      value = vu.get('value') || options[0] || null;
-      vu().append([['select@select', '']]);
+      value = vu.get('value') || '';
+      vu().html([{ 'div@input-select.input-select': ''}]);
+      if (multi) {
+        vu('@input-select').append([['select@select(multiple)', '']]);
+      } else {
+        vu('@input-select').append([['select@select', '']]);
+      }
       options.map(option => {
         if (vu.get('value') == option.value) {
           vu.$el('@select').append('<option selected="selected">' + option.value +'</option>');
         } else {
           vu.$el('@select').append('<option>' + option.value +'</option>');
         }
-      })
+      }); // end of map
       vu.$el('@select').off('change').on('change', e => {
         let val = vu.$el('@select').val();
         vu.set('value', val);
         vu.res('value', val);
-      });
+      }); // end of change event
       break;
     case 'text':
     default:

@@ -353,15 +353,15 @@ SectionEditorClass.render(vu => {
       { 'value': 'Random' }
     ]},
     { key: 'limit', type: 'select', label: phr('Max Number'), value: vu.get('limit'), options: [
-      { 'value': 1 },
-      { 'value': 2 },
-      { 'value': 3 },
-      { 'value': 4 },
-      { 'value': 5 },
-      { 'value': 6 },
-      { 'value': 7 },
-      { 'value': 8 },
-      { 'value': 9 }
+      { 'value': '1' },
+      { 'value': '2' },
+      { 'value': '3' },
+      { 'value': '4' },
+      { 'value': '5' },
+      { 'value': '6' },
+      { 'value': '7' },
+      { 'value': '8' },
+      { 'value': '9' }
     ]}
   ];
   settings.contacts = [
@@ -905,8 +905,12 @@ AppSettingsClass.render(vu => {
 // End of Cope.App.Settings
 
 // Cope.App.Data
+// - search: Input[text-select] of search
 // - filter-col: Input[select] of collection
 // - filter-tags: Input[select] of tags
+// "search" <- string
+// "filter-col" <- string, query for collection
+// "filter-tags" <- array of string, query for tags
 AppDataClass.dom(vu => [
   { 'div.view-datazone': [
     { '.search-input': [
@@ -931,6 +935,41 @@ AppDataClass.dom(vu => [
 
 AppDataClass.render(vu => {
   // Hydra: start from here
+  // @search build
+  vu.map('saerch', x => {
+    if (x) { return x; }
+    let search = vu('@search').html(PurelyViews.class('Input'), {
+      type: 'text-select',
+      placeholder: 'Search',
+      editable: true
+    }).res('value', (params, e) => {
+      vu.res('search', params);
+    });
+    return search;
+  });
+
+  // @filter-col build
+  vu.map('filter-col', x => {
+    if (x) { return x; }
+    let filterCol = vu('@filter-col').html(PurelyViews.class('Input'), {
+      type: 'select'
+    }).res('value', (params, e) => {
+      vu.res('filter-col', params);
+    });
+    return filterCol;
+  });
+
+  // @filter-tags build
+  vu.map('filter-tags', x => {
+    if (x) { return x; }
+    let filterTags = vu('@filter-tags').html(PurelyViews.class('Input'), {
+      type: 'select',
+      multi: true
+    }).res('value', (params, e) => {
+      vu.res('filter-tags', params);
+    });
+    return filterTags;
+  });
 });
 // End of Cope.App.Data
 

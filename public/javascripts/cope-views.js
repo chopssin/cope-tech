@@ -72,6 +72,9 @@ let phr = function(str, lang) {
 };
 
 // "AppCard"  
+// - appName: string
+// - appId: string
+// - stat: string
 ViewAppCard.dom(function() {
   return '<div' + this.ID + ' class="cope-card wider touchable bg-w" style="margin-bottom:16px">'
     + '<h3 data-component="appName"></h3>'
@@ -93,9 +96,13 @@ ViewAppCard.render(function() {
     that.res('touched', that.val());
   });
 });  
-// end of "AppCard"
+// End of "AppCard"
 
 // "AccountCard"
+// - emali: string
+// - name: string
+// "sign out" <- nothing
+// "change name" <- string, name sent to outside
 ViewAccountCard.dom(vu => [
   { 'div': [
     { 'h3@name': '' },
@@ -105,9 +112,9 @@ ViewAccountCard.dom(vu => [
 ]);
 
 ViewAccountCard.render(vu => {
-  var $signOut = vu.$el('@signOut'),
-      email = vu.val('email'),
-      name = vu.val('name');
+  var $signOut = vu.$el('@signOut'), // JQuery element of singout button 
+      email = vu.val('email'), // string, user email
+      name = vu.val('name'); // string, user name
 
   vu.$el('@name').text(name || 'Hello');
   if (email) vu.$el('@email').html(email);
@@ -120,15 +127,16 @@ ViewAccountCard.render(vu => {
     vu.res('change name', name || 'Cope User');
   });
 });
-// end of "AccountCard"
+// End of "AccountCard"
 
 // NavBox
+// - height: number, NavBox height
+// - idx: number
 NavBoxView.dom(vu => [{ 'div(draggable = true)': '' }]);
 
 NavBoxView.render(vu => {
 
-
-  let height = vu.get('height') + 'px' || '50px';
+  let height = vu.get('height') + 'px' || '50px'; // number, view height
       
   vu.$el().css({
     position: 'absolute',
@@ -138,7 +146,7 @@ NavBoxView.render(vu => {
     background: '#fff'
   });
   vu.use('idx, height').then(v => {
-    let top = v.height * v.idx;
+    let top = v.height * v.idx; // number, view top
     //let dy = v.dy || 0;
     if (!v.isDragging) {
       vu.$el().css({
@@ -151,9 +159,11 @@ NavBoxView.render(vu => {
       });
     }
   });
-});// end of NavBox
+});
+// End of NavBox
 
-//PurelyEditNavView
+// PurelyEditNavView
+// "save" <- obj, { appName, hostedBy, images }
 PurelyEditNavView.dom( vu => [
   { 'div.view-purely-edit-nav': [
     { 'div@form.col-xs-12': [
@@ -172,7 +182,7 @@ PurelyEditNavView.dom( vu => [
 PurelyEditNavView.render(vu => {
   
   // Image Uploader
-  let imageuploaderview = PurelyViews.class('ImageUploader').build({
+  let imageuploaderview = PurelyViews.class('ImageUploader').build({ // ImageUploader View
     sel: vu.sel('@image-uploader')
   });
   
@@ -182,12 +192,13 @@ PurelyEditNavView.render(vu => {
     obj.appName = vu.$el('@site-title').val().trim();
     obj.hostedBy = vu.$el('@hosted-by').val().trim();
     obj.images = imageuploaderview.val('files');
-    console.log(obj);
     vu.res('save', obj);
   });
 });
+// End of PurelyEditNav
 
-//PurelyEditSingle
+// PurelyEditSingle
+// "save" <- obj, { title, content, images }
 PurelyEditSingleView.dom( vu => [
   { 'div.view-purely-edit-single': [
     { 'div@textarea.col-xs-12': [
@@ -202,9 +213,8 @@ PurelyEditSingleView.dom( vu => [
 ]);
 
 PurelyEditSingleView.render( vu => {
-
   // Title textarea
-  let title = PurelyViews.class('Textarea').build({
+  let title = PurelyViews.class('Textarea').build({ // Textarea View of title input
     sel: vu.sel('@title'),
     data: {
       value: 'Title'
@@ -218,7 +228,7 @@ PurelyEditSingleView.render( vu => {
   });
 
   // Content textarea
-  let content = PurelyViews.class('Textarea').build({
+  let content = PurelyViews.class('Textarea').build({ // Textarea View of content input
     sel: vu.sel('@content'),
     data: {
       value: 'Content'
@@ -231,20 +241,20 @@ PurelyEditSingleView.render( vu => {
   });
 
   // Image UpLoader
-  let imageuploaderview = PurelyViews.class('ImageUploader').build({
+  let imageuploaderview = PurelyViews.class('ImageUploader').build({ // ImageUploader View
     sel: vu.sel('@image-uploader')
   });
 
-  //@save-btn Click Event
+  // @save-btn Click Event
   vu.$el('@save-btn').off('click').on('click',() => {
     let obj = {}
     obj.title = title.val('value');
     obj.content = content.val('value');
     obj.images = imageuploaderview.val('files');
-    console.log(obj);
     vu.res('save', obj);
   });
 });
+// End of PurelyEditSingle
 
 // SectionSimulator
 SectionSimulatorClass.dom(vu => [{ '@viewport.view-sec-sim': '' }]);
@@ -254,8 +264,7 @@ SectionSimulatorClass.render(vu => {
       vw, vh, sw = 1200, sh,
       minH = 1, cssObj;
 
-  onresize = function() {
-
+  onresize = function() { // function, (), readjust the section
     vu().html([{ '@sec.sim-realsized': '' }]);
 
     view = PurelyViews.class('Purely.Section').build({
@@ -303,6 +312,11 @@ SectionSimulatorClass.render(vu => {
 // End of SectionSimulator
 
 // SectionEditor
+// - appId: string
+// - type: string, section's type
+// - style: string, view style
+// "data" <- obj, vu.get()
+// "new data" <- obj, children data
 SectionEditorClass.dom(vu => [
   { 'div': [
     { '@type-chooser.hidden': [
@@ -321,12 +335,12 @@ SectionEditorClass.dom(vu => [
 ]);
 
 SectionEditorClass.render(vu => {
-  let settings = {}, 
-      styles,
-      type,
-      media,
-      upper,
-      types = ['basic', 'collection', 'contacts'];
+  let settings = {}, // object, the section settings were stored
+      style, // string, the section style
+      type, // string, the section type
+      media, // object, { imgsrc, vidsrc, audsrc }
+      upper, // function, (str), let str trun to uppercase
+      types = ['basic', 'collection', 'contacts']; // array
   
   upper = function(str) {
     if (!str || str.length < 1) return '';
@@ -336,7 +350,6 @@ SectionEditorClass.render(vu => {
   // Set fallbacks
   style = vu.map('style', s => s 
     || 'text-pos-left/comp-pos-right/mask-bright/mask-7');
-
   // Tidy up data
   settings.basic = [
     { key: 'title', type: 'text', label: phr('Title'), value: vu.get('title') },
@@ -377,7 +390,7 @@ SectionEditorClass.render(vu => {
     case 'collection':
     case 'contacts':
       settings[vu.get('type')].map((x, i) => {
-        let inputData = {};
+        let inputData = {}; // object, { type, value, editable, options }
         inputData.type = x.type;
         inputData.value = x.value;
         inputData.editable = true;
@@ -399,11 +412,9 @@ SectionEditorClass.render(vu => {
             editable: true
           }
         }).res('value', value => {
-
           let appId = vu.get('appId');
-          console.log(appId, x.key, value);
           if (appId && x.key == 'media' && value.file) {
-            let media = {},
+            let media = {}, // object, { url, imgsrc, vidsrc, audsrc } 
                 file = value.file && value.file.file;
             Cope.graph(appId).upload(file).then(obj => {
               media.url = obj.url;
@@ -413,7 +424,6 @@ SectionEditorClass.render(vu => {
                 case 'audio': media.audsrc = obj.url; break;
                 default:
               }
-              console.log(media);
               vu.set(x.key, media);
               vu.res('data', vu.get());
             });
@@ -456,6 +466,7 @@ SectionEditorClass.render(vu => {
 // End fo SectionEditor
 
 // SectionStyler
+// - style, string, current style
 // "style" <- string, current choice
 SectionStylerClass.dom(vu => [
   { 'div[fz:20px]': [
@@ -483,9 +494,9 @@ SectionStylerClass.dom(vu => [
 
 SectionStylerClass.render(vu => {
   
-  let style = vu.get('style'),
-      groupNames = {},
-      group = {};
+  let style = vu.get('style'), // string, current style
+      groupNames = {}, // object, check whether the same style
+      group = {}; // object, styles store
 
   group['sec-dark'] = 'theme';
   group['sec-bright'] = 'theme';
@@ -566,9 +577,13 @@ PageEditView.render( vu => {
     console.log('ok');
   });
 });
+// End of PageEdit
 
 // Layout Chooser
 // @layout-chooser
+// - type: string, current type
+// - preferences: obj, { type, layout }
+// "clicked" <- obj, - preferences sent to outside
 LayoutChooserView.dom( vu => [
   { 'div.view-layout-chooser': [
     { 'div.layout-chooser-sec': [
@@ -588,11 +603,11 @@ LayoutChooserView.dom( vu => [
 ]);
 
 LayoutChooserView.render( vu => {
-  let layouts = {},
-      types = ['basic', 'collection', 'contacts'],
-      textPos = ['left', 'right', 'center', 'none'],
-      collectionTypes = ['slide', 'grid', 'waterfull'],
-      contactsTypes = ['contacts'];
+  let layouts = {}, // object, { basic, collection, contacts }
+      types = ['basic', 'collection', 'contacts'], // array, types
+      textPos = ['left', 'right', 'center', 'none'], // array, text position
+      collectionTypes = ['slide', 'grid', 'waterfull'], // array, collection types
+      contactsTypes = ['contacts']; // array, contacts types
 
   // Init
   vu.set('type', vu.get('type') || 'basic');
@@ -642,10 +657,13 @@ LayoutChooserView.render( vu => {
     vu.$el('@comp-custom-title').html();
     vu.$el('@comp-custom-list')
   }
-}); // end of LayoutChooser
+}); 
+// End of LayoutChooser
 
 // Purely- Purely.SimSec
-// "clicked" <- view
+// - randomIdx: string
+// - style: string
+// "clicked" <- obj, { view } view sent to outside 
 SimSecClass.dom(vu => [
   { 'div.sim-sec': [
     { 'div.inner-wrap': [
@@ -663,7 +681,7 @@ SimSecClass.render(vu => {
       sr = 1, // scale rate
       randomIdx, 
       cssObj, // for @sec
-      onresize;
+      onresize; // function, (), readjust view's scale
 
   // randomIdx for assigning onresize to window
   randomIdx = vu.map('randomIdx', r => {
@@ -695,12 +713,6 @@ SimSecClass.render(vu => {
         minH = vu.get('vh');
         cssObj.height = sh + 'px';
         cssObj['min-height'] = minH / sr + 'px';
-          
-        
-        console.log(minH/sr, sh, sr);
-
-
-
       } else if (vu.get('style').indexOf('sec-wrap') > -1) {
         cssObj.height = sh + 'px';
         cssObj['min-height'] = 1 + 'px';
@@ -724,6 +736,9 @@ SimSecClass.render(vu => {
 // End of Purely.SimSec
 
 // Purely - Purely.Sec
+// "mask clicked" <- nothing
+// "after" <- number, current idx 
+// "del clicked" <- number, curren idx
 PurelySecView.dom(vu => [
   { 'section.purely-sec': [
     { 'div.plus.top.hidden': [
@@ -731,7 +746,6 @@ PurelySecView.dom(vu => [
       { 'div@delete.delete': 'x'}]
     },
     { 'div@wrap.wrap':[
-      //{ 'div@sec.cope-card.full.bg-w.touchable(style="padding:0")': '' },
       { 'div@sec(style="padding:0")': '' },
       { 'div@mask.mask': ''}]
     },
@@ -743,10 +757,10 @@ PurelySecView.dom(vu => [
 
 PurelySecView.render(vu => {
 
-  let showPlus = vu.val('showPlus') || true,
-      fadeIn = vu.val('fadeIn'),
-      fadeOut = vu.val('fadeOut'),
-      hasFadedIn = vu.val('hasFadedIn');
+  let showPlus = vu.val('showPlus') || true, // boolean
+      fadeIn = vu.val('fadeIn'), // boolean
+      fadeOut = vu.val('fadeOut'), // boolean
+      hasFadedIn = vu.val('hasFadedIn'); //boolean
 
   vu.$el().css({
     top: '-1000px'
@@ -772,8 +786,7 @@ PurelySecView.render(vu => {
 
   //@mask click showPlus
   vu.$el('@mask').off('click').on('click', () => {
-    if(showPlus){
-      //vu.val('fadeIn', true);
+    if (showPlus) {
       vu.res('mask clicked');
     }
   });
@@ -781,8 +794,7 @@ PurelySecView.render(vu => {
   vu.$el()
     .off('mouseenter mouseleave')
     .on('mouseenter mouseleave', () => {
-    if(showPlus){
-      //vu.val('fadeIn', true);
+    if (showPlus) {
       vu.$el('.plus').toggleClass('hidden')
     }
   }); 
@@ -805,20 +817,23 @@ PurelySecView.render(vu => {
 
   vu.use('idx, height').then(v => {
     // TBD: animate css top
-    let top = v.height * v.idx;
+    let top = v.height * v.idx; // view top
     vu.$el().css({
       top: top + 'px'
     });
   });
 });
-
-
+// End of PurelySec
 
 // Cope.App.Settings
-// - appId: str
+// - appId: string
+// - appName: string
+// - username : string
 // - collaborators: array, an array of object { name, email }
 // "data" <- object, data sent to outside
-// "invite" <- string, an email string
+// "invite collaborator" <- string, an email string
+// "save app name" <- string, appName sent to outside
+// "remove app" <- nothing
 AppSettingsClass.dom(vu => [
   { 'div.view-app-settings': [
     { 'div': [
@@ -837,23 +852,18 @@ AppSettingsClass.dom(vu => [
         { 'button@btn-add-co.btn-add-co.cope-card.as-btn.bg-blue.color-w[width:86px; fz:14px; ml:8px; p:6px]': 'Invite' }]
       }]
     },
-    // { 'div': [
-    //   { 'h5': 'Contacts' },
-    //   { '@all-contacts.all-contacts': '' }]
-    // },
     { '@btn-remove-app.cope-card.as-btn.bg-orange.color-w:': 'Remove App' }]
   }
 ]);
 
 AppSettingsClass.render(vu => {
-  let appId = vu.get('appId'),
-      name = vu.get('username') || 'Me',
-      collaborators = vu.get('collaborators') || [],
-      appNameInput,
-      collaboratorsInput,
-      getData;
+  let appId = vu.get('appId'), // string
+      name = vu.get('username') || 'Me', // string, current name
+      collaborators = vu.get('collaborators') || [], // object, an array of object { name, email }
+      appNameInput, // Input View
+      getData; // function, (), get view data for sent to outside
 
-  sendData = function() {
+  getData = function() {
     let data = {};
     data.appName = vu.get('appName');
     data.collaborators = vu.get('collaborators');
@@ -877,14 +887,13 @@ AppSettingsClass.render(vu => {
   }).res('done', value => {
     if (value) {
       vu.set('appName', value);
-      sendData();
+      getData();
     }
   });
 
   // @collaborators
   vu.$el('@collaborators').html('');
   collaborators.map(obj => {
-    //vu.$el('@list-co').append('<li>' + obj.name + '</li>');
     vu('@list-co').append([{ 'li': obj.name }]);
   });
 
@@ -938,7 +947,7 @@ AppDataClass.render(vu => {
   // @search build
   vu.map('saerch', x => {
     if (x) { return x; }
-    let search = vu('@search').html(PurelyViews.class('Input'), {
+    let search = vu('@search').html(PurelyViews.class('Input'), { // input view
       type: 'text-select',
       placeholder: 'Search',
       editable: true
@@ -951,7 +960,7 @@ AppDataClass.render(vu => {
   // @filter-col build
   vu.map('filter-col', x => {
     if (x) { return x; }
-    let filterCol = vu('@filter-col').html(PurelyViews.class('Input'), {
+    let filterCol = vu('@filter-col').html(PurelyViews.class('Input'), { // input view
       type: 'select'
     }).res('value', (params, e) => {
       vu.res('filter-col', params);
@@ -962,7 +971,7 @@ AppDataClass.render(vu => {
   // @filter-tags build
   vu.map('filter-tags', x => {
     if (x) { return x; }
-    let filterTags = vu('@filter-tags').html(PurelyViews.class('Input'), {
+    let filterTags = vu('@filter-tags').html(PurelyViews.class('Input'), { // input view
       type: 'select',
       multi: true
     }).res('value', (params, e) => {
@@ -991,10 +1000,10 @@ AppCommerceClass.dom(vu => [
 ]);
 
 AppCommerceClass.render(vu => {
-  let toggle,
-      orders,
-      customers,
-      inventory;
+  let toggle, // function, (btn), the components switch
+      orders, // orders view
+      customers, // customers view
+      inventory; // inventory view
 
   toggle = function(btn) {
     vu.$el('@data').children().addClass('hidden');
@@ -1035,6 +1044,7 @@ OrdersClass.dom(vu => [
     }]
   }
 ]);
+// End of Orders
 
 // "Customers"
 CustomersClass.dom(vu => [
@@ -1048,6 +1058,7 @@ CustomersClass.dom(vu => [
     }]
   }
 ]);
+// End of Customers
 
 // "Inventory"
 InventoryClass.dom(vu => [
@@ -1061,9 +1072,17 @@ InventoryClass.dom(vu => [
     }]
   }
 ]);
+// End of Inventory
 
 // "AppPage"
-// "rename app" <= string, the new name
+// - appName: string
+// - appId: string
+// - url: string
+// - isOwner: boolean
+// - owner: string
+// - partners: array
+// - stat: string
+// "rename app" <- string, the new name
 ViewAppPage.dom(vu => [
   { 'div.row': [
     { 'div.col-xs-12(style="height:700px; overflow:hidden")': [
@@ -1117,10 +1136,10 @@ ViewAppPage.dom(vu => [
 ]);
 
 ViewAppPage.render(vu => {
-  let appName = vu.val('appName') || 'Untitled', // string
-      appId = vu.val('appId'), // string
-      url = vu.val('url'), // string
-      isOwner = vu.val('isOwner'),
+  let appName = vu.val('appName') || 'Untitled', // string, current app name
+      appId = vu.val('appId'), // string, current appId
+      url = vu.val('url'), // string, 
+      isOwner = vu.val('isOwner'), // boolean
       owner = vu.val('owner'), // string
       partners = vu.val('partners'), // string array
       stat = vu.val('stat'); // status
@@ -1252,7 +1271,7 @@ ViewAppPage.render(vu => { // draw the graph
     //}); // end of Editor.openModal
   }); // end of $addPartner click
 }); // end of ViewAppPage.render // draw the graph
-// end of "AppPage"
+// End of "AppPage"
 
 // DataGraph
 // properties:
@@ -1346,7 +1365,7 @@ ViewDataGraph.render(function() {
     d.fy = null;
   }
 }); // end of ViewDataGraph.render
-// end of "DataGraph"
+// End of "DataGraph"
 
 // "AddInput"
 ViewAddInput.dom(function() {
@@ -1363,7 +1382,7 @@ ViewAddInput.render(function() {
     that.res('value', that.$el('input').val().trim());
   });
 });
-// end of "AddInput"
+// End of "AddInput"
 
 // "Toggle"
 // @sec-dashboard
@@ -1414,6 +1433,7 @@ ToggleView.render(vu => {
       break;
   } 
 });
+// End of Toggle
 
 // Cope.App
 // - overview: the Cope.App.Main view
@@ -1437,7 +1457,7 @@ CopeAppClass.render(vu => {
     //let overview = Views.class('Cope.App.Overview').build({
     //  sel: vu.sel('@sec-overview')
     //});
-    let overview = vu('@sec-overview')
+    let overview = vu('@sec-overview')  // overview view
       .html(Views.class('Cope.App.Overview'));
 
     // When an app is selected
@@ -1518,6 +1538,8 @@ CopeAppClass.render(vu => {
 // End of Cope.App
 
 // Cope.App.Overview
+// - name: string
+// - email: string
 // "sava profile" <- object, user's profile data  
 CopeAppOverviewClass.dom(vu => [
   { 'div.view-cope-overview': [
@@ -1556,10 +1578,10 @@ CopeAppOverviewClass.dom(vu => [
 ]);
 
 CopeAppOverviewClass.render(vu => {
-  let avatarEdit,
-      accountEdit,
-      nameEdit,
-      emailEdit;
+  let avatarEdit, // input view 
+      accountEdit, // input view
+      nameEdit, // input view
+      emailEdit; // input view
 
   vu('@display-name').html(vu.get('name') || vu.get('email') || 'Hello');
 
@@ -1593,7 +1615,6 @@ CopeAppOverviewClass.render(vu => {
   }).res('value', value => {
     vu.set('displayFile', value);
     vu.$el('@avatar').css('background-image', 'url("' + value.imgsrc +'")');
-    console.log(vu.get());
     vu.res('save profile', {
       username: vu.get('name') || null,
       displayFile: vu.get('displayFile') || null
@@ -1654,6 +1675,10 @@ CopeAppOverviewClass.render(vu => {
 // Cope.App.AppEditor
 // - currPage: string
 // - sectionsOf: sections fo currPage
+// - navigation: array, pageId of array
+// "save navigation" <- array, pageId of array
+// "save page" <- object, { currPage, data }
+// "remove page" <- object, { appId, currPage }
 CopeAppEditorClass.dom(vu => [
   { 'div.view-app-editor': [
     { '.full-bg': '' },
@@ -1722,9 +1747,9 @@ CopeAppEditorClass.render(vu => {
       pageSettings,
       PageItemClass,
       buildPageItems, // function to render page items
-      simSections, // function(sections): to render sections in simulator
-      savePage,
-      open,
+      simSections, // function, (sections), to render sections in simulator
+      savePage, // function, (), return page
+      open, // function, (path, param), open page by clicked
       addNewData,
       appNameInput,
       thatVu = vu,
@@ -1833,8 +1858,6 @@ CopeAppEditorClass.render(vu => {
           }
           return x;
         });
-
-        console.log(item.view.get());
 
         // Build Page Editor
         vu('@page-editor').html('');
@@ -2118,10 +2141,6 @@ CopeAppEditorClass.render(vu => {
     });
   }; // end of savePage
 
-
-
-
-
   // @hydra's code
   
   // Build profile input
@@ -2296,10 +2315,6 @@ CopeAppEditorClass.render(vu => {
   });
 
   // End of @hydra
-
-
-
-
 
 
   // TBD: wrap it in sectionEditor! Set the toggle between editor and styler

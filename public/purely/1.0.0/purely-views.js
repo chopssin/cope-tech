@@ -44,7 +44,11 @@ let NavView = Views.class('Nav'),
   PurelyLayoutWaterfallView = Views.class('Purely.Layout.Waterfall');
 
 // Nav
+// - logo: object
+// - items: array, item list
 // "logo clicked" <- null, callback when @logo being clicked
+// "signIn" <- nothing
+// "signOut" <- nothing
 NavView.dom( vu => [
   { 'header.view-nav': [
     { 'div@logo.logo.bg': '' },
@@ -79,7 +83,7 @@ NavView.render(vu => {
   vu.$el('@user-items').html('');
 
   // Default Css setting 
-  let defaultCss = {
+  let defaultCss = { 
     'height': '100%',
     'line-height': '100%'
   };
@@ -91,7 +95,7 @@ NavView.render(vu => {
   vu.use('logo').then(v => {
     if (v.logo.imgsrc) {
       vu.$el('@logo').css('background-image',v.logo.imgsrc);
-    }else {
+    } else {
       vu.$el('@logo').html(`${v.logo.text}`);
     }
   });
@@ -101,21 +105,19 @@ NavView.render(vu => {
   });
   
   // @items
-  vu.use('items').then( v => {
-    let  navItems = [];
-    function pend(item){
+  vu.use('items').then(v => {
+    let  navItems = []; 
+    function pend(item) { // function, (item), sort and append item to dom
       
-      let method = 'append';
+      let method = 'append'; 
       let comp = item.comp || new Date().getTime() + '_' + Math.floor(Math.random()*1000);
       switch (item.type) {
         case "main":
           item.el = 'main-items';
           method = 'prepend';
-          //mainItems.push(item);
           break;
         case "user":
           item.el = 'user-items';
-          //userItems.push(item);
           break;
         default:
           item.el = 'nav-items';
@@ -128,7 +130,7 @@ NavView.render(vu => {
         //vu.$el(`@${item.el}`)[method](`<li data-component="${comp}" class="user hidden-xs"><a>${item.text}</a></li>`);
       }
       // setting click event  
-      vu.$el('@'+ comp).off('click').on('click',() => {
+      vu.$el('@'+ comp).off('click').on('click', () => {
         vu.res('comp', item.comp);
       });
     }
@@ -150,37 +152,39 @@ NavView.render(vu => {
   });
 
   // animate
-  vu.$el('@menu-button').off('click').on('click',() => {
+  vu.$el('@menu-button').off('click').on('click', () => {
     vu.$el('@menu').fadeIn(300);
     $(".logo float-right").hide();
   });
 
-  vu.$el('@close-button').off('click').on('click',() => {
+  vu.$el('@close-button').off('click').on('click', () => {
     vu.$el('@menu').fadeOut(300);
     vu.$el('@user-menu').fadeOut(300);
     $(".logo float-right").show();
   });
 
-  vu.$el('@user').off('click').on('click',() => {
+  vu.$el('@user').off('click').on('click', () => {
     vu.$el('@user-menu').fadeIn(300);
     $(".logo .float-right").hide();
   });
 
   // Set @signIn click event
-  vu.$el('@signIn').off('click').on('click',() => {
+  vu.$el('@signIn').off('click').on('click', () => {
     vu.res('signIn');
   });
   // Set @signOut click event
-  vu.$el('@signOut').off('click').on('click',() => {
+  vu.$el('@signOut').off('click').on('click', () => {
     vu.res('signOut');
     vu.$el('@user-menu').fadeOut(300);
     $(".logo .float-right").hide();
   });
 });
 
-//UList
-//-comp: str, set element data-component
-//-items: array, input for list
+// UList
+// -comp: str, set element data-component
+// -items: array, input for list
+// "$comp" <- JQuery element of component
+// "comp" <- string, component name
 UListView.dom(vu => [
   { 'div': [
     { 'ul': ''}
@@ -189,8 +193,8 @@ UListView.dom(vu => [
 
 UListView.render(vu => {
   vu.use('items').then(v =>{
-    v.items.forEach( obj =>{ 
-      if(obj.comp && obj.href ){
+    v.items.forEach(obj =>{ 
+      if (obj.comp && obj.href ) {
         vu.$el('ul').append(`<li class="user" data-component=${obj.comp}><a href=${obj.href}>${obj.title}</a></li>`);
       } else if(obj.comp) {
         vu.$el('ul').append(`<li class="user" data-component=${obj.comp}><a>${obj.title}</a></li>`);
@@ -202,7 +206,7 @@ UListView.render(vu => {
 
       if (obj.comp) {
         let $li = vu.$el(`@${obj.comp}`)
-        $li.off('click').on('click', ()=> {
+        $li.off('click').on('click', () => {
           vu.res('$comp', $li);
           vu.res('comp', obj.comp);
         });
@@ -213,7 +217,8 @@ UListView.render(vu => {
 
 // BoxView
 // @box
-// -css: object, @box's style
+// - css: object, @box's style
+// - text: string, @box's text
 BoxView.dom(vu => [
   { 'div.view-box@box': ''}
 ]);
@@ -222,7 +227,7 @@ BoxView.render(vu => {
   vu.use('css').then(v => {
     vu.$el('@box').css(v.css);
   });
-  vu.use('text').then(v=> {
+  vu.use('text').then(v => {
     vu.$el().html(v.text.join(' '));
   });
 });
@@ -238,10 +243,10 @@ TilesView.dom(vu => [
 ]);
 
 TilesView.render(vu => {
-  let w = vu.get('w'),
-      h = vu.get('h'),
-      colored = vu.get('colored') || false,
-      cutObj = vu.get('cut');
+  let w = vu.get('w'), // string, total width
+      h = vu.get('h'), // string, total height
+      colored = vu.get('colored') || false, // boolean, true to color automatically
+      cutObj = vu.get('cut'); // obj, cut sequences
 
   vu.set('r', BoxView.build({
     sel: vu.sel(),
@@ -258,7 +263,7 @@ TilesView.render(vu => {
     }
   }));
   
-  let cmds = Object.keys(cutObj).sort((a, b) => {
+  let cmds = Object.keys(cutObj).sort((a, b) => { // sort cutObj
     if (b == 'r' 
       || (a.length > b.length)) {
       return 1; 
@@ -273,8 +278,6 @@ TilesView.render(vu => {
     let ycuts = [];
 
     cs.forEach((_c,i) =>{
-      // 'x20'
-      //console.log('QQQQQ',_c);
       if (_c.charAt(0) == 'x') {
         xcuts.push(parseInt(_c.slice(1)));  
       }
@@ -283,7 +286,7 @@ TilesView.render(vu => {
       }
     });
 
-    function cutsArraySort(a,b){
+    function cutsArraySort(a,b) {
       return a - b
     }
 
@@ -292,10 +295,7 @@ TilesView.render(vu => {
 
     xcuts = [0].concat(xcuts, [100]);
     ycuts = [0].concat(ycuts, [100]);
-    // console.log('1111111',xcuts);
-    // console.log('2222222',ycuts);
 
-    //console.log('11111111',cs)
     let xs = cmd.match(/x/g) || [];
     let ys = cmd.match(/y/g) || [];
     let total = (xs.length + 1) * (ys.length + 1);
@@ -372,26 +372,25 @@ TilesView.render(vu => {
 // Textarea
 // @textarea
 // - value: string, current value
+// "value" <- string, textarea.val()
 TextareaView.dom(vu => [
   { 'textarea(rows=1).view-textarea': '' }
 ]);
 
 TextareaView.render(vu => {
-  let height, 
-      avoidAuto,
-      $this = vu.$el(),
-      value = vu.get('value');
+  let $this = vu.$el(), // JQuery element of view
+      value = vu.get('value'); // string, current value
 
-  let resize = function(e) {
+  let resize = function(e) { // function, (e), resize textarea's height
     $this.css('height', 'auto');
     $this.css('height', $this[0].scrollHeight + 'px');
   };
 
-  let delayResize = function() {
+  let delayResize = function() { // function, (), delay resize function
     setTimeout(resize, 0);
   };
 
-  let update = function(e) {
+  let update = function(e) { // function, (e), pass signal 
     // Update the value
     let updatedValue = $this.val().trim();
     vu.set('value', updatedValue);
@@ -426,15 +425,15 @@ RichTextareaClass.dom(vu => [
 ]);
 
 RichTextareaClass.render(vu => {
-  let vus = {},
-      medias = {};
+  let vus = {}, // obj
+      medias = {}; // obj
 
   if (vu.get('showDone')) {
     vu.$el('@done').removeClass('hidden');
   }
 
-  let getData = function() {
-    let data = [];
+  let getData = function() { // function, (), return data
+    let data = []; 
     vu.$el('@content').children().each(function() {
       let p = $(this).html(),
           obj = {},
@@ -485,7 +484,6 @@ RichTextareaClass.render(vu => {
   // @content bulr event
   vu.$el('@content').off('blur').on('blur', e => {
     let data = getData();
-    console.log(getData());
     if( data[data.length - 1].type === 'link'
       && vu.$el('@content').children().last().html() != '<br>') {
       vu.$el('@content').append('<p><br></p>');
@@ -536,6 +534,9 @@ RichTextareaClass.render(vu => {
 // - text
 // - url
 // - mode
+// "enter" <- nothing
+// "down" <- nothing
+// "up" <- nothing
 ParagraphClass.dom(vu => [
   { 'div': [
     { 'div@textarea': '' },
@@ -546,25 +547,28 @@ ParagraphClass.dom(vu => [
 ]);
 
 ParagraphClass.render(vu => {
-  let textarea = Views.class('Textarea').build({
+
+  let textarea = Views.class('Textarea').build({ // textarea view
     sel: vu.sel('@textarea')
   });
+
   textarea.$el().off('click').on('click', e => {
     e.stopPropagation();
     textarea.$el().focus();
   });
+
   textarea.$el().off('keypress.' + vu.id).on('keypress.' + vu.id, e => {
     if (e.which == 13) { e.preventDefault(); }
   });
 
-  function toggle (component) {
+  function toggle (component) { // function, (component), component toggle 
     vu.$el().children().addClass('hidden');
     vu.$el('@' + component).removeClass('hidden');
   } // end of toggle
 
-  function checkType (text) {
+  function checkType (text) { // function, (text), judge type and return type
     let type = 'text';
-    if(text.indexOf('http') === 0){
+    if (text.indexOf('http') === 0) {
       type = 'link'
     }
     return type;
@@ -599,7 +603,7 @@ ParagraphClass.render(vu => {
         e.stopPropagation();
       }).off('click').on('click', e => {
         // Use Cope.modal to open the link editor
-        let form = Cope.modal(Views.class('Form'), {
+        let form = Cope.modal(Views.class('Form'), { // form view
           inputs: [
             { type: 'text', label: 'Title', value: vu.get('text') },
             { type: 'text', label: 'Url', value: vu.get('link') }
@@ -651,13 +655,13 @@ DataUploaderClass.dom(vu => [
 ]);
 
 DataUploaderClass.render(vu => {
-  let richTextarea,
+  let richTextarea, // richTextarea view
       itemList, // on page 2 for type "item"
-      tagItems = [],
-      viewData = {},
-      catView, tagsView, 
-      type = vu.get('type') || 'blog',
-      idx = 1,
+      tagItems = [], // array, tags store
+      viewData = {}, // object, view data
+      catView, tagsView, // view
+      type = vu.get('type') || 'blog', // string, the type by selected
+      idx = 1, // number, current page
       oc, ot; 
 
   // Init
@@ -665,8 +669,8 @@ DataUploaderClass.render(vu => {
   vu.map('tagItems', x => x || {});
   vu.map('tags', x => x || {});
 
-  let readItems = function(items) {
-    let choices = [], options = [], all = [];
+  let readItems = function(items) { // function, (items), sort items and return { choices, options, all }
+    let choices = [], options = [], all = []; // init 
     Object.keys(items).map(key => {
       if (items[key]) {
         choices = choices.concat({ value: key });
@@ -681,7 +685,7 @@ DataUploaderClass.render(vu => {
     }
   }; // end of readItems
 
-  let renderCats = function(value) {
+  let renderCats = function(value) { // function, (value), render catView 
     if (!value) { return; }
 
     vu.map('catItems', x => {
@@ -702,9 +706,9 @@ DataUploaderClass.render(vu => {
 
     // Update category
     vu.set('category', value);
-  };
+  }; // end of renderCats
 
-  let renderTags = function(value) {
+  let renderTags = function(value) { // function, (value), render tagsView
     if (value) { 
       vu.map('tagItems', x => {
         x[value] = true;
@@ -718,14 +722,15 @@ DataUploaderClass.render(vu => {
     })
     // Update tags
     let tmp = {};
+
     obj.choices.map(x => {
       tmp[x.value] = true;
     });
     vu.set('tags', tmp);
+
     let tagEl = {};
+
     tags = vu.get('tags');
-
-
     vu('@tags').html('');
     Object.keys(tags).filter(tagname => tags[tagname]).map((tagname, idx) => {
 
@@ -748,13 +753,15 @@ DataUploaderClass.render(vu => {
     });
   }; // end of renderTags
   
-  function toggle(select) {
+  function toggle(select) { // function, (select), page toggle
+ 
     let sign = (select === 'next') ? 1 : -1;
+
     idx = idx + 1 * sign;
     if (idx > 3) { return; }
     vu.$el('@panel-display').children().addClass('hidden');
     vu.$el('@page-' + idx).removeClass('hidden');
-  }
+  } // end of toggle
 
   ['blog', 'item'].map(x => {
     vu.$el('@' + x).off('click').on('click', e => {
@@ -766,7 +773,7 @@ DataUploaderClass.render(vu => {
       .css('color', 'red')
       .addClass('selected');
       
-      type = vu.map('type',type => x , true);
+      type = vu.map('type', type => x , true);
     })
   }); // end of map
 
@@ -790,7 +797,7 @@ DataUploaderClass.render(vu => {
       viewData.colType = type;
       viewData.category = catView.$el('@input').val();
       viewData.tags = Object.keys(vu.get('tags'));
-      if(type === 'item' && itemList.get('List').get().length > 0) {
+      if (type === 'item' && itemList.get('List').get().length > 0) {
         itemList.get('List').get().map(x => {
           viewData.data[x.idx] = x.view.get();
         });
@@ -798,7 +805,6 @@ DataUploaderClass.render(vu => {
           viewData.data = viewData.data.concat(richTextarea.get().data);
       }
       idx = idx - 1;
-      console.log(viewData);
       vu.res('data', viewData);
     }
   }); // end of @next click
@@ -847,9 +853,6 @@ DataUploaderClass.render(vu => {
       break;
   } // end of switch
 
-
-
-
   // Build ListItem for category on page 3
   catView = ListItemView.build({
     sel: vu.sel('@cat-n-tags'),
@@ -859,7 +862,7 @@ DataUploaderClass.render(vu => {
       items: readItems(vu.get('catItems')).options
       //items: [{ value: 'shirt' }, { value: 'pants' }]
     }
-  });
+  }); // end of catView 
 
   // Build ListItem for tags on page 3
   tagsView = ListItemView.build({
@@ -871,20 +874,19 @@ DataUploaderClass.render(vu => {
       items: readItems(vu.get('tagItems')).options
       //items: [{ value: 'tag1' }, { value: 'troll' }]
     }
-  }); 
+  }); // end of tagsView 
 
   // On user input
   catView.res('value', value => {
     renderCats(value);
-    console.log(readItems(vu.get('catItems')).options);
-  })
+  });
 
   tagsView.res('value', value => {
     renderTags(value);
     setTimeout(function() {
       tagsView.$el('@input').val('');
     });
-  })
+  });
 
   // Type click events on page 2
   if (vu.get('type') === 'item') { 
@@ -930,19 +932,20 @@ ImageUploaderView.dom(vu => [
 ]);
 
 ImageUploaderView.render(vu => {
-	let $files = vu.$el('@files');
-			$preview = vu.$el('@preview'),
-			$button = vu.$el('@button'),
+	let $files = vu.$el('@files'); // JQuery element of file input
+			$preview = vu.$el('@preview'), 
+			$button = vu.$el('@button'), // JQuery element of button
 			$done = vu.$el('@done'),
-			files = [],
-      srcs = [];
+			files = [], // array, an array of image files
+      srcs = []; // array, an array of src
+
 	$button.off('click').on('click', () => {
     $files.click();
 	});
 
 	$files.off('change').on('change', e => {
-		if ($files[0].files && $files[0].files[0]){
-			for (let i = 0; i<e.target.files.length; i++) {
+		if ($files[0].files && $files[0].files[0]) {
+			for (let i = 0; i < e.target.files.length; i++) {
 				let reader = new FileReader();
 				reader.readAsDataURL($files[0].files[i]);
         files.push($files[0].files[i]);
@@ -968,13 +971,9 @@ ImageUploaderView.render(vu => {
 // End of ImageUploader
 
 // FormView
-// FormView.dom(vu =>`
-//   <div ${vu.ID}>
-//     <div class="view-form">
-//       <ul data-component="inputs"></ul>
-//     </div>
-//   </div>
-// `);
+// - values: array, an array of input value
+// - inputs: array, an array of object { type, label, placeholder, comp, value }
+// "values" <- array, an array of input value
 FormView.dom(vu => [
   { 'div.view-form': [
     { 'ul@inputs': ''}
@@ -987,17 +986,18 @@ FormView.render(vu => {
   }
 
   vu.use('inputs').then(v => {
-    let vals = [];
+
+    let vals = []; // array, an array of input value
 
     // Clean up @inputs
     vu.$el('@inputs').html('');
 
     v.inputs.forEach((obj, index) =>{
-      let type = obj.type || 'text', 
-          label = obj.label|| '', 
-          placeholder = obj.placeholder || '',
-          comp = obj.comp || `li-${index}`; 
-          val = obj.value || '';
+      let type = obj.type || 'text', // string, setting default value
+          label = obj.label|| '', // string, setting default value
+          placeholder = obj.placeholder || '', // string, setting default value
+          comp = obj.comp || `li-${index}`; // string, setting default value
+          val = obj.value || ''; // string, setting default value
       vu.$el('@inputs').append(`
         <li>
           <div>${label}</div>
@@ -1016,17 +1016,17 @@ FormView.render(vu => {
     });// end of forEach
   });// end of vu.use
 });
-
+// End of Form
 
 // PhotoView
 // @img: for photo src
 // @caption: for photo caption
-// -link: string, the url for the photo
-// -src: string, the photo url
-// -caption: string, a caption for the photo
-// -css: object, css for decoration the outer div
-// -css['@img']: object, css for decoration the img
-// -css['@caption']: object, css for decoration the caption
+// - link: string, the url for the photo
+// - src: string, the photo url
+// - caption: string, a caption for the photo
+// - css: object, css for decoration the outer div
+// - css['@img']: object, css for decoration the img
+// - css['@caption']: object, css for decoration the caption
 PhotoView.dom(vu => [
   { 'div': [
     { 'a(href="#")': [
@@ -1052,7 +1052,7 @@ PhotoView.render(vu => {
     vu.$el('@caption').html(v.caption);
   })
 
-  let PhotoPostCSS = vu.val('css') || {
+  let PhotoPostCSS = vu.val('css') || { // object, setting photo css
     width: '450px',
     'text-align': 'center',
     margin: '0 auto'
@@ -1060,13 +1060,13 @@ PhotoView.render(vu => {
 
   vu.$el().css(PhotoPostCSS);
 
-  let imgCSS = (vu.val('@img') && vu.val('@img').css) || {
+  let imgCSS = (vu.val('@img') && vu.val('@img').css) || { // object, setting img css
     margin: '0 auto'
   };
 
   vu.$el('@img').css(imgCSS);
 
-  let captionCSS = (vu.val('@caption') && vu.val('@caption').css) || {
+  let captionCSS = (vu.val('@caption') && vu.val('@caption').css) || { // object, setting caption css
     width: '100%',
     height: 'auto',
     'background-color': '#DDD',
@@ -1079,19 +1079,13 @@ PhotoView.render(vu => {
 
 // GridView
 // @grid: a div contain grid
-// -data: array of object, an array of object with attribute 'src', 'caption','link' such as {
+// - data: array of object, an array of object with attribute 'src', 'caption','link' such as {
 //   src: 'https://fakeimg.pl/440x320/282828/eae0d0/?text=World1',
 //   caption: 'This is a placeholder',
 //   link: 'https://www.google.com.tw/?q=1'
 // }
-// -src: array, contain url as value, loading [src] if no [data] import
-// -css: object, decoration for the grid
-// GridView.dom(vu =>
-//   `<div class='view-grid' ${vu.ID}>
-//       <div class='row clear-margin' data-component="grid"></div>
-//     </div>
-//   </div>`
-// );
+// - src: array, contain url as value, loading [src] if no [data] import
+// - css: object, decoration for the grid
 GridView.dom(vu => [
   { 'div.view-grid': [
     { 'div.row.clear-margin@grid': ''}
@@ -1149,11 +1143,11 @@ GridView.render(vu => {
 //   caption: 'This is a placeholder',
 //   link: 'https://www.google.com.tw/?q=1'
 // }
-// -container: object, set attribute for width and heigh with default value: 980*390
-// -autoSlide: boolean, set auto change slide with default value: true
-// -changeTime: numnber, set the time for slide auto-changing
-// -showArrow: boolean, set whether showing arrow or not with default value: true
-// -mode: string, set slide mode 'slide' or 'center' with default value: slide
+// - container: object, set attribute for width and heigh with default value: 980*390
+// - autoSlide: boolean, set auto change slide with default value: true
+// - changeTime: numnber, set the time for slide auto-changing
+// - showArrow: boolean, set whether showing arrow or not with default value: true
+// - mode: string, set slide mode 'slide' or 'center' with default value: slide
 SlideClass.dom(vu => [
   { 'div.view-slide': [
     { 'div.slide': [
@@ -1187,11 +1181,11 @@ SlideClass.render(vu => {
 
   //  Loading Data
   vu.use('data').then(v => {
-    if(Array.isArray(v.data)){
+    if (Array.isArray(v.data)) {
       let currentNumber = 0;
       let totalSlideNumber = v.data.length - 1;
       //  如果圖片只有一張，隱藏左右箭頭
-      if(totalSlideNumber == 0){
+      if (totalSlideNumber == 0) {
         vu.$el('.slideButton').remove();
       }
 
@@ -1219,8 +1213,8 @@ SlideClass.render(vu => {
         
       vu.$el('@slideNav').find('li').first().addClass('active');
 
-      let slideWidth = vu.$el('.banner').width();
-      let slideHeight = vu.$el('.banner').height();
+      let slideWidth = vu.$el('.banner').width(); // number, slide width
+      let slideHeight = vu.$el('.banner').height(); // number, slide height
 
       //  setting CSS to adjust slide
       vu.$el('.slide').css({
@@ -1242,7 +1236,7 @@ SlideClass.render(vu => {
       })
 
       //  SlideFunction
-      let checkSlideNumber = (slideNumber, totalSlide) => {
+      let checkSlideNumber = (slideNumber, totalSlide) => { // function, (slideNumber, totalSlide), check slide number
         if (slideNumber < 0) {
             return totalSlide;
         } else if (slideNumber > totalSlide) {
@@ -1252,7 +1246,7 @@ SlideClass.render(vu => {
         }
       };
 
-      let changeSlide = () => {
+      let changeSlide = () => { // function, (), change slide
         currentNumber = checkSlideNumber(currentNumber, totalSlideNumber);
         vu.$el('.banner').animate({
             'left': -slideWidth * currentNumber
@@ -1282,7 +1276,7 @@ SlideClass.render(vu => {
 
       //  SetInterval
       let changeTime = vu.val('changeTime') || 3000;
-      if(!(vu.val('autoSlide') === false)){
+      if (!(vu.val('autoSlide') === false)) {
         let auto = () => {
           currentNumber++;
           changeSlide();
@@ -1301,20 +1295,18 @@ SlideClass.render(vu => {
         case 'slide':
           modeSlide();
           break;
-
         case 'center':
           modeCenter();
           break;
-
         default:
           modeSlide();
       }
     }
-  })
+  }); // end of use('data')
 
   vu.use('showArrow').then(v => {
-    if(v.showArrow === false) vu.$el('.slideButton').remove();
-  })
+    if (v.showArrow === false) vu.$el('.slideButton').remove();
+  }); // end of use('showArrow')
 
   //  setting customer caption font
   vu.use('captionFontCSS').then(v => {
@@ -1324,6 +1316,8 @@ SlideClass.render(vu => {
 })
 
 // Slide
+// - data: array, an array of object { imgsrc }
+// - effect
 SlideClass.dom(vu => [
   { 'div.view-slide': [
     { 'ul@items.slide-items': '' }] 
@@ -1331,9 +1325,9 @@ SlideClass.dom(vu => [
 ]);
 
 SlideClass.render(vu => {
-  let data = vu.map('data', x => Array.isArray(x) ? x : []),
-      count = 0, 
-      length = data.length,
+  let data = vu.map('data', x => Array.isArray(x) ? x : []), // array
+      count = 0, // number
+      length = data.length, // number
       effect = vu.get('effect'); // dissolve, slide
   let slideDom = function(x) {
     return [
@@ -1387,28 +1381,27 @@ SelectView.dom(vu => [
 
 SelectView.render(vu => {
   vu.use('options').then(v => {
-    if(Array.isArray(v.options)){
+    if (Array.isArray(v.options)) {
       v.options.forEach((o, i) =>{
         vu.$el('@select').append(`<option data-component="option-${i}" value="${o.value}">${o.payload}</option>`);
-      })
+      });
 
-              // Add click listener
+      // Add click listener
       vu.$el(`@select`).off('change').on('change', function() {
         let o = {};
         o.value = vu.$el(`@select`).val();
         o.payload = vu.$el(`@select`).find(`option:selected`).text();        
-
         vu.res('value', o);
-      })
+      });
     } 
-  })  
+  });  
 });
 
 // Contact
 // @title: h3
 // @list: ul
-// - title: string
-// - items: array of strings
+// - title: string, @title's text
+// - items: an array of object { value }
 ContactsView.dom(vu => [
   { 'h3@title': '' },
   { 'ul@list': '' }
@@ -1429,8 +1422,13 @@ ContactsView.render(vu => {
     vu.$el('@list').html(items);
   });
 });
+// End of Contacts
 
 // Purely.Layout.Single
+// - type: string, 'basic' || 'collection' || 'contacts'
+// - basic: object, { title, content, imgsrc }
+// - collection: object, { data }
+// - contacts: array, an array of object { value }
 PurelyLayoutSingleView.dom(vu => [
   { 'div.view-purely-layout-single': [
     { 'h5@title.title': ''},
@@ -1494,15 +1492,16 @@ PurelyLayoutSingleView.render(vu => {
     })
    });
 });
+// End of PurelyLayoutSingle
 
 // ListItem
 // @value: text input or textarea
 // - type: 'text' || 'textarea' || 'media' || 'select' || 'link'
-// - label: string
-// - value: string
-// - items: array
-// - editable: boolean
-// - labelEditable: boolean
+// - label: string, input label
+// - value: string, input value
+// - items: array, an array of 
+// - editable: boolean, true to modify the input
+// - labelEditable: boolean, true to modify the label
 // "value" <- string: triggered on every keyup
 // "done": <- string: only triggered on Enter or focusout event
 ListItemView.dom(vu => [
@@ -1519,13 +1518,13 @@ ListItemView.dom(vu => [
 ]);
 
 ListItemView.render(vu => {
-  let type = vu.map('type', x => x || 'text'),
-      displayValue = '',
-      $textInput, 
-      url,
-      labelEditable = vu.get('labelEditable'),
-      editable = vu.get('editable'),
-      placeholder = vu.get('placeholder') 
+  let type = vu.map('type', x => x || 'text'), // string, setting default type
+      displayValue = '', // string, setting display value 
+      $textInput, // JQuery element of input
+      url, // string
+      labelEditable = vu.get('labelEditable'), // boolean, true to modify the label
+      editable = vu.get('editable'), // boolean, true to modify the input
+      placeholder = vu.get('placeholder') // string
         ? ' placeholder = "' + vu.get('placeholder') + '" '
         : '';
 
@@ -1585,7 +1584,7 @@ ListItemView.render(vu => {
         'cursor': 'pointer'
       });
 
-      let value = vu.get('value') || {};
+      let value = vu.get('value') || {}; // object, { vidsrc, imgsrc }
       if (value.vidsrc) {
         // Video
       } else if (value.imgsrc) {
@@ -1645,7 +1644,7 @@ ListItemView.render(vu => {
       vu.$el('@label-editable').find('input').focus();
     });
     vu.$el('@label-editable').find('input').off('keyup').on('keyup', function(e) {
-      let label = $(this).val().trim();
+      let label = $(this).val().trim(); // string, label value
       vu.set('label', label);
       vu('@label-display').html(label);
 
@@ -1676,7 +1675,6 @@ ListItemView.render(vu => {
       vu.$el('@editable').removeClass('hidden');
     }
     if (vu.get('type') == 'media') { // type == 'media'
-      console.log('open modal');
       let modalView = Cope.openFiles({
         maxWidth: 400,
       }).then(files => {
@@ -1748,6 +1746,7 @@ ListItemView.render(vu => {
 // - mode: 'normal' || 'edit'
 // - value: mixed, current value
 // - placeholder: string
+// - options: array, an array of object { value }
 // - items: array, options for "text-select"
 //          could be an array of string values 
 //          or objects like { value }
@@ -1758,12 +1757,12 @@ InputClass.dom(vu => [
 ]);
 
 InputClass.render(vu => {
-  let type = vu.map('type', type => type || 'text'),
-      value = vu.get('value'),
-      options = vu.get('options') || [],
-      multi = vu.get('multi'),
-      onEdit = vu.get('editable') && (vu.get('mode') === 'edit'),
-      placeholder = vu.get('placeholder'),
+  let type = vu.map('type', type => type || 'text'), // string, setting default type
+      value = vu.get('value'), // mixed, current value
+      options = vu.get('options') || [], // array, an array of object { value }
+      multi = vu.get('multi'), // boolean, true to multiple choice
+      onEdit = vu.get('editable') && (vu.get('mode') === 'edit'), // boolean, true to edit mode
+      placeholder = vu.get('placeholder'), // string
       normal, // switch to normal mode 
       edit; // switch to edit mode
 
@@ -1858,13 +1857,13 @@ InputClass.render(vu => {
         });
 
         // Render items
-        let renderItems = function(items, key) { // key is the search key
+        let renderItems = function(items, key) { // function, (items, key), key is the search key
           if (key) {
             items = items
               .filter(x => x.value.indexOf(key) > -1)
           }
           vu('@select-list').html(items.map(item => item.dom));
-        };
+        }; // end of renderItems
         renderItems(items);
 
         // Bind click events to each items
@@ -1932,9 +1931,9 @@ InputClass.render(vu => {
       }
       options.map(option => {
         if (vu.get('value') == option.value) {
-          vu.$el('@select').append('<option selected="selected">' + option.value +'</option>');
+          vu.$el('@select').append('<option selected="selected">' + option.value + '</option>');
         } else {
-          vu.$el('@select').append('<option>' + option.value +'</option>');
+          vu.$el('@select').append('<option>' + option.value + '</option>');
         }
       }); // end of map
       vu.$el('@select').off('change').on('change', e => {
@@ -2019,14 +2018,15 @@ InputClass.render(vu => {
 // SortableList
 // - List: object, inner sortable list
 // - height: number, each block's height
-// - clear: boolean, set true to clear up List
-// "item clicked" <= obj, the selected item
+// - clear: boolean, set true to clear up 
+// "item clicked" <- obj, the selected item
+// "order" <- array, current order
 SortableListClass.dom(vu => [
   { 'div.view-sortable-list': '' }
 ]);
 
 SortableListClass.render(vu => {
-  let List,
+  let List, // object, 
       newBlock, // { viewClass, data }
       height,
       renderBlock;
@@ -2061,7 +2061,7 @@ SortableListClass.render(vu => {
 
   // List
   List = vu.map('List', List => {
-    let clear = vu.get('clear');
+    let clear = vu.get('clear'); // boolean
     if (clear) { vu.set('clear', false); }
 
     if(!List || clear) {
@@ -2069,18 +2069,18 @@ SortableListClass.render(vu => {
       // Reset the dom before start
       vu().html('');
 
-      let makeList = function(o) {
-        let items = [], // { rid, comp, idx, view }
-            my = {};
+      let makeList = function(o) { // function, (o), return my
+        let items = [], // an array of object { rid, comp, idx, view }
+            my = {}; // object, private 
 
-        my.get = function(rid) {
+        my.get = function(rid) { // function, (rid), get item rid
           if (!rid) {
             return items;
           }
           return items.filter(item => (item.rid === rid))[0] || {};
         };
 
-        my.getByIdx = function(idx) {
+        my.getByIdx = function(idx) { // function, (idx), use idx to get item
           let i = idx;
           if (isNaN(idx)) {
             let arr = [];
@@ -2095,12 +2095,12 @@ SortableListClass.render(vu => {
           return items.filter(item => (item.idx === i))[0] || {};
         };
 
-        my.getByOrder = function(i) {
+        my.getByOrder = function(i) { // function, (i), get by order
           return items[i];
         };
 
         // s: params of the section
-        my.insert = function(newBlock, i) {
+        my.insert = function(newBlock, i) { // function, (newBlock, i), insert newBlock to items[i]
           i = !isNaN(i) ? i : items.length;
 
           // Set random Id
@@ -2163,7 +2163,7 @@ SortableListClass.render(vu => {
           return item;
         }; // end of my.insert
 
-        my.remove = function(i) {
+        my.remove = function(i) { // function, (i), remove the item
           items = items.reduce((arr, item) => {
             if (item.idx === i) {
               item.idx = -1;
@@ -2178,7 +2178,7 @@ SortableListClass.render(vu => {
           }, []);
         }; // end of my.remove
 
-        my.swap = function(i, j) {
+        my.swap = function(i, j) { // function, (i, j), exchange i with j
           let item_i, item_j;
           let arr = [];
           arr = items.map(item => item.idx);
@@ -2192,8 +2192,7 @@ SortableListClass.render(vu => {
           }
         }; // end of my.swap
 
-        my.order = function(order) {
-          console.log('@@@@');
+        my.order = function(order) { // function, (order), get order
           let tmp = order.concat([]);
           if (order.length != items.length || !Array.isArray(order)) { return; }
           if (tmp.sort((a, b) => a-b).filter((idx, i) => idx != i).length != 0) { return; }
@@ -2213,9 +2212,10 @@ SortableListClass.render(vu => {
           startPageY, 
           box, 
           elHeight;
+
       List = makeList({
         height: height,
-        onclick: function(item, e) {
+        onclick: function(item, e) { 
           item._mouseUp = true;
           vu.res('item clicked', item);
         },
@@ -2253,16 +2253,15 @@ SortableListClass.render(vu => {
         },
         onmousemove: function (item, e) {
           e.stopPropagation();
-          //item._mouseUp = false;
           let targetRect = item.view.$el()[0].getBoundingClientRect();
-          if(startItem) {
+          if (startItem) {
             vu.$el('@' + startItem.comp).css({
              'top': e.pageY - startPageY,
              'left': e.pageX - startPageX 
             });
           }
 
-          if(startItem){
+          if (startItem) {
             List.get().filter(item => item.rid != startItem.rid).map(item => {
               let itemRect = item.view.$el().offset(),//[0].getBoundingClientRect(),
                   originVect = {},
@@ -2276,11 +2275,9 @@ SortableListClass.render(vu => {
               mouseVect.x = e.pageX - originVect.x; // must less than w/2
               mouseVect.y = e.pageY - originVect.y; // must less than h/2
               
-              //console.log(mouseVect,originVect, itemRect);
               if ((Math.abs(mouseVect.x) < (itemRect.width / 2))
                 && (Math.abs(mouseVect.y) < (itemRect.height / 2))) { // isOver
                 let d = startItem.idx - item.idx; // direction
-                //console.log(d, mouseVect.y, item);
                 if ((d * mouseVect.y) < 0) { // move!!!
                   let arr = List.get().map((x, i) => i), // 0, 1, ..., N
                       startIdx = startItem.idx,
@@ -2299,7 +2296,6 @@ SortableListClass.render(vu => {
                   }
 
                   cutArr = arr.slice(startIdx, insertIdx + 1);
-                  //console.log(cutArr);
                   cutArr = cutArr.map((x, i, arr) => {
                     return arr[(i - 1 + arr.length) % arr.length];
                   });
@@ -2329,13 +2325,11 @@ SortableListClass.render(vu => {
               'z-index': 1
             });
             //reset
-            
             if(vu.$el('.block')) {
               vu.$el('.block').after(vu.$el('@' + startItem.comp));
               vu.$el('.block').remove();
               itemHeight = 0;
             }
-            //startItem = '';
             vu.res('order', List.get().map(item => item.idx));
           }
           startItem = '';
@@ -2444,9 +2438,15 @@ PurelyPageClass.render(vu => {
     vu.$el('@mask').css(cssObj);
     return bgAbs;
   }); // end of map('bgAbs')
-}); // end of Purely.Page
+}); 
+// End of Purely.Page
 
 // Purely.Section
+// - type: string, 'basic' || 'collection' || 'contacts'
+// - style: string, current style
+// - title: string, current title
+// - media: object, { imgsrc }
+// - data: array, an array of object 
 PurelySectionClass.dom(vu => [
   { 'div.view-purely-section': [
     { 'div.layer-comp': [
@@ -2462,14 +2462,14 @@ PurelySectionClass.dom(vu => [
 ]);
 
 PurelySectionClass.render(vu => {
-  let type = vu.get('type'),
-      style = vu.get('style'),
-      title = vu.map('title', x => x || ''),
-      content = vu.map('content', x => x || ''),
-      media = vu.get('media'),
-      data = vu.get('data'),
-      compSel = vu.sel('@comp'),
-      compType;
+  let type = vu.get('type'), // string, current type
+      style = vu.get('style'), // string, current style
+      title = vu.map('title', x => x || ''), // string, current title
+      content = vu.map('content', x => x || ''), // string, current content
+      media = vu.get('media'), // object, { imgsrc }
+      data = vu.get('data'), // array, an array of object
+      compSel = vu.sel('@comp'), // JQuery element of selected
+      compType; // string
 
   if (style) {
     style.split('/').map(clz => {
@@ -2509,16 +2509,16 @@ PurelySectionClass.render(vu => {
 }); 
 // End of Purely.Section
 
-
-
-
-
-
 // Purely.Section.Basic
-// @title
-// @content
-// @comp
-// @bg-mask
+// - title: string, value for @title
+// - content: string, value for @content
+// - layout: string, current layout
+// - compLayout: mixed, false to not layout for comp
+// - imgsrc: string, current img src
+// - vidsrc: string, current video src
+// - textColor: string, text color
+// - bgColor: string, section background color
+// - bgColorStrength: number, current opacity
 PurelySectionBasicClass.dom(vu => [
   { 'section.view-purely-section-basic': [
     { 'div.text-wrap': [
@@ -2531,15 +2531,15 @@ PurelySectionBasicClass.dom(vu => [
 ]);
 
 PurelySectionBasicClass.render(vu => {
-  let title = vu.get('title') || '',
-      content = vu.get('content') || '',
-      layout = vu.get('layout') || 'bold-left',
-      compLayout = vu.get('compLayout') || false,
-      imgsrc = vu.get('imgsrc'),
-      vidsrc = vu.get('vidsrc'),
-      textColor = vu.get('textColor'),
-      bgColor = vu.get('bgColor'),
-      bgColorStrength = vu.get('bgColorStrength');
+  let title = vu.get('title') || '', // string, current title 
+      content = vu.get('content') || '', // string, current content
+      layout = vu.get('layout') || 'bold-left', // string current layout
+      compLayout = vu.get('compLayout') || false, // mixed, false to not layout for comp
+      imgsrc = vu.get('imgsrc'), // string, current imgsrc
+      vidsrc = vu.get('vidsrc'), // string, curren vidsrc
+      textColor = vu.get('textColor'), // string, current text color
+      bgColor = vu.get('bgColor'), // string, current bgColor
+      bgColorStrength = vu.get('bgColorStrength'); // number, current opacity
 
   title = title.replace(/\n/g, ' ');
   content = content.replace(/\n/g, '<br>');
@@ -2573,9 +2573,13 @@ PurelySectionBasicClass.render(vu => {
   if (compLayout) {
     vu.$el().addClass(compLayout);
   }
-}); // end of Purely.Section.Basic
+}); 
+// End of Purely.Section.Basic
 
 // Purely.Section.Collection
+// - layout: string, current layout
+// - collectionType: string, 'slide'
+// - data: array, an array of object
 PurelySectionCollectionClass.dom(vu => [
   { 'div.view-purely-section-collection': [
     { 'div@collection': '' }] 
@@ -2583,9 +2587,9 @@ PurelySectionCollectionClass.dom(vu => [
 ]);
 
 PurelySectionCollectionClass.render(vu => {
-  let layout = vu.get('layout') || 'comp-bold-left',
-      colType = vu.get('collectionType') || 'slide',
-      data = vu.get('data'),
+  let layout = vu.get('layout') || 'comp-bold-left', // string, current layout
+      colType = vu.get('collectionType') || 'slide', // string, 'slide'
+      data = vu.get('data'), // array, an array of object
       itemViews = [];
 
   if (!Array.isArray(data)) { data = []; }
@@ -2622,9 +2626,11 @@ PurelySectionCollectionClass.render(vu => {
   // Add comp class
   vu.$el().addClass(layout);
 });
-// end of Purely.Section.Collection
+// End of Purely.Section.Collection
 
 // Purely.Section.Contacts
+// - layout: string, current layout
+// - data: array, an array of object
 PurelySectionContactsClass.dom(vu => [
   { 'div.view-purely-section-contacts': [
     { 'div@contacts': '' }] 
@@ -2632,8 +2638,8 @@ PurelySectionContactsClass.dom(vu => [
 ]);
 
 PurelySectionContactsClass.render(vu => {
-  let layout = vu.get('layout') || 'comp-simple-list',
-      data = vu.get('data');
+  let layout = vu.get('layout') || 'comp-simple-list', // string, current layout
+      data = vu.get('data'); // array, an array of object
 
   if (!Array.isArray(data)) { data = []; }
   data.map((x, i) => {
@@ -2653,7 +2659,7 @@ PurelySectionContactsClass.render(vu => {
   // Add comp class
   vu.$el().addClass(layout);
 });
-// end of Purely.Section.Contacts
+// End of Purely.Section.Contacts
 
 //-------------------------------------
 })(jQuery, Cope);
